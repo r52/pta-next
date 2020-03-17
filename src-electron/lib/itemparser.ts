@@ -640,9 +640,9 @@ export class ItemParser {
     // Remove augmented tag
     prop = prop.replace(' (augmented)', '');
 
-    const re = /^(\d+)-(\d+)/g;
+    const re = /\d+/g;
 
-    const match = prop.match(re);
+    const match = Array.from(prop.matchAll(re), m => m[0]);
 
     if (match) {
       const v1 = match[0];
@@ -1037,7 +1037,7 @@ export class ItemParser {
         }
 
         // use crafted stat
-        filter = { ...entry, value: [...val], disabled: true };
+        filter = { ...entry, value: [...val], enabled: false };
         break;
       } else {
         if (entry['type'] == 'pseudo') {
@@ -1056,7 +1056,7 @@ export class ItemParser {
         }
 
         if (entry['type'] == 'explicit') {
-          filter = { ...entry, value: [...val], disabled: true };
+          filter = { ...entry, value: [...val], enabled: false };
         }
       }
     }

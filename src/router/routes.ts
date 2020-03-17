@@ -8,7 +8,15 @@ const routes: RouteConfig[] = [
   },
   {
     path: '/item',
-    component: () => import('layouts/Item.vue')
+    component: () => import('layouts/Item.vue'),
+    children: [
+      {
+        path: '/mods',
+        name: 'mods',
+        props: true,
+        component: () => import('pages/Mods.vue')
+      }
+    ]
   }
 ];
 
