@@ -1,5 +1,0 @@
-https://github.com/octalmage/robotjs
-https://github.com/sindresorhus/active-win
-https://github.com/wilix-team/iohook
-https://github.com/megahertz/electron-log
-https://github.com/megahertz/electron-cfg
