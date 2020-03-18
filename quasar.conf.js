@@ -193,7 +193,7 @@ module.exports = configure(function(/* ctx */) {
 
         appId: 'com.electron.pta-next',
         win: {
-          target: '7z'
+          target: ['nsis', '7z']
         }
       },
 

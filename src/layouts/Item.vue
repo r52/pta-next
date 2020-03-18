@@ -107,7 +107,7 @@ export default {
 
   computed: {
     itemClass() {
-      let cls = this.item.rarity;
+      let cls = this.item.rarity as string;
 
       if (
         this.item.category == 'gem' ||
@@ -115,7 +115,7 @@ export default {
         this.item.category == 'card' ||
         this.item.category == 'currency'
       ) {
-        cls = this.item.category;
+        cls = this.item.category as string;
       }
 
       return cls;

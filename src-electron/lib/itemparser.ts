@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
@@ -467,9 +468,7 @@ export class ItemParser {
 
     // Process special/pseudo rules
     if (Object.keys(item['filters']).length) {
-      for (const key in item['filters']) {
-        const fil = item['filters'][key];
-
+      for (const [key, fil] of Object.entries<any>(item['filters'])) {
         if (this.pseudoRules.has(key)) {
           const rules = this.pseudoRules.get(key);
 

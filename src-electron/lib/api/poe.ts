@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/camelcase */
 // official PoE Trade Site search api
 import { shell } from 'electron';
 import cfg from 'electron-cfg';
@@ -334,11 +336,9 @@ export function searchItemWithOptions(
     mods = Object.assign(mods, item['pseudos']);
   }
 
-  for (const prop in mods) {
-    const e = mods[prop];
-
+  for (const [k, e] of Object.entries<any>(mods)) {
     // set id
-    e['id'] = prop;
+    e['id'] = k;
 
     if (e['enabled'] == true) {
       e['disabled'] = false;
