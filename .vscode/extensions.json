@@ -4,9 +4,5 @@
     "esbenp.prettier-vscode",
     "octref.vetur"
   ],
-  "unwantedRecommendations": [
-    "hookyqr.beautify",
-    "dbaeumer.jshint",
-    "ms-vscode.vscode-typescript-tslint-plugin"
-  ]
+  "unwantedRecommendations": ["hookyqr.beautify", "dbaeumer.jshint"]
 }

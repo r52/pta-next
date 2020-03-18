@@ -5,38 +5,56 @@
         <q-toolbar-title :class="[itemClass]"
           >{{ this.item.name }} {{ this.item.type }}</q-toolbar-title
         >
+        <q-btn flat round dense icon="close" @click="closeApp" />
       </q-toolbar>
-      <q-toolbar
-        class="bg-grey-10"
-        v-if="item.unidentified || item.corrupted || item.influences"
-        inset
-      >
-        <q-breadcrumbs active-color="white">
-          <q-breadcrumbs-el
-            label="Unidentified"
-            class="unidentifiedItem"
-            v-if="item.unidentified"
-          />
-          <q-breadcrumbs-el
-            label="Corrupted"
-            class="corruptedItem"
-            v-if="item.corrupted"
-          />
-          <q-breadcrumbs-el
-            class="influenceItem"
-            v-if="item.influences"
-            v-for="inf in item.influences"
-            :label="inf"
-            :key="inf"
-          />
-        </q-breadcrumbs>
+      <q-toolbar class="bg-grey-10" inset>
+        <q-chip
+          outline
+          square
+          color="green"
+          text-color="white"
+          :label="settings.league"
+        />
+
+        <q-chip
+          outline
+          square
+          color="red"
+          text-color="white"
+          label="Unidentified"
+          v-if="item.unidentified"
+        />
+        <q-chip
+          outline
+          square
+          color="red"
+          text-color="white"
+          label="Corrupted"
+          v-if="item.corrupted"
+        />
+        <q-chip
+          outline
+          square
+          color="purple"
+          text-color="white"
+          v-if="item.influences"
+          v-for="inf in item.influences"
+          :key="inf"
+          :label="inf"
+        />
       </q-toolbar>
 
       <q-tabs dense class="bg-brown-8">
         <q-route-tab
           v-if="results"
           icon="attach_money"
-          to="/your/route"
+          :to="{
+            name: 'results',
+            params: {
+              item: item,
+              results: results
+            }
+          }"
           replace
           label="Results"
         />
@@ -53,9 +71,9 @@
           :to="{
             name: 'mods',
             params: {
-              item: this.item,
-              settings: this.settings,
-              options: this.options
+              item: item,
+              settings: settings,
+              options: options
             }
           }"
           replace
@@ -104,9 +122,18 @@ export default {
     }
   },
 
-  created() {
-    ipcRenderer.on('item', (event, item, settings, options) => {
-      console.log(item);
+  methods: {
+    closeApp() {
+      if (process.env.MODE === 'electron') {
+        this.$q.electron.remote.BrowserWindow.getFocusedWindow().close();
+      }
+    },
+    handleItem(
+      event: Electron.IpcRendererEvent,
+      item: any,
+      settings: any,
+      options: any
+    ) {
       this.item = item;
       this.settings = settings;
       this.options = options;
@@ -121,6 +148,29 @@ export default {
           }
         });
       }
+    },
+    handleResults(event: Electron.IpcRendererEvent, results: any) {
+      this.results = results;
+
+      if (results['forcetab']) {
+        this.$router.replace({
+          name: 'results',
+          params: {
+            item: this.item as any,
+            results: results
+          }
+        });
+      }
+    }
+  },
+
+  created() {
+    ipcRenderer.on('item', (event, item, settings, options) => {
+      this.handleItem(event, item, settings, options);
+    });
+
+    ipcRenderer.on('results', (event, results) => {
+      this.handleResults(event, results);
     });
   }
 };
@@ -132,12 +182,26 @@ export default {
   src: url(../statics/Fontin-SmallCaps.ttf) format('truetype');
 }
 
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 html {
   overflow-y: auto !important;
 }
 
 body {
   font-family: 'Fontin-SmallCaps';
+  background-color: #121212e6 !important;
 }
 
 .corruptedItem,

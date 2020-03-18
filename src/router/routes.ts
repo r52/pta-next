@@ -15,6 +15,12 @@ const routes: RouteConfig[] = [
         name: 'mods',
         props: true,
         component: () => import('pages/Mods.vue')
+      },
+      {
+        path: '/results',
+        name: 'results',
+        props: true,
+        component: () => import('pages/Results.vue')
       }
     ]
   }

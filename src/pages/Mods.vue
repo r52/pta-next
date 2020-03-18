@@ -89,7 +89,7 @@
             options-dense
             stack-label
             v-model="options.usecorrupted"
-            :items="corrupts"
+            :options="corrupts"
             label="Corrupted"
           />
           <q-toggle

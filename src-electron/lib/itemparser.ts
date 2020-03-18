@@ -1,6 +1,6 @@
 import MultiMap from 'multimap';
 import log from 'electron-log';
-const axios = require('axios').default;
+import axios from 'axios';
 
 // URLs
 
@@ -71,22 +71,21 @@ class ItemText {
 export class ItemParser {
   private static instance: ItemParser;
 
-  private modData: Map<string, string>;
-  private uniques: Map<string, Record<string, any>>;
-  private baseCat: Map<string, string>;
-  private baseMap: Map<string, Record<string, any>>;
-  private excludes: Set<string>;
-  private statsByText: MultiMap;
-  private statsById: Map<string, Record<string, any>>;
-  private weaponLocals: Set<string>;
-  private armourLocals: Set<string>;
-  private enchantRules: Map<string, Record<string, any>>;
-  private pseudoRules: Map<string, Record<string, any>[]>;
-  private discriminators: Map<string, Set<string>>;
+  modData: Map<string, string>;
+  uniques: MultiMap;
+  baseCat: Map<string, string>;
+  baseMap: Map<string, Record<string, any>>;
+  excludes: Set<string>;
+  statsByText: MultiMap;
+  statsById: Map<string, Record<string, any>>;
+  weaponLocals: Set<string>;
+  armourLocals: Set<string>;
+  enchantRules: Map<string, Record<string, any>>;
+  pseudoRules: Map<string, Record<string, any>[]>;
+  discriminators: Map<string, Set<string>>;
+  mapDisc = 'warfortheatlas';
 
   private section = '';
-
-  private mapDisc = 'warfortheatlas';
 
   private constructor() {
     ///////////////////////////////////////////// Download excludes/stats
@@ -143,7 +142,7 @@ export class ItemParser {
       });
 
     ///////////////////////////////////////////// Download unique items
-    this.uniques = new Map();
+    this.uniques = new MultiMap();
 
     axios
       .get(uApiItems)
@@ -430,7 +429,7 @@ export class ItemParser {
     ) {
       const search = this.uniques.get(item['type']);
       if (search) {
-        const je = search as any;
+        const je = search[0];
         if (je['type'] == 'Prophecy') {
           // this is a prophecy
           item['name'] = item['type'];
@@ -466,7 +465,46 @@ export class ItemParser {
       }
     }
 
-    // TODO Process special/pseudo rules
+    // Process special/pseudo rules
+    if (Object.keys(item['filters']).length) {
+      for (const key in item['filters']) {
+        const fil = item['filters'][key];
+
+        if (this.pseudoRules.has(key)) {
+          const rules = this.pseudoRules.get(key);
+
+          if (rules) {
+            for (const r of rules) {
+              const pid = r['id'];
+
+              const pentry = this.statsById.get(pid);
+
+              if (!(pid in item['pseudos'])) {
+                const psEntry = { ...pentry, enabled: false, value: [] } as any;
+
+                for (const v of fil['value']) {
+                  psEntry['value'].push(v * r['factor']);
+                }
+
+                item['pseudo'][pid] = psEntry;
+              } else {
+                const psEntry = item['pseudos'][pid];
+
+                for (let i = 0; i < fil['value'].length; i++) {
+                  const v = fil['value'][i];
+
+                  // XXX: only support one operation right now
+                  // also remove is useless
+                  if (r['op'] == 'add') {
+                    psEntry['value'][i] = psEntry['value'][i] + v * r['factor'];
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     return item;
   }

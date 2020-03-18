@@ -10,7 +10,9 @@ import { ItemParser } from '../lib/itemparser';
 import robot from 'robotjs';
 import log from 'electron-log';
 import cfg from 'electron-cfg';
-const axios = require('axios').default;
+import Config from '../lib/config';
+import * as PoE from '../lib/api/poe';
+import axios from 'axios';
 
 enum ItemHotkey {
   SIMPLE,
@@ -63,7 +65,7 @@ export class PTA {
 
     // setup events
     ipcMain.on('search', (event, item, options, openbrowser) => {
-      this.doAdvancedSearch(event, item, options, openbrowser);
+      PoE.searchItemWithOptions(event, item, options, openbrowser);
     });
   }
 
@@ -72,7 +74,12 @@ export class PTA {
   }
 
   public registerShortcuts() {
-    globalShortcut.register('CommandOrControl+D', () => {
+    const simplehotkey = cfg.get(
+      Config.simplehotkey,
+      Config.default.simplehotkey
+    );
+
+    globalShortcut.register(simplehotkey, () => {
       this.handleItemHotkey(ItemHotkey.SIMPLE);
     });
   }
@@ -82,7 +89,7 @@ export class PTA {
   }
 
   public getLeague() {
-    let league = cfg.get('general.league', 0);
+    let league = cfg.get(Config.league, Config.default.league);
 
     if (league > this.leagues.length) {
       dialog.showErrorBox(
@@ -90,27 +97,21 @@ export class PTA {
         'Previously set league no longer available. Resetting to default league.'
       );
 
-      league = 0;
-      cfg.set('general.league', 0);
+      league = Config.default.league;
+      cfg.set(Config.league, Config.default.league);
     }
 
     return this.leagues[league];
   }
 
   private handleItemHotkey(type: ItemHotkey) {
-    if (type == ItemHotkey.SIMPLE) {
-      console.log('Simple hotkey pressed');
-    }
-
     const poefg = winapi.IsPoEForeground();
-
-    console.log('Poe?:', poefg);
 
     if (poefg) {
       robot.keyTap('c', 'control');
       setTimeout(() => {
         this.handleClipboard(type);
-      }, 0);
+      }, 10);
     }
   }
 
@@ -122,13 +123,11 @@ export class PTA {
       alwaysOnTop: true,
       transparent: true,
       frame: false,
-      show: false,
+      backgroundColor: '#00000000',
       webPreferences: {
         nodeIntegration: true
       }
     });
-
-    itemWindow.once('ready-to-show', () => itemWindow.show());
 
     itemWindow.loadURL((process.env.APP_URL as string) + '#/item');
 
@@ -160,8 +159,6 @@ export class PTA {
     const item = PTA.parser.parse(itemtext);
 
     if (item) {
-      // console.log(item);
-
       const { settings, options } = this.fillSearchOptions(item);
 
       this.createItemUI(item, settings, options);
@@ -172,21 +169,45 @@ export class PTA {
 
   private fillSearchOptions(item: any) {
     const league = this.getLeague();
-    const displaylimit = cfg.get('pricecheck.displaylimit', 20);
-    const corruptoverride = cfg.get('pricecheck/corruptoverride', false);
-    const corruptsearch = cfg.get('pricecheck/corruptsearch', 'Any');
-    const pcurr = cfg.get('pricecheck/primarycurrency', 'chaos');
-    const scurr = cfg.get('pricecheck/secondarycurrency', 'exa');
-    const onlineonly = cfg.get('pricecheck/online', true);
-    const buyoutonly = cfg.get('pricecheck/buyout', true);
-    const removedupes = cfg.get('pricecheck/duplicates', true);
-    const prefillmin = cfg.get('pricecheck/prefillmin', false);
-    const prefillmax = cfg.get('pricecheck/prefillmax', false);
-    const prefillrange = cfg.get('pricecheck/prefillrange', 0);
-    const prefillnormals = cfg.get('pricecheck/prefillnormals', false);
-    const prefillpseudos = cfg.get('pricecheck/prefillpseudos', true);
-    const prefillilvl = cfg.get('pricecheck/prefillilvl', false);
-    const prefillbase = cfg.get('pricecheck/prefillbase', false);
+    const displaylimit = cfg.get(
+      Config.displaylimit,
+      Config.default.displaylimit
+    );
+    const corruptoverride = cfg.get(
+      Config.corruptoverride,
+      Config.default.corruptoverride
+    );
+    const corruptsearch = cfg.get(
+      Config.corruptsearch,
+      Config.default.corruptsearch
+    );
+    const pcurr = cfg.get(
+      Config.primarycurrency,
+      Config.default.primarycurrency
+    );
+    const scurr = cfg.get(
+      Config.secondarycurrency,
+      Config.default.secondarycurrency
+    );
+    const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
+    const buyoutonly = cfg.get(Config.buyoutonly, Config.default.buyoutonly);
+    const removedupes = cfg.get(Config.removedupes, Config.default.removedupes);
+    const prefillmin = cfg.get(Config.prefillmin, Config.default.prefillmin);
+    const prefillmax = cfg.get(Config.prefillmax, Config.default.prefillmax);
+    const prefillrange = cfg.get(
+      Config.prefillrange,
+      Config.default.prefillrange
+    );
+    const prefillnormals = cfg.get(
+      Config.prefillnormals,
+      Config.default.prefillnormals
+    );
+    const prefillpseudos = cfg.get(
+      Config.prefillpseudos,
+      Config.default.prefillpseudos
+    );
+    const prefillilvl = cfg.get(Config.prefillilvl, Config.default.prefillilvl);
+    const prefillbase = cfg.get(Config.prefillbase, Config.default.prefillbase);
 
     // app settings
     const settings = {
@@ -247,16 +268,5 @@ export class PTA {
     }
 
     return { settings, options };
-  }
-
-  private doAdvancedSearch(
-    event: Electron.IpcMainEvent,
-    item: any,
-    options: any,
-    openbrowser: boolean
-  ) {
-    console.log(item);
-    console.log(options);
-    console.log(openbrowser);
   }
 }
