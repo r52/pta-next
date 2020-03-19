@@ -8,6 +8,7 @@ import { ItemParser } from '../../lib/itemparser';
 import { PTA } from '../../lib/pta';
 import log from 'electron-log';
 import axios from 'axios';
+import merge from 'lodash.merge';
 
 const uTradeFetch = 'https://www.pathofexile.com/api/trade/fetch/';
 const uTradeSearch = 'https://www.pathofexile.com/api/trade/search/';
@@ -17,6 +18,7 @@ const uTradeSite = 'https://www.pathofexile.com/trade/search/';
 function processPriceResults(
   response: any,
   event: Electron.IpcMainEvent,
+  searchoptions: any,
   forcetab: boolean
 ) {
   //
@@ -36,6 +38,7 @@ function processPriceResults(
 
   const rdat = {
     result: [],
+    options: searchoptions,
     forcetab: forcetab
   };
 
@@ -103,15 +106,26 @@ export function searchItemWithOptions(
     }
   } as any;
 
+  const sopts = {
+    label: 'Search Options',
+    children: [
+      {
+        label: 'League',
+        children: [{ label: PTA.getInstance().getLeague() }]
+      }
+    ]
+  } as any;
+
   // Take care of settings
   const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
   if (!onlineonly) {
     query.query.status.option = 'any';
+    sopts.children.push({ label: 'Online Only' });
   }
 
   const buyoutonly = cfg.get(Config.buyoutonly, Config.default.buyoutonly);
   if (buyoutonly) {
-    query.query = Object.assign(query.query, {
+    query.query = merge(query.query, {
       filters: {
         trade_filters: {
           filters: {
@@ -122,6 +136,8 @@ export function searchItemWithOptions(
         }
       }
     });
+
+    sopts.children.push({ label: 'Buyout Only' });
   }
 
   const itemparser = ItemParser.getInstance();
@@ -144,7 +160,7 @@ export function searchItemWithOptions(
     rarity = (item['rarity'] as string).toLowerCase();
   }
 
-  query.query = Object.assign(query.query, {
+  query.query = merge(query.query, {
     filters: {
       type_filters: {
         filters: {
@@ -160,7 +176,7 @@ export function searchItemWithOptions(
   if ('category' in item && item['category']) {
     const category = (item['category'] as string).toLowerCase();
 
-    query.query = Object.assign(query.query, {
+    query.query = merge(query.query, {
       filters: {
         type_filters: {
           filters: {
@@ -174,167 +190,52 @@ export function searchItemWithOptions(
   }
 
   // weapon/armour base mods
+  ['pdps', 'edps', 'ar', 'ev', 'es'].forEach(bm => {
+    if (options['use' + bm]['enabled']) {
+      const filter =
+        bm === 'pdps' || bm === 'edps' ? 'weapon_filters' : 'armour_filters';
 
-  if (options['usepdps']['enabled']) {
-    if (options['usepdps']['min'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          weapon_filters: {
+      const flt = [] as any;
+
+      ['min', 'max'].forEach(lm => {
+        if (options['use' + bm][lm] > 0) {
+          query.query = merge(query.query, {
             filters: {
-              pdps: {
-                min: options['usepdps']['min']
+              [filter]: {
+                filters: {
+                  [bm]: {
+                    [lm]: options['use' + bm][lm]
+                  }
+                }
               }
             }
-          }
-        }
-      });
-    }
+          });
 
-    if (options['usepdps']['max'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          weapon_filters: {
-            filters: {
-              pdps: {
-                max: options['usepdps']['max']
-              }
-            }
-          }
+          flt.push({
+            label: lm,
+            children: [{ label: options['use' + bm][lm] }]
+          });
         }
       });
-    }
-  }
 
-  if (options['useedps']['enabled']) {
-    if (options['useedps']['min'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          weapon_filters: {
-            filters: {
-              edps: {
-                min: options['useedps']['min']
-              }
-            }
-          }
-        }
-      });
+      if (flt.length) {
+        sopts.children.push({ label: bm, children: [...flt] });
+      }
     }
-
-    if (options['useedps']['max'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          weapon_filters: {
-            filters: {
-              edps: {
-                max: options['useedps']['max']
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-
-  if (options['usear']['enabled']) {
-    if (options['usear']['min'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          armour_filters: {
-            filters: {
-              ar: {
-                min: options['usear']['min']
-              }
-            }
-          }
-        }
-      });
-    }
-
-    if (options['usear']['max'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          armour_filters: {
-            filters: {
-              ar: {
-                max: options['usear']['max']
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-
-  if (options['useev']['enabled']) {
-    if (options['useev']['min'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          armour_filters: {
-            filters: {
-              ev: {
-                min: options['useev']['min']
-              }
-            }
-          }
-        }
-      });
-    }
-
-    if (options['useev']['max'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          armour_filters: {
-            filters: {
-              ev: {
-                max: options['useev']['max']
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-
-  if (options['usees']['enabled']) {
-    if (options['usees']['min'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          armour_filters: {
-            filters: {
-              es: {
-                min: options['usees']['min']
-              }
-            }
-          }
-        }
-      });
-    }
-
-    if (options['usees']['max'] > 0) {
-      query.query = Object.assign(query.query, {
-        filters: {
-          armour_filters: {
-            filters: {
-              es: {
-                max: options['usees']['max']
-              }
-            }
-          }
-        }
-      });
-    }
-  }
+  });
 
   // Checked mods/pseudos
   let mods = {} as any;
 
   if ('filters' in item && item['filters']) {
-    mods = Object.assign(mods, item['filters']);
+    mods = merge(mods, item['filters']);
   }
 
   if ('pseudos' in item && item['pseudos']) {
-    mods = Object.assign(mods, item['pseudos']);
+    mods = merge(mods, item['pseudos']);
   }
+
+  const mflt = [] as any;
 
   for (const [k, e] of Object.entries<any>(mods)) {
     // set id
@@ -344,7 +245,23 @@ export function searchItemWithOptions(
       e['disabled'] = false;
       delete e['enabled'];
       query.query['stats'][0]['filters'].push(e);
+
+      const vflt = [] as any;
+
+      ['min', 'max'].forEach(vl => {
+        if (vl in e) {
+          vflt.push({ label: vl, children: [{ label: e[vl] }] });
+        }
+      });
+
+      if (vflt.length) {
+        mflt.push({ label: e['text'], children: [...vflt] });
+      }
     }
+  }
+
+  if (mflt.length) {
+    sopts.children.push({ label: 'Mods', children: [...mflt] });
   }
 
   // Check for unique items
@@ -366,7 +283,7 @@ export function searchItemWithOptions(
 
   // Use sockets
   if (options['usesockets']) {
-    query.query = Object.assign(query.query, {
+    query.query = merge(query.query, {
       filters: {
         socket_filters: {
           filters: {
@@ -377,11 +294,16 @@ export function searchItemWithOptions(
         }
       }
     });
+
+    sopts.children.push({
+      label: 'Sockets',
+      children: [{ label: item['sockets']['total'] }]
+    });
   }
 
   // Use links
   if (options['uselinks']) {
-    query.query = Object.assign(query.query, {
+    query.query = merge(query.query, {
       filters: {
         socket_filters: {
           filters: {
@@ -392,11 +314,16 @@ export function searchItemWithOptions(
         }
       }
     });
+
+    sopts.children.push({
+      label: 'Links',
+      children: [{ label: item['sockets']['links'] }]
+    });
   }
 
   // Use iLvl
   if (options['useilvl']) {
-    query.query = Object.assign(query.query, {
+    query.query = merge(query.query, {
       filters: {
         misc_filters: {
           filters: {
@@ -407,21 +334,32 @@ export function searchItemWithOptions(
         }
       }
     });
+
+    sopts.children.push({
+      label: 'Item Level',
+      children: [{ label: item['ilvl'] }]
+    });
   }
 
   // Use item base
   if (options['useitembase']) {
     query.query['type'] = item['type'];
+    sopts.children.push({
+      label: 'Item Base',
+      children: [{ label: item['type'] }]
+    });
   }
 
   // Influences
 
   if ('influences' in options && options['influences'].length) {
+    const inflist = [] as any;
+
     for (const i of options['influences']) {
       const inf = i as string;
       const infkey = inf + '_item';
 
-      query.query = Object.assign(query.query, {
+      query.query = merge(query.query, {
         filters: {
           misc_filters: {
             filters: {
@@ -432,12 +370,16 @@ export function searchItemWithOptions(
           }
         }
       });
+
+      inflist.push({ label: inf });
     }
+
+    sopts.children.push({ label: 'Influences', children: [...inflist] });
   }
 
   // Synthesis
   if ('usesynthesisbase' in options && options['usesynthesisbase']) {
-    query.query = Object.assign(query.query, {
+    query.query = merge(query.query, {
       filters: {
         misc_filters: {
           filters: {
@@ -448,6 +390,8 @@ export function searchItemWithOptions(
         }
       }
     });
+
+    sopts.children.push({ label: 'Synthesis' });
   }
 
   // Corrupt
@@ -455,7 +399,7 @@ export function searchItemWithOptions(
     const corrupt = options['usecorrupted'];
 
     if (corrupt != 'Any') {
-      query.query = Object.assign(query.query, {
+      query.query = merge(query.query, {
         filters: {
           misc_filters: {
             filters: {
@@ -467,7 +411,11 @@ export function searchItemWithOptions(
         }
       });
     }
+
+    sopts.children.push({ label: 'Corrupted', children: [{ label: corrupt }] });
   }
+
+  const opttree = [sopts];
 
   const league = PTA.getInstance().getLeague();
 
@@ -490,7 +438,7 @@ export function searchItemWithOptions(
         return;
       }
 
-      processPriceResults(resp, event, true);
+      processPriceResults(resp, event, opttree, true);
     })
     .catch((error: any) => {
       log.error(error);

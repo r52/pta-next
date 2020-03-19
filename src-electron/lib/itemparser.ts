@@ -825,7 +825,6 @@ export class ItemParser {
       return true;
     }
 
-    // PoE 3.9 adds the "(implicit)" description so we no longer have to guess
     let stattype = '';
 
     if (stat.endsWith('(crafted)')) {
@@ -1073,7 +1072,7 @@ export class ItemParser {
           continue;
         }
 
-        // use crafted stat
+        // use stat
         filter = { ...entry, value: [...val], enabled: false };
         break;
       } else {

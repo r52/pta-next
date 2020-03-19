@@ -1,6 +1,8 @@
 <template>
   <q-page padding>
     <div>
+      <q-tree :nodes="results.options" node-key="label" no-connectors />
+
       <q-table
         :data="listings"
         :columns="columns"

@@ -165,7 +165,9 @@ export class PTA {
       this.createItemUI(item, settings, options);
     }
 
-    // TODO REST OF THIS SHIT
+    // TODOs here:
+    // Open window logic
+    // simple search/currency search
   }
 
   private fillSearchOptions(item: any) {

@@ -16,7 +16,7 @@
       />
     </div>
     <div class="col text-center vertical-middle">
-      <span v-if="filter.value.length">{{ filter.value[0] }}</span>
+      <span v-if="filter.value.length">{{ filterval }}</span>
       <span v-else>N/A</span>
     </div>
     <div class="col">
@@ -45,10 +45,20 @@ export default {
     type: String
   },
 
+  computed: {
+    filterval() {
+      if (this.filter.value.length > 1) {
+        return (this.filter.value[0] + this.filter.value[1]) / 2;
+      }
+
+      return this.filter.value[0];
+    }
+  },
+
   created() {
     if (this.filter.value.length) {
       const range = this.settings.prefillrange / 100.0;
-      const value = this.filter.value[0];
+      const value = this.filterval;
       const diff = range * value;
 
       if (this.settings.prefillmin) {
