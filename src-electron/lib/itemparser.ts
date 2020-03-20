@@ -30,6 +30,8 @@ const uPtaDisc =
   'https://raw.githubusercontent.com/r52/pta-data/master/data/discriminators.json';
 const uPtaExcludes =
   'https://raw.githubusercontent.com/r52/pta-data/master/data/excludes.json';
+const uPtaCurrency =
+  'https://raw.githubusercontent.com/r52/pta-data/master/data/currency.json';
 
 function replaceAt(str: string, idx: number, len: number, rep: string) {
   const replacement = str.substring(0, idx) + rep + str.substring(idx + len);
@@ -84,6 +86,8 @@ export class ItemParser {
   enchantRules: Map<string, Record<string, any>>;
   pseudoRules: Map<string, Record<string, any>[]>;
   discriminators: Map<string, Set<string>>;
+  exchange: Map<string, string>;
+  currencies: Set<string>;
   mapDisc = 'warfortheatlas';
 
   private section = '';
@@ -94,265 +98,230 @@ export class ItemParser {
     this.statsById = new Map();
     this.statsByText = new MultiMap();
 
-    axios
-      .get(uPtaExcludes)
-      .then((response: any) => {
+    axios.get(uPtaExcludes).then((response: any) => {
+      const data = response.data;
+
+      for (const e of data['excludes']) {
+        this.excludes.add(e);
+      }
+
+      log.info('Excludes loaded');
+
+      axios.get(uApiStats).then((response: any) => {
         const data = response.data;
 
-        for (const e of data['excludes']) {
-          this.excludes.add(e);
-        }
+        const stt = data['result'];
 
-        log.info('Excludes loaded');
-
-        axios
-          .get(uApiStats)
-          .then((response: any) => {
-            const data = response.data;
-
-            const stt = data['result'];
-
-            for (const type of stt) {
-              const el = type['entries'];
-
-              for (const et of el) {
-                // Cut the key for multiline mods
-                let text = et['text'];
-                const id = et['id'];
-
-                const nl = text.search('\n');
-                if (nl > 0) {
-                  text = text.substring(0, nl);
-                }
-
-                if (!this.excludes.has(id)) {
-                  this.statsByText.set(text, et);
-                  this.statsById.set(id, et);
-                }
-              }
-            }
-
-            log.info('Mod stats loaded');
-          })
-          .catch((error: any) => {
-            log.error(error);
-          });
-      })
-      .catch((error: any) => {
-        log.error(error);
-      });
-
-    ///////////////////////////////////////////// Download unique items
-    this.uniques = new MultiMap();
-
-    axios
-      .get(uApiItems)
-      .then((response: any) => {
-        const data = response.data;
-        const itm = data['result'];
-
-        for (const type of itm) {
+        for (const type of stt) {
           const el = type['entries'];
 
           for (const et of el) {
-            if ('name' in et) {
-              this.uniques.set(et['name'], et);
-            } else if ('type' in et) {
-              this.uniques.set(et['type'], et);
-            } else {
-              log.debug('Item entry has neither name nor type:', et);
+            // Cut the key for multiline mods
+            let text = et['text'];
+            const id = et['id'];
+
+            const nl = text.search('\n');
+            if (nl > 0) {
+              text = text.substring(0, nl);
+            }
+
+            if (!this.excludes.has(id)) {
+              this.statsByText.set(text, et);
+              this.statsById.set(id, et);
             }
           }
         }
 
-        log.info('Unique item data loaded');
-      })
-      .catch((error: any) => {
-        log.error(error);
+        log.info('Mod stats loaded');
       });
+    });
+
+    ///////////////////////////////////////////// Download unique items
+    this.uniques = new MultiMap();
+
+    axios.get(uApiItems).then((response: any) => {
+      const data = response.data;
+      const itm = data['result'];
+
+      for (const type of itm) {
+        const el = type['entries'];
+
+        for (const et of el) {
+          if ('name' in et) {
+            this.uniques.set(et['name'], et);
+          } else if ('type' in et) {
+            this.uniques.set(et['type'], et);
+          } else {
+            log.debug('Item entry has neither name nor type:', et);
+          }
+        }
+      }
+
+      log.info('Unique item data loaded');
+    });
 
     ///////////////////////////////////////////// Load base categories/RePoE base data
     this.baseCat = new Map();
     this.baseMap = new Map();
 
-    axios
-      .get(uPtaBasecat)
-      .then((response: any) => {
-        const data = response.data;
+    axios.get(uPtaBasecat).then((response: any) => {
+      const data = response.data;
 
-        for (const [k, o] of Object.entries(data)) {
-          this.baseCat.set(k, o as string);
-        }
+      for (const [k, o] of Object.entries(data)) {
+        this.baseCat.set(k, o as string);
+      }
 
-        log.info('Base categories loaded');
+      log.info('Base categories loaded');
 
-        axios
-          .get(uRepoeBase)
-          .then((response: any) => {
-            const data = response.data;
-
-            for (const [k, val] of Object.entries(data)) {
-              const o = val as any;
-
-              const typeName = o['name'] as string;
-              const itemClass = o['item_class'] as string;
-              const implicits = o['implicits'].length as number;
-
-              if (this.baseCat.has(itemClass)) {
-                const itemCat = this.baseCat.get(itemClass);
-
-                const cat = {} as any;
-
-                cat['category'] = itemCat;
-                cat['implicits'] = implicits;
-
-                this.baseMap.set(typeName, cat);
-              }
-            }
-
-            log.info('Item base data loaded');
-          })
-          .catch((error: any) => {
-            log.error(error);
-          });
-      })
-      .catch((error: any) => {
-        log.error(error);
-      });
-
-    ///////////////////////////////////////////// Load RePoE mod data
-    this.modData = new Map();
-
-    axios
-      .get(uRepoeMods)
-      .then((response: any) => {
+      axios.get(uRepoeBase).then((response: any) => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
           const o = val as any;
 
-          const modname = o['name'] as string;
-          const modtype = o['generation_type'] as string;
+          const typeName = o['name'] as string;
+          const itemClass = o['item_class'] as string;
+          const implicits = o['implicits'].length as number;
 
-          if (!modname) {
-            // Skip the mods with no name
-            continue;
+          if (this.baseCat.has(itemClass)) {
+            const itemCat = this.baseCat.get(itemClass);
+
+            const cat = {} as any;
+
+            cat['category'] = itemCat;
+            cat['implicits'] = implicits;
+
+            this.baseMap.set(typeName, cat);
           }
-
-          if (modtype !== 'prefix' && modtype !== 'suffix') {
-            // We only care about magic mods for now here so
-            // skip all other mod types like corrupted/unique mods
-            continue;
-          }
-
-          this.modData.set(modname, modtype);
         }
 
-        log.info('Mod types loaded');
-      })
-      .catch((error: any) => {
-        log.error(error);
+        log.info('Item base data loaded');
       });
+    });
+
+    ///////////////////////////////////////////// Load RePoE mod data
+    this.modData = new Map();
+
+    axios.get(uRepoeMods).then((response: any) => {
+      const data = response.data;
+
+      for (const [k, val] of Object.entries(data)) {
+        const o = val as any;
+
+        const modname = o['name'] as string;
+        const modtype = o['generation_type'] as string;
+
+        if (!modname) {
+          // Skip the mods with no name
+          continue;
+        }
+
+        if (modtype !== 'prefix' && modtype !== 'suffix') {
+          // We only care about magic mods for now here so
+          // skip all other mod types like corrupted/unique mods
+          continue;
+        }
+
+        this.modData.set(modname, modtype);
+      }
+
+      log.info('Mod types loaded');
+    });
 
     ///////////////////////////////////////////// Load local rules
     this.armourLocals = new Set();
     this.weaponLocals = new Set();
 
-    axios
-      .get(uPtaArmourlocals)
-      .then((response: any) => {
-        const data = response.data;
+    axios.get(uPtaArmourlocals).then((response: any) => {
+      const data = response.data;
 
-        for (const e of data['data']) {
-          this.armourLocals.add(e);
-        }
+      for (const e of data['data']) {
+        this.armourLocals.add(e);
+      }
 
-        log.info('Armour locals loaded');
-      })
-      .catch((error: any) => {
-        log.error(error);
-      });
+      log.info('Armour locals loaded');
+    });
 
-    axios
-      .get(uPtaWeaponlocals)
-      .then((response: any) => {
-        const data = response.data;
+    axios.get(uPtaWeaponlocals).then((response: any) => {
+      const data = response.data;
 
-        for (const e of data['data']) {
-          this.weaponLocals.add(e);
-        }
+      for (const e of data['data']) {
+        this.weaponLocals.add(e);
+      }
 
-        log.info('Weapon locals loaded');
-      })
-      .catch((error: any) => {
-        log.error(error);
-      });
+      log.info('Weapon locals loaded');
+    });
 
     ///////////////////////////////////////////// Load enchant rules
     this.enchantRules = new Map();
 
-    axios
-      .get(uPtaEnchantrules)
-      .then((response: any) => {
-        const data = response.data;
+    axios.get(uPtaEnchantrules).then((response: any) => {
+      const data = response.data;
 
-        for (const [k, val] of Object.entries(data)) {
-          const o = val as any;
+      for (const [k, val] of Object.entries(data)) {
+        const o = val as any;
 
-          this.enchantRules.set(k, o);
-        }
+        this.enchantRules.set(k, o);
+      }
 
-        log.info('Enchant rules loaded');
-      })
-      .catch((error: any) => {
-        log.error(error);
-      });
+      log.info('Enchant rules loaded');
+    });
 
     ///////////////////////////////////////////// Load pseudo rules
     this.pseudoRules = new Map();
 
-    axios
-      .get(uPtaPseudorules)
-      .then((response: any) => {
-        const data = response.data;
+    axios.get(uPtaPseudorules).then((response: any) => {
+      const data = response.data;
 
-        for (const [k, val] of Object.entries(data)) {
-          const o = val as Array<any>;
+      for (const [k, val] of Object.entries(data)) {
+        const o = val as Array<any>;
 
-          this.pseudoRules.set(k, o);
-        }
+        this.pseudoRules.set(k, o);
+      }
 
-        log.info('Pseudo rules loaded');
-      })
-      .catch((error: any) => {
-        log.error(error);
-      });
+      log.info('Pseudo rules loaded');
+    });
 
     ///////////////////////////////////////////// Mod Discriminators
     this.discriminators = new Map();
 
-    axios
-      .get(uPtaDisc)
-      .then((response: any) => {
-        const data = response.data;
+    axios.get(uPtaDisc).then((response: any) => {
+      const data = response.data;
 
-        for (const [k, val] of Object.entries(data)) {
-          const o = val as any;
+      for (const [k, val] of Object.entries(data)) {
+        const o = val as any;
 
-          const set = new Set<string>();
+        const set = new Set<string>();
 
-          for (const value of o['unused']) {
-            set.add(value as string);
-          }
-
-          this.discriminators.set(k, set);
+        for (const value of o['unused']) {
+          set.add(value as string);
         }
 
-        log.info('Discriminator rules loaded');
-      })
-      .catch((error: any) => {
-        log.error(error);
+        this.discriminators.set(k, set);
+      }
+
+      log.info('Discriminator rules loaded');
+    });
+
+    ///////////////////////////////////////////// Currency
+    this.exchange = new Map();
+    this.currencies = new Set();
+
+    axios.get(uPtaCurrency).then((response: any) => {
+      const data = response.data;
+
+      for (const [k, val] of Object.entries(data)) {
+        const o = val as string;
+
+        this.exchange.set(k, o);
+      }
+
+      this.exchange.forEach((key, val) => {
+        this.currencies.add(val);
       });
+
+      log.info('Currencies loaded');
+    });
   }
 
   public static getInstance(): ItemParser {
@@ -523,6 +492,7 @@ export class ItemParser {
 
     if (type.startsWith('Synthesised ')) {
       type = type.replace('Synthesised ', '');
+      item['misc'] = item['misc'] || {};
       item['misc']['synthesis'] = true;
     }
 
@@ -814,6 +784,7 @@ export class ItemParser {
 
     if (stat == 'Synthesised Item') {
       // Should already have been processed
+      item['misc'] = item['misc'] || {};
       item['misc']['synthesis'] = true;
       return true;
     }

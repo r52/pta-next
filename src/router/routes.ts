@@ -15,6 +15,10 @@ const routes: RouteConfig[] = [
     component: () => import('layouts/Item.vue'),
     children: [
       {
+        path: '',
+        component: () => import('pages/Loading.vue')
+      },
+      {
         path: '/mods',
         name: 'mods',
         props: true,

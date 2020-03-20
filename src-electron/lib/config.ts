@@ -1,7 +1,9 @@
 export default {
   // hotkey
   simplehotkey: 'hotkey.simple',
+  simplehotkeyenabled: 'hotkey.simple_enabled',
   advancedhotkey: 'hotkey.advanced',
+  advancedhotkeyenabled: 'hotkey.advanced_enabled',
   cscroll: 'hotkey.cscroll',
 
   // price check
@@ -24,8 +26,10 @@ export default {
 
   default: {
     // hotkey
-    simplehotkey: 'CommandOrControl+D',
-    advancedhotkey: 'CommandOrControl+Alt+D',
+    simplehotkey: 'CmdOrCtrl+D',
+    simplehotkeyenabled: true,
+    advancedhotkey: 'CmdOrCtrl+Alt+D',
+    advancedhotkeyenabled: true,
     cscroll: true,
 
     // price check

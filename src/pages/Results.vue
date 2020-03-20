@@ -1,7 +1,12 @@
 <template>
   <q-page padding>
     <div>
-      <q-tree :nodes="results.options" node-key="label" no-connectors />
+      <q-tree
+        v-if="results.options"
+        :nodes="results.options"
+        node-key="label"
+        no-connectors
+      />
 
       <q-table
         :data="listings"
@@ -39,9 +44,7 @@ export default {
         type = 'gem';
       }
 
-      const format = this.results.format;
-
-      if (format == 'exchange') {
+      if (this.results.exchange) {
         type = 'exchange';
       }
 

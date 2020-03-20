@@ -132,13 +132,21 @@ export default {
       event: Electron.IpcRendererEvent,
       item: any,
       settings: any,
-      options: any
+      options: any,
+      type: number
     ) {
       this.item = item;
       this.settings = settings;
       this.options = options;
 
-      if (item) {
+      // If type == ADVANCED and has mods, switch tab
+      if (
+        item &&
+        'filters' in item &&
+        Object.keys(item['filters']).length > 0 &&
+        item['category'] != 'map' &&
+        type == 1
+      ) {
         this.$router.replace({
           name: 'mods',
           params: {
@@ -165,8 +173,13 @@ export default {
   },
 
   created() {
-    ipcRenderer.on('item', (event, item, settings, options) => {
-      this.handleItem(event, item, settings, options);
+    ipcRenderer.on('item', (event, item, settings, options, type) => {
+      this.handleItem(event, item, settings, options, type);
+
+      // If type == SIMPLE, queue a simple search
+      if (type == 0) {
+        ipcRenderer.send('search-defaults', item);
+      }
     });
 
     ipcRenderer.on('results', (event, results) => {

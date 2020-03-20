@@ -83,41 +83,60 @@
         <q-separator v-if="item.pseudos" />
 
         <!-- misc option checkboxes -->
-        <div class="row items-center no-wrap">
-          <q-select
-            dense
-            options-dense
-            stack-label
-            v-model="options.usecorrupted"
-            :options="corrupts"
-            label="Corrupted"
-          />
-          <q-toggle
-            v-if="item.sockets"
-            v-model="options.usesockets"
-            :label="`Use Sockets (${item.sockets.total})`"
-          />
-          <q-toggle
-            v-if="item.sockets"
-            v-model="options.uselinks"
-            :label="`Use Links (${item.sockets.links})`"
-          />
-          <q-toggle label="iLvl (min):" v-model="options.useilvl" />
+        <div class="row items-center">
+          <div class="col-auto">
+            <q-select
+              dense
+              options-dense
+              stack-label
+              v-model="options.usecorrupted"
+              :options="corrupts"
+              label="Corrupted"
+            >
+              <q-tooltip>Corrupted</q-tooltip>
+            </q-select>
+          </div>
+          <div class="col-auto">
+            <q-toggle
+              v-if="item.sockets"
+              v-model="options.usesockets"
+              :label="`Use Sockets (${item.sockets.total})`"
+            />
+          </div>
+          <div class="col-auto">
+            <q-toggle
+              v-if="item.sockets"
+              v-model="options.uselinks"
+              :label="`Use Links (${item.sockets.links})`"
+            />
+          </div>
+          <div class="col-auto">
+            <q-toggle label="iLvl (min):" v-model="options.useilvl" />
+          </div>
 
-          <q-input
-            dense
-            clearable
-            type="number"
-            v-model.number.lazy="item.ilvl"
-            @input="options.useilvl = true"
-            @keypress="isNumber($event)"
-            class="q-py-xs"
-          />
+          <div class="col-auto">
+            <q-input
+              dense
+              clearable
+              type="number"
+              v-model.number.lazy="item.ilvl"
+              @input="options.useilvl = true"
+              @keypress="isNumber($event)"
+              class="q-py-xs"
+              style="width: 60px"
+            />
+          </div>
 
-          <q-toggle label="Use Item Base" v-model="options.useitembase" />
+          <div class="col-auto">
+            <q-toggle label="Use Item Base" v-model="options.useitembase" />
+          </div>
         </div>
-        <div class="row items-center no-wrap">
-          <div v-if="item.influences && item.influences.length">
+        <q-separator />
+        <div class="row items-center justify-end">
+          <div
+            class="col-auto"
+            v-if="item.influences && item.influences.length"
+          >
             <q-toggle
               v-for="inf in item.influences"
               v-model="options.influences"
@@ -127,32 +146,38 @@
               color="purple"
             />
           </div>
-          <q-toggle
-            v-if="item.misc && item.misc.synthesis"
-            label="Synthesis"
-            v-model="options.usesynthesisbase"
-            color="orange"
-          />
+          <div class="col-auto">
+            <q-toggle
+              v-if="item.misc && item.misc.synthesis"
+              label="Synthesis"
+              v-model="options.usesynthesisbase"
+              color="orange"
+            />
+          </div>
         </div>
 
         <q-separator />
 
         <div class="row items-center justify-end q-py-xs">
-          <q-btn
-            color="purple"
-            accesskey="e"
-            icon="open_in_new"
-            @click="search(true)"
-          >
-            Op<u>e</u>n on pathofexile.com
-          </q-btn>
-          <q-btn
-            color="primary"
-            accesskey="s"
-            icon="search"
-            @click="search(false)"
-            ><u>S</u>earch</q-btn
-          >
+          <div class="col-auto">
+            <q-btn
+              color="purple"
+              accesskey="e"
+              icon="open_in_new"
+              @click="search(true)"
+            >
+              Op<u>e</u>n on pathofexile.com
+            </q-btn>
+          </div>
+          <div class="col-auto">
+            <q-btn
+              color="primary"
+              accesskey="s"
+              icon="search"
+              @click="search(false)"
+              ><u>S</u>earch</q-btn
+            >
+          </div>
         </div>
       </div>
     </q-form>

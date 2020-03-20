@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/camelcase */
 // official PoE Trade Site search api
-import { shell } from 'electron';
+import { shell, dialog } from 'electron';
 import cfg from 'electron-cfg';
 import Config from '../../lib/config';
 import { ItemParser } from '../../lib/itemparser';
@@ -19,7 +19,8 @@ function processPriceResults(
   response: any,
   event: Electron.IpcMainEvent,
   searchoptions: any,
-  forcetab: boolean
+  forcetab: boolean,
+  exchange = false
 ) {
   //
   const rlist = response['result'] as string[];
@@ -43,7 +44,8 @@ function processPriceResults(
   const rdat = {
     result: [],
     options: searchoptions,
-    forcetab: forcetab
+    forcetab: forcetab,
+    exchange: exchange
   };
 
   axios.all(urls).then(results => {
@@ -73,25 +75,106 @@ function processPriceResults(
   });
 }
 
-export function searchItemWithOptions(
-  event: Electron.IpcMainEvent,
-  item: any,
-  options: any,
-  openbrowser: boolean
-) {
-  //
-  if (
-    !('filters' in item) ||
-    !Object.keys(item['filters']).length ||
-    item['category'] == 'map'
-  ) {
-    // Cannot advanced search items with no filters
-    return null;
+function doCurrencySearch(event: Electron.IpcMainEvent, item: any) {
+  const itemparser = ItemParser.getInstance();
+
+  const query = {
+    exchange: {
+      status: {
+        option: 'online'
+      },
+      have: [] as string[],
+      want: [] as string[]
+    }
+  };
+
+  let p_curr = cfg.get(Config.primarycurrency, Config.default.primarycurrency);
+  let s_curr = cfg.get(
+    Config.secondarycurrency,
+    Config.default.secondarycurrency
+  );
+
+  // Reset setting that no longer exists
+  if (!itemparser.currencies.has(p_curr)) {
+    p_curr = Config.default.primarycurrency;
+    cfg.set(Config.primarycurrency, p_curr);
   }
 
-  if ('unidentified' in item) {
-    return null;
+  if (!itemparser.currencies.has(s_curr)) {
+    s_curr = Config.default.secondarycurrency;
+    cfg.set(Config.secondarycurrency, s_curr);
   }
+
+  // Check for existing currencies
+  if (!itemparser.exchange.has(item['type'])) {
+    dialog.showErrorBox(
+      'Currency Error',
+      'Could not find this currency in the database. If you believe that this is a mistake, please file a bug report on GitHub.'
+    );
+
+    log.warn('Currency not found:', item['type']);
+    log.warn(
+      'If you believe that this is a mistake, please file a bug report on GitHub.'
+    );
+    return;
+  }
+
+  const want = itemparser.exchange.get(item['type']) as string;
+  let have = p_curr;
+
+  if (want == p_curr) {
+    have = s_curr;
+  }
+
+  query.exchange.want.push(want);
+
+  const urls = [];
+
+  query.exchange.have.push(have);
+
+  const url = uTradeExchange + PTA.getInstance().getLeague();
+
+  urls.push(axios.post(url, query));
+
+  if (have != s_curr) {
+    have = s_curr;
+  }
+
+  query.exchange.have.pop();
+  query.exchange.have.push(have);
+
+  urls.push(axios.post(url, query));
+
+  axios.all(urls).then(results => {
+    results.some(resp => {
+      const data = resp.data;
+
+      if ('result' in data && 'id' in data && data['result'].length > 0) {
+        processPriceResults(data, event, null, true, true);
+        return true;
+      }
+
+      return false;
+    });
+  });
+}
+
+export function searchItemWithDefaults(
+  event: Electron.IpcMainEvent,
+  item: any
+) {
+  const itemparser = ItemParser.getInstance();
+  const league = PTA.getInstance().getLeague();
+
+  // If its a currency and the currency is listed in the bulk exchange, try that first
+  // Otherwise, try a regular search
+  if (item['category'] == 'currency' && itemparser.exchange.has(item['type'])) {
+    doCurrencySearch(event, item);
+    return;
+  }
+
+  // poeprices.info
+  //const use_poeprices = cfg.get(Config.poeprices, Config.default.poeprices);
 
   const query = {
     query: {
@@ -115,7 +198,406 @@ export function searchItemWithOptions(
     children: [
       {
         label: 'League',
-        children: [{ label: PTA.getInstance().getLeague() }]
+        children: [{ label: league }]
+      }
+    ]
+  } as any;
+
+  let isUniqueBase = false;
+  let searchToken = '';
+
+  // Take care of settings
+  const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
+  if (!onlineonly) {
+    query.query.status.option = 'any';
+    sopts.children.push({ label: 'Online Only' });
+  }
+
+  const buyoutonly = cfg.get(Config.buyoutonly, Config.default.buyoutonly);
+  if (buyoutonly) {
+    query.query = merge(query.query, {
+      filters: {
+        trade_filters: {
+          filters: {
+            sale_type: {
+              option: 'priced'
+            }
+          }
+        }
+      }
+    });
+
+    sopts.children.push({ label: 'Buyout Only' });
+  }
+
+  // Search by type if rare map, or if it has no name
+  if (
+    (item['category'] == 'map' && item['rarity'] == 'Rare') ||
+    !('name' in item)
+  ) {
+    isUniqueBase = itemparser.uniques.has(item['type']);
+    searchToken = item['type'];
+  } else {
+    isUniqueBase = itemparser.uniques.has(item['name']);
+    searchToken = item['name'];
+  }
+
+  // Force rarity if unique
+  if (item['rarity'] == 'Unique') {
+    const rarity = (item['rarity'] as string).toLowerCase();
+
+    query.query = merge(query.query, {
+      filters: {
+        type_filters: {
+          filters: {
+            rarity: {
+              option: rarity
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Force category
+  if ('category' in item && item['category']) {
+    const category = (item['category'] as string).toLowerCase();
+
+    query.query = merge(query.query, {
+      filters: {
+        type_filters: {
+          filters: {
+            category: {
+              option: category
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Check for unique items
+  if (isUniqueBase) {
+    const range = itemparser.uniques.get(searchToken);
+    for (const entry of range) {
+      // If has discriminator, match discriminator and type
+      if ('misc' in item && 'disc' in item['misc']) {
+        if (
+          entry['disc'] == item['misc']['disc'] &&
+          entry['type'] == item['type']
+        ) {
+          if ('name' in entry) {
+            query.query['name'] = {
+              discriminator: entry['disc'],
+              option: entry['name']
+            };
+          }
+
+          query.query['type'] = {
+            discriminator: entry['disc'],
+            option: entry['type']
+          };
+
+          break;
+        }
+      } else if (entry['type'] == item['type']) {
+        // For everything else, just match type
+        query.query['type'] = entry['type'];
+
+        if ('name' in entry) {
+          query.query['name'] = entry['name'];
+        }
+
+        break;
+      }
+    }
+
+    // Default Gem options
+    if (item['category'] == 'gem') {
+      query.query = merge(query.query, {
+        filters: {
+          misc_filters: {
+            filters: {
+              gem_level: {
+                min: item['misc']['gem_level']
+              },
+              quality: {
+                min: item['quality']
+              }
+            }
+          }
+        }
+      });
+
+      sopts.children.push({
+        label: 'Gem',
+        children: [
+          { label: 'Level', children: [{ label: item['misc']['gem_level'] }] },
+          { label: 'Quality', children: [{ label: item['quality'] + '%' }] }
+        ]
+      });
+    }
+
+    // Default socket options
+    if ('sockets' in item && item['sockets']['total'] == 6) {
+      query.query = merge(query.query, {
+        filters: {
+          socket_filters: {
+            filters: {
+              sockets: {
+                min: item['sockets']['total']
+              }
+            }
+          }
+        }
+      });
+
+      sopts.children.push({
+        label: 'Sockets',
+        children: [{ label: item['sockets']['total'] }]
+      });
+    }
+
+    // Default link options
+    if ('sockets' in item && item['sockets']['links'] > 4) {
+      query.query = merge(query.query, {
+        filters: {
+          socket_filters: {
+            filters: {
+              links: {
+                min: item['sockets']['links']
+              }
+            }
+          }
+        }
+      });
+
+      sopts.children.push({
+        label: 'Links',
+        children: [{ label: item['sockets']['links'] }]
+      });
+    }
+
+    // Force iLvl
+    if (
+      item['rarity'] != 'Unique' &&
+      item['category'] != 'card' &&
+      'ilvl' in item
+    ) {
+      query.query = merge(query.query, {
+        filters: {
+          misc_filters: {
+            filters: {
+              ilvl: {
+                min: item['ilvl']
+              }
+            }
+          }
+        }
+      });
+
+      sopts.children.push({
+        label: 'Item Level',
+        children: [{ label: item['ilvl'] }]
+      });
+    }
+
+    // Force map tier
+    if (
+      item['category'] == 'map' &&
+      'misc' in item &&
+      'map_tier' in item['misc']
+    ) {
+      query.query = merge(query.query, {
+        filters: {
+          map_filters: {
+            filters: {
+              map_tier: {
+                min: item['misc']['map_tier']
+              }
+            }
+          }
+        }
+      });
+
+      sopts.children.push({
+        label: 'Map Tier',
+        children: [{ label: item['misc']['map_tier'] }]
+      });
+    }
+
+    // Note discriminator
+    if ('misc' in item && 'disc' in item['misc']) {
+      sopts.children.push({
+        label: 'Discriminator',
+        children: [{ label: item['misc']['disc'] }]
+      });
+    }
+
+    // Force Influences
+    if (item['category'] != 'card' && 'influences' in item) {
+      const inflist = [] as any;
+
+      for (const i of item['influences']) {
+        const inf = i as string;
+        const infkey = inf + '_item';
+
+        query.query = merge(query.query, {
+          filters: {
+            misc_filters: {
+              filters: {
+                [infkey]: {
+                  option: true
+                }
+              }
+            }
+          }
+        });
+
+        inflist.push({ label: inf });
+      }
+
+      if (inflist.length > 0) {
+        sopts.children.push({ label: 'Influences', children: [...inflist] });
+      }
+    }
+
+    // Force Synthesis
+    if ('misc' in item && 'synthesis' in item['misc']) {
+      query.query = merge(query.query, {
+        filters: {
+          misc_filters: {
+            filters: {
+              synthesised_item: {
+                option: true
+              }
+            }
+          }
+        }
+      });
+
+      sopts.children.push({ label: 'Synthesis' });
+    }
+
+    // Default corrupt options
+    const corruptoverride = cfg.get(
+      Config.corruptoverride,
+      Config.default.corruptoverride
+    );
+
+    // No such thing as corrupted cards or prophecies
+    if (item['category'] != 'card' && item['category'] != 'prophecy') {
+      if (corruptoverride) {
+        const corrupt = cfg.get(
+          Config.corruptsearch,
+          Config.default.corruptsearch
+        );
+
+        if (corrupt != 'Any') {
+          query.query = merge(query.query, {
+            filters: {
+              misc_filters: {
+                filters: {
+                  corrupted: {
+                    option: corrupt == 'Yes'
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        sopts.children.push({
+          label: 'Corrupted',
+          children: [{ label: corrupt + ' (override)' }]
+        });
+      } else {
+        const corrupt = 'corrupted' in item && item['corrupted'];
+
+        query.query = merge(query.query, {
+          filters: {
+            misc_filters: {
+              filters: {
+                corrupted: {
+                  option: corrupt
+                }
+              }
+            }
+          }
+        });
+
+        sopts.children.push({
+          label: 'Corrupted',
+          children: [{ label: corrupt ? 'Yes' : 'No' }]
+        });
+      }
+    }
+
+    sopts.children.push({ label: 'Mods ignored' });
+
+    const opttree = [sopts];
+
+    const url = uTradeSearch + league;
+
+    axios.post(url, query).then((response: any) => {
+      const resp = response.data;
+
+      if (!('result' in resp) || !('id' in resp)) {
+        log.warn('PoE API: Error querying trade API');
+        log.warn('PoE API: Site responded with', resp);
+        return;
+      }
+
+      processPriceResults(resp, event, opttree, true);
+    });
+  } // TODO poeprices.info
+}
+
+export function searchItemWithOptions(
+  event: Electron.IpcMainEvent,
+  item: any,
+  options: any,
+  openbrowser: boolean
+) {
+  //
+  if (
+    !('filters' in item) ||
+    !Object.keys(item['filters']).length ||
+    item['category'] == 'map'
+  ) {
+    // Cannot advanced search items with no filters
+    return null;
+  }
+
+  if ('unidentified' in item) {
+    return null;
+  }
+
+  const league = PTA.getInstance().getLeague();
+
+  const query = {
+    query: {
+      status: {
+        option: 'online'
+      },
+      stats: [
+        {
+          type: 'and',
+          filters: []
+        }
+      ]
+    },
+    sort: {
+      price: 'asc'
+    }
+  } as any;
+
+  const sopts = {
+    label: 'Search Options',
+    children: [
+      {
+        label: 'League',
+        children: [{ label: league }]
       }
     ]
   } as any;
@@ -421,30 +903,23 @@ export function searchItemWithOptions(
 
   const opttree = [sopts];
 
-  const league = PTA.getInstance().getLeague();
-
   const url = uTradeSearch + league;
 
-  axios
-    .post(url, query)
-    .then((response: any) => {
-      const resp = response.data;
+  axios.post(url, query).then((response: any) => {
+    const resp = response.data;
 
-      if (!('result' in resp) || !('id' in resp)) {
-        log.warn('PoE API: Error querying trade API');
-        log.warn('PoE API: Site responded with', resp);
-        return;
-      }
+    if (!('result' in resp) || !('id' in resp)) {
+      log.warn('PoE API: Error querying trade API');
+      log.warn('PoE API: Site responded with', resp);
+      return;
+    }
 
-      if (openbrowser) {
-        const burl = uTradeSite + league + '/' + resp['id'];
-        shell.openExternal(burl);
-        return;
-      }
+    if (openbrowser) {
+      const burl = uTradeSite + league + '/' + resp['id'];
+      shell.openExternal(burl);
+      return;
+    }
 
-      processPriceResults(resp, event, opttree, true);
-    })
-    .catch((error: any) => {
-      log.error(error);
-    });
+    processPriceResults(resp, event, opttree, true);
+  });
 }

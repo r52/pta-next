@@ -35,24 +35,19 @@ export class PTA {
     ///////////////////////////////////////////// Download leagues
     this.leagues = [];
 
-    axios
-      .get(uApiLeague)
-      .then((response: any) => {
-        const data = response.data;
+    axios.get(uApiLeague).then((response: any) => {
+      const data = response.data;
 
-        const lgs = data['result'];
+      const lgs = data['result'];
 
-        lgs.forEach((element: { [x: string]: string }) => {
-          this.leagues.push(element['id']);
-        });
-
-        const setlg = this.getLeague();
-
-        log.info('League data loaded. Setting league to', setlg);
-      })
-      .catch((error: any) => {
-        log.error(error);
+      lgs.forEach((element: { [x: string]: string }) => {
+        this.leagues.push(element['id']);
       });
+
+      const setlg = this.getLeague();
+
+      log.info('League data loaded. Setting league to', setlg);
+    });
   }
 
   public static getInstance(): PTA {
@@ -67,8 +62,17 @@ export class PTA {
     this.registerShortcuts();
 
     // setup events
+    ipcMain.on('search-defaults', (event, item) => {
+      PoE.searchItemWithDefaults(event, item);
+    });
+
     ipcMain.on('search', (event, item, options, openbrowser) => {
       PoE.searchItemWithOptions(event, item, options, openbrowser);
+    });
+
+    ipcMain.on('hotkeys-changed', () => {
+      this.unregisterShortcuts();
+      this.registerShortcuts();
     });
   }
 
@@ -77,14 +81,36 @@ export class PTA {
   }
 
   public registerShortcuts() {
+    // price check keys
+    const smphotkeyenabled = cfg.get(
+      Config.simplehotkeyenabled,
+      Config.default.simplehotkeyenabled
+    );
     const simplehotkey = cfg.get(
       Config.simplehotkey,
       Config.default.simplehotkey
     );
 
-    globalShortcut.register(simplehotkey, () => {
-      this.handleItemHotkey(ItemHotkey.SIMPLE);
-    });
+    const advhotkeyenabled = cfg.get(
+      Config.advancedhotkeyenabled,
+      Config.default.advancedhotkeyenabled
+    );
+    const advhotkey = cfg.get(
+      Config.advancedhotkey,
+      Config.default.advancedhotkey
+    );
+
+    if (smphotkeyenabled) {
+      globalShortcut.register(simplehotkey, () => {
+        this.handleItemHotkey(ItemHotkey.SIMPLE);
+      });
+    }
+
+    if (advhotkeyenabled) {
+      globalShortcut.register(advhotkey, () => {
+        this.handleItemHotkey(ItemHotkey.ADVANCED);
+      });
+    }
   }
 
   public unregisterShortcuts() {
@@ -113,6 +139,7 @@ export class PTA {
         width: 1000,
         height: 600,
         useContentSize: true,
+        frame: false,
         webPreferences: {
           nodeIntegration: true
         }
@@ -139,11 +166,15 @@ export class PTA {
     }
   }
 
-  private createItemUI(item: any, settings: any, options: any) {
+  private createItemUI(
+    item: any,
+    settings: any,
+    options: any,
+    type: ItemHotkey
+  ) {
     const itemWindow = new BrowserWindow({
-      width: 800,
+      width: 600,
       height: 800,
-      useContentSize: true,
       alwaysOnTop: true,
       transparent: true,
       frame: false,
@@ -160,7 +191,7 @@ export class PTA {
     });
 
     itemWindow.webContents.on('did-finish-load', () => {
-      itemWindow.webContents.send('item', item, settings, options);
+      itemWindow.webContents.send('item', item, settings, options, type);
     });
   }
 
@@ -183,9 +214,11 @@ export class PTA {
     const item = PTA.parser.parse(itemtext);
 
     if (item) {
-      const { settings, options } = this.fillSearchOptions(item);
+      if (type === ItemHotkey.SIMPLE || type === ItemHotkey.ADVANCED) {
+        const { settings, options } = this.fillSearchOptions(item);
 
-      this.createItemUI(item, settings, options);
+        this.createItemUI(item, settings, options, type);
+      }
     }
 
     // TODOs here:

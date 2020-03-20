@@ -27,8 +27,47 @@
     <q-page-container>
       <q-tab-panels v-model="tab" animated>
         <q-tab-panel name="hotkey">
-          <div class="text-h6">Hotkey</div>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          <q-card-section class="q-pt-none">
+            <div class="q-pa-xs">
+              <div class="row items-center justify-end">
+                <a href="#" @click="openKeyRef()" class="text-orange"
+                  >Keycode Reference</a
+                >
+              </div>
+              <div class="row items-center">
+                <div class="col">
+                  <q-toggle
+                    v-model="settings.hotkey.simplehotkeyenabled"
+                    label="Simple Hotkey"
+                  />
+                </div>
+                <div class="col">
+                  <q-input
+                    color="teal"
+                    v-model="settings.hotkey.simplehotkey"
+                    label="Simple Hotkey"
+                    :disable="!settings.hotkey.simplehotkeyenabled"
+                  />
+                </div>
+              </div>
+              <div class="row items-center">
+                <div class="col">
+                  <q-toggle
+                    v-model="settings.hotkey.advancedhotkeyenabled"
+                    label="Advanced Hotkey"
+                  />
+                </div>
+                <div class="col">
+                  <q-input
+                    color="teal"
+                    v-model="settings.hotkey.advancedhotkey"
+                    label="Advanced Hotkey"
+                    :disable="!settings.hotkey.advancedhotkeyenabled"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-card-section>
         </q-tab-panel>
 
         <q-tab-panel name="price">
@@ -38,59 +77,94 @@
             </q-card-section>
 
             <q-card-section class="q-pt-none">
-              <q-select
-                v-model="settings.league"
-                :options="leagues"
-                label="League"
-                map-options
-              />
-              <div class="row items-center">
-                <div class="col">
-                  <q-toggle
-                    v-model="settings.corruptoverride"
-                    label="Corrupt Override"
-                  />
+              <div class="q-pa-xs">
+                <div class="row items-center">
+                  <div class="col">
+                    <q-select
+                      v-model="settings.pricecheck.league"
+                      :options="leagues"
+                      label="League"
+                      map-options
+                    />
+                  </div>
                 </div>
-                <div class="col">
-                  <q-select
-                    v-model="settings.corruptsearch"
-                    :options="corrupts"
-                    label="Corrupt Override Option"
-                    :disable="!settings.corruptoverride"
-                    style="width: 250px"
-                  />
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.pricecheck.corruptoverride"
+                      label="Corrupt Override"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-select
+                      v-model="settings.pricecheck.corruptsearch"
+                      :options="corrupts"
+                      label="Corrupt Override Option"
+                      :disable="!settings.pricecheck.corruptoverride"
+                      style="width: 250px"
+                    />
+                  </div>
+                </div>
+
+                <div class="row items-center">
+                  <div class="col">
+                    <q-select
+                      v-model="settings.pricecheck.primarycurrency"
+                      :options="currencies"
+                      label="Primary Currency"
+                      map-options
+                    />
+                  </div>
+                </div>
+
+                <div class="row items-center">
+                  <div class="col">
+                    <q-select
+                      v-model="settings.pricecheck.secondarycurrency"
+                      :options="currencies"
+                      label="Secondary Currency"
+                      map-options
+                    />
+                  </div>
+                </div>
+
+                <div class="row items-center">
+                  <div class="col">Maximum number of results to query:</div>
+                  <div class="col">
+                    <q-slider
+                      v-model="settings.pricecheck.displaylimit"
+                      :min="10"
+                      :max="100"
+                      :step="10"
+                      label
+                      :label-value="
+                        settings.pricecheck.displaylimit + ' results'
+                      "
+                    />
+                  </div>
+                </div>
+
+                <div class="row items-center">
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.onlineonly"
+                      label="Online Only"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.buyoutonly"
+                      label="Buyout Only"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.removedupes"
+                      label="Remove duplicates from the same account"
+                    />
+                  </div>
                 </div>
               </div>
-
-              <q-select
-                v-model="settings.primarycurrency"
-                :options="currencies"
-                label="Primary Currency"
-                map-options
-              />
-
-              <q-select
-                v-model="settings.secondarycurrency"
-                :options="currencies"
-                label="Secondary Currency"
-                map-options
-              />
-
-              <q-slider
-                v-model="settings.displaylimit"
-                :min="0"
-                :max="100"
-                :step="10"
-                label
-                :label-value="'Max results: ' + settings.displaylimit"
-              />
-
-              <q-toggle v-model="settings.onlineonly" label="Online Only" />
-              <q-toggle v-model="settings.buyoutonly" label="Buyout Only" />
-              <q-toggle
-                v-model="settings.removedupes"
-                label="Remove duplicates from the same account"
-              />
             </q-card-section>
           </q-card>
           <q-card>
@@ -99,35 +173,63 @@
             </q-card-section>
 
             <q-card-section class="q-pt-none">
-              <q-toggle
-                v-model="settings.prefillmin"
-                label="Pre-fill minimums"
-              />
-              <q-toggle
-                v-model="settings.prefillmax"
-                label="Pre-fill maximums"
-              />
-              <q-slider
-                v-model="settings.prefillrange"
-                :min="0"
-                :max="100"
-                :step="5"
-                label
-                :label-value="'Pre-fill range (+/-%): ' + settings.prefillrange"
-              />
-              <q-toggle
-                v-model="settings.prefillnormals"
-                label="Pre-fill normal mods"
-              />
-              <q-toggle
-                v-model="settings.prefillpseudos"
-                label="Pre-fill pseudo mods"
-              />
-              <q-toggle v-model="settings.prefillilvl" label="Pre-fill iLvl" />
-              <q-toggle
-                v-model="settings.prefillbase"
-                label="Pre-fill Item Base"
-              />
+              <div class="q-pa-xs">
+                <div class="row items-center">
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.prefillmin"
+                      label="Pre-fill minimums"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.prefillmax"
+                      label="Pre-fill maximums"
+                    />
+                  </div>
+                </div>
+                <div class="row items-center">
+                  <div class="col">Pre-fill range (+/-%):</div>
+                  <div class="col">
+                    <q-slider
+                      v-model="settings.pricecheck.prefillrange"
+                      :min="0"
+                      :max="100"
+                      :step="5"
+                      label
+                      :label-value="
+                        '+/- ' + settings.pricecheck.prefillrange + '%'
+                      "
+                    />
+                  </div>
+                </div>
+                <div class="row items-center">
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.prefillnormals"
+                      label="Pre-fill normal mods"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.prefillpseudos"
+                      label="Pre-fill pseudo mods"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.prefillilvl"
+                      label="Pre-fill iLvl"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.prefillbase"
+                      label="Pre-fill Item Base"
+                    />
+                  </div>
+                </div>
+              </div>
             </q-card-section>
           </q-card>
         </q-tab-panel>
@@ -137,6 +239,8 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable quotes */
+import { ipcRenderer } from 'electron';
 import cfg from 'electron-cfg';
 import Config from '../../src-electron/lib/config';
 
@@ -146,7 +250,7 @@ export default {
   data() {
     let leagues = this.$q.electron.remote.getGlobal('pta').leagues;
 
-    leagues = leagues.map((lg, idx) => {
+    leagues = leagues.map((lg: string, idx: number) => {
       return {
         label: lg,
         value: idx
@@ -194,40 +298,67 @@ export default {
       corrupts: ['Any', 'Yes', 'No'],
       currencies: Object.freeze(currencies),
       settings: {
-        league: cfg.get(Config.league, Config.default.league),
-        displaylimit: cfg.get(Config.displaylimit, Config.default.displaylimit),
-        corruptoverride: cfg.get(
-          Config.corruptoverride,
-          Config.default.corruptoverride
-        ),
-        corruptsearch: cfg.get(
-          Config.corruptsearch,
-          Config.default.corruptsearch
-        ),
-        primarycurrency: cfg.get(
-          Config.primarycurrency,
-          Config.default.primarycurrency
-        ),
-        secondarycurrency: cfg.get(
-          Config.secondarycurrency,
-          Config.default.secondarycurrency
-        ),
-        onlineonly: cfg.get(Config.onlineonly, Config.default.onlineonly),
-        buyoutonly: cfg.get(Config.buyoutonly, Config.default.buyoutonly),
-        removedupes: cfg.get(Config.removedupes, Config.default.removedupes),
-        prefillmin: cfg.get(Config.prefillmin, Config.default.prefillmin),
-        prefillmax: cfg.get(Config.prefillmax, Config.default.prefillmax),
-        prefillrange: cfg.get(Config.prefillrange, Config.default.prefillrange),
-        prefillnormals: cfg.get(
-          Config.prefillnormals,
-          Config.default.prefillnormals
-        ),
-        prefillpseudos: cfg.get(
-          Config.prefillpseudos,
-          Config.default.prefillpseudos
-        ),
-        prefillilvl: cfg.get(Config.prefillilvl, Config.default.prefillilvl),
-        prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase)
+        hotkey: {
+          simplehotkey: cfg.get(
+            Config.simplehotkey,
+            Config.default.simplehotkey
+          ),
+          simplehotkeyenabled: cfg.get(
+            Config.simplehotkeyenabled,
+            Config.default.simplehotkeyenabled
+          ),
+          advancedhotkey: cfg.get(
+            Config.advancedhotkey,
+            Config.default.advancedhotkey
+          ),
+          advancedhotkeyenabled: cfg.get(
+            Config.advancedhotkeyenabled,
+            Config.default.advancedhotkeyenabled
+          ),
+          cscroll: cfg.get(Config.cscroll, Config.default.cscroll)
+        },
+        pricecheck: {
+          league: cfg.get(Config.league, Config.default.league),
+          displaylimit: cfg.get(
+            Config.displaylimit,
+            Config.default.displaylimit
+          ),
+          corruptoverride: cfg.get(
+            Config.corruptoverride,
+            Config.default.corruptoverride
+          ),
+          corruptsearch: cfg.get(
+            Config.corruptsearch,
+            Config.default.corruptsearch
+          ),
+          primarycurrency: cfg.get(
+            Config.primarycurrency,
+            Config.default.primarycurrency
+          ),
+          secondarycurrency: cfg.get(
+            Config.secondarycurrency,
+            Config.default.secondarycurrency
+          ),
+          onlineonly: cfg.get(Config.onlineonly, Config.default.onlineonly),
+          buyoutonly: cfg.get(Config.buyoutonly, Config.default.buyoutonly),
+          removedupes: cfg.get(Config.removedupes, Config.default.removedupes),
+          prefillmin: cfg.get(Config.prefillmin, Config.default.prefillmin),
+          prefillmax: cfg.get(Config.prefillmax, Config.default.prefillmax),
+          prefillrange: cfg.get(
+            Config.prefillrange,
+            Config.default.prefillrange
+          ),
+          prefillnormals: cfg.get(
+            Config.prefillnormals,
+            Config.default.prefillnormals
+          ),
+          prefillpseudos: cfg.get(
+            Config.prefillpseudos,
+            Config.default.prefillpseudos
+          ),
+          prefillilvl: cfg.get(Config.prefillilvl, Config.default.prefillilvl),
+          prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase)
+        }
       }
     };
   },
@@ -236,22 +367,36 @@ export default {
     saveSettings() {
       const settings = this.settings;
 
-      cfg.set(Config.league, settings.league);
-      cfg.set(Config.displaylimit, settings.displaylimit);
-      cfg.set(Config.corruptoverride, settings.corruptoverride);
-      cfg.set(Config.corruptsearch, settings.corruptsearch);
-      cfg.set(Config.primarycurrency, settings.primarycurrency);
-      cfg.set(Config.secondarycurrency, settings.secondarycurrency);
-      cfg.set(Config.onlineonly, settings.onlineonly);
-      cfg.set(Config.buyoutonly, settings.buyoutonly);
-      cfg.set(Config.removedupes, settings.removedupes);
-      cfg.set(Config.prefillmin, settings.prefillmin);
-      cfg.set(Config.prefillmax, settings.prefillmax);
-      cfg.set(Config.prefillrange, settings.prefillrange);
-      cfg.set(Config.prefillnormals, settings.prefillnormals);
-      cfg.set(Config.prefillpseudos, settings.prefillpseudos);
-      cfg.set(Config.prefillilvl, settings.prefillilvl);
-      cfg.set(Config.prefillbase, settings.prefillbase);
+      // hotkeys
+      cfg.set(Config.simplehotkey, settings.hotkey.simplehotkey);
+      cfg.set(Config.simplehotkeyenabled, settings.hotkey.simplehotkeyenabled);
+      cfg.set(Config.advancedhotkey, settings.hotkey.advancedhotkey);
+      cfg.set(
+        Config.advancedhotkeyenabled,
+        settings.hotkey.advancedhotkeyenabled
+      );
+      cfg.set(Config.cscroll, settings.hotkey.cscroll);
+
+      // price check
+      cfg.set(Config.league, settings.pricecheck.league);
+      cfg.set(Config.displaylimit, settings.pricecheck.displaylimit);
+      cfg.set(Config.corruptoverride, settings.pricecheck.corruptoverride);
+      cfg.set(Config.corruptsearch, settings.pricecheck.corruptsearch);
+      cfg.set(Config.primarycurrency, settings.pricecheck.primarycurrency);
+      cfg.set(Config.secondarycurrency, settings.pricecheck.secondarycurrency);
+      cfg.set(Config.onlineonly, settings.pricecheck.onlineonly);
+      cfg.set(Config.buyoutonly, settings.pricecheck.buyoutonly);
+      cfg.set(Config.removedupes, settings.pricecheck.removedupes);
+      cfg.set(Config.prefillmin, settings.pricecheck.prefillmin);
+      cfg.set(Config.prefillmax, settings.pricecheck.prefillmax);
+      cfg.set(Config.prefillrange, settings.pricecheck.prefillrange);
+      cfg.set(Config.prefillnormals, settings.pricecheck.prefillnormals);
+      cfg.set(Config.prefillpseudos, settings.pricecheck.prefillpseudos);
+      cfg.set(Config.prefillilvl, settings.pricecheck.prefillilvl);
+      cfg.set(Config.prefillbase, settings.pricecheck.prefillbase);
+
+      // TODO notify hotkey change
+      ipcRenderer.send('hotkeys-changed', true);
 
       this.$q.notify({
         color: 'green',
@@ -262,9 +407,12 @@ export default {
       });
     },
     closeApp() {
-      if (process.env.MODE === 'electron') {
-        this.$q.electron.remote.BrowserWindow.getFocusedWindow().close();
-      }
+      this.$q.electron.remote.BrowserWindow.getFocusedWindow().close();
+    },
+    openKeyRef() {
+      this.$q.electron.remote.shell.openExternal(
+        'https://www.electronjs.org/docs/api/accelerator'
+      );
     }
   }
 };
