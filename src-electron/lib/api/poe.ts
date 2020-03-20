@@ -24,12 +24,16 @@ function processPriceResults(
   //
   const rlist = response['result'] as string[];
 
+  const displaylimit = cfg.get(
+    Config.displaylimit,
+    Config.default.displaylimit
+  );
   const removedupes = cfg.get(Config.removedupes, Config.default.removedupes);
 
   const urls = [];
 
   let n = 0;
-  while (n < rlist.length) {
+  while (n < rlist.length && n < displaylimit) {
     const bucket = rlist.slice(n, n + 10);
     const codes = bucket.join(',');
     urls.push(axios.get(uTradeFetch + codes + '?query=' + response['id']));
