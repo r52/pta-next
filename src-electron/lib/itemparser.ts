@@ -364,6 +364,8 @@ export class ItemParser {
   }
 
   public parse(itemtext: string) {
+    itemtext = itemtext.trim();
+
     const item = {} as any;
     let sections = 0;
 
@@ -478,6 +480,8 @@ export class ItemParser {
 
               const pentry = this.statsById.get(pid);
 
+              item['pseudos'] = item['pseudos'] || {};
+
               if (!(pid in item['pseudos'])) {
                 const psEntry = { ...pentry, enabled: false, value: [] } as any;
 
@@ -485,7 +489,7 @@ export class ItemParser {
                   psEntry['value'].push(v * r['factor']);
                 }
 
-                item['pseudo'][pid] = psEntry;
+                item['pseudos'][pid] = psEntry;
               } else {
                 const psEntry = item['pseudos'][pid];
 
