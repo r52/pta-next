@@ -7,6 +7,10 @@ const routes: RouteConfig[] = [
     children: [{ path: '', component: () => import('pages/Index.vue') }]
   },
   {
+    path: '/settings',
+    component: () => import('layouts/Settings.vue')
+  },
+  {
     path: '/item',
     component: () => import('layouts/Item.vue'),
     children: [

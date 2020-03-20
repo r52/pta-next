@@ -25,7 +25,9 @@ const uApiLeague = 'https://www.pathofexile.com/api/trade/data/leagues';
 export class PTA {
   private static instance: PTA;
   private static parser: ItemParser;
-  private leagues: string[];
+  private settingsWindow: BrowserWindow | null = null;
+
+  leagues: string[];
 
   private constructor() {
     PTA.parser = ItemParser.getInstance();
@@ -103,6 +105,27 @@ export class PTA {
     }
 
     return this.leagues[league];
+  }
+
+  public createSettingsWindow() {
+    if (!this.settingsWindow) {
+      this.settingsWindow = new BrowserWindow({
+        width: 1000,
+        height: 600,
+        useContentSize: true,
+        webPreferences: {
+          nodeIntegration: true
+        }
+      });
+
+      this.settingsWindow.loadURL(
+        (process.env.APP_URL as string) + '#/settings'
+      );
+
+      this.settingsWindow.on('closed', () => {
+        this.settingsWindow = null;
+      });
+    }
   }
 
   private handleItemHotkey(type: ItemHotkey) {

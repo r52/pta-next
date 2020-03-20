@@ -1,6 +1,8 @@
 import { app, BrowserWindow, nativeTheme, Menu, Tray, Event } from 'electron';
 import path from 'path';
 import { PTA } from '../lib/pta';
+import cfg from 'electron-cfg';
+import log from 'electron-log';
 
 try {
   if (
@@ -25,43 +27,21 @@ if (process.env.PROD) {
   global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\');
 }
 
-let mainWindow: BrowserWindow | null = null;
+cfg.logger(log);
+
 let tray: Tray | null = null;
-const pta = PTA.getInstance();
-
-function createWindow() {
-  /**
-   * Initial window options
-   */
-  mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 600,
-    useContentSize: true,
-    webPreferences: {
-      // Change from /quasar.conf.js > electron > nodeIntegration;
-      // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
-      nodeIntegration: true
-
-      // More info: /quasar-cli/developing-electron-apps/electron-preload-script
-      // preload: path.resolve(__dirname, 'electron-preload.js')
-    }
-  });
-
-  mainWindow.loadURL(process.env.APP_URL as string);
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-}
+global.pta = PTA.getInstance();
 
 app.on('ready', () => {
+  global.pta.setup();
+
   tray = new Tray(path.join(__statics, '/icon.png'));
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Open',
+      label: 'Settings',
       click: () => {
-        createWindow();
+        global.pta.createSettingsWindow();
       }
     },
     {
@@ -72,8 +52,6 @@ app.on('ready', () => {
     }
   ]);
   tray.setContextMenu(contextMenu);
-
-  pta.setup();
 });
 
 app.on('window-all-closed', (e: Event) => {
@@ -81,5 +59,5 @@ app.on('window-all-closed', (e: Event) => {
 });
 
 app.on('will-quit', () => {
-  pta.shutdown();
+  global.pta.shutdown();
 });
