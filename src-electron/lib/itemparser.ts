@@ -316,7 +316,7 @@ export class ItemParser {
         this.exchange.set(k, o);
       }
 
-      this.exchange.forEach((key, val) => {
+      this.exchange.forEach(val => {
         this.currencies.add(val);
       });
 
@@ -438,7 +438,7 @@ export class ItemParser {
     }
 
     // Process special/pseudo rules
-    if (Object.keys(item['filters']).length) {
+    if ('filters' in item && Object.keys(item['filters']).length) {
       for (const [key, fil] of Object.entries<any>(item['filters'])) {
         if (this.pseudoRules.has(key)) {
           const rules = this.pseudoRules.get(key);
@@ -670,7 +670,7 @@ export class ItemParser {
     // Remove augmented tag
     prop = prop.replace(' (augmented)', '');
 
-    const re = /^([+-]?[\d.]+)%?/g;
+    const re = /[+-]?\d+(\.\d+)?/g;
     const match = prop.match(re);
 
     if (match) {
@@ -818,7 +818,7 @@ export class ItemParser {
     }
 
     // Match numerics
-    const re = /([+-]?[\d.]+)/g;
+    const re = /[+-]?\d+(\.\d+)?/g;
     let captured: string[] = [];
 
     const val: number[] = [];
