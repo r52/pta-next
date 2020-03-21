@@ -21,9 +21,10 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 import ModNumInput from 'components/ModNumInput.vue';
 
-export default {
+export default Vue.extend({
   name: 'BaseModFilter',
 
   components: {
@@ -51,7 +52,7 @@ export default {
       this.options[this.type]['max'] = value + diff;
     }
   }
-};
+});
 </script>
 
 <style scoped>

@@ -225,8 +225,6 @@ module.exports = configure(function(/* ctx */) {
         // do something with Electron main process Webpack cfg
         // chainWebpack also available besides this extendWebpack
         cfg.devtool = 'source-map';
-
-        cfg.externals.push('ffi-napi', 'ref-napi', 'ref-struct-di');
       }
     }
   };

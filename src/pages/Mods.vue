@@ -185,11 +185,12 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 import { ipcRenderer } from 'electron';
 import BaseModFilter from 'components/BaseModFilter.vue';
 import ModFilter from 'components/ModFilter.vue';
 
-export default {
+export default Vue.extend({
   name: 'Mods',
 
   props: {
@@ -230,7 +231,7 @@ export default {
       ipcRenderer.send('search', this.item, this.options, openbrowser);
     }
   }
-};
+});
 </script>
 
 <style>

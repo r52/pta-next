@@ -30,9 +30,10 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 import ModNumInput from 'components/ModNumInput.vue';
 
-export default {
+export default Vue.extend({
   name: 'ModFilter',
 
   components: {
@@ -46,7 +47,7 @@ export default {
   },
 
   computed: {
-    filterval() {
+    filterval(): number {
       if (this.filter.value.length > 1) {
         return (this.filter.value[0] + this.filter.value[1]) / 2;
       }
@@ -77,7 +78,7 @@ export default {
       this.filter.enabled = true;
     }
   }
-};
+});
 </script>
 
 <style scoped>

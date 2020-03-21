@@ -15,7 +15,6 @@
           text-color="white"
           :label="settings.league"
         />
-
         <q-chip
           outline
           square
@@ -37,7 +36,6 @@
           square
           color="purple"
           text-color="white"
-          v-if="item.influences"
           v-for="inf in item.influences"
           :key="inf"
           :label="inf"
@@ -89,9 +87,10 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 import { ipcRenderer } from 'electron';
 
-export default {
+export default Vue.extend({
   name: 'Item',
 
   data() {
@@ -106,16 +105,22 @@ export default {
   },
 
   computed: {
-    itemClass() {
-      let cls = this.item.rarity as string;
+    itemClass(): string {
+      let cls = '';
 
-      if (
-        this.item.category == 'gem' ||
-        this.item.category == 'prophecy' ||
-        this.item.category == 'card' ||
-        this.item.category == 'currency'
-      ) {
-        cls = this.item.category as string;
+      const item = this.item as any;
+
+      if (item) {
+        cls = item.rarity as string;
+
+        if (
+          item.category == 'gem' ||
+          item.category == 'prophecy' ||
+          item.category == 'card' ||
+          item.category == 'currency'
+        ) {
+          cls = item.category as string;
+        }
       }
 
       return cls;
@@ -124,7 +129,11 @@ export default {
 
   methods: {
     closeApp() {
-      this.$q.electron.remote.BrowserWindow.getFocusedWindow().close();
+      const win = this.$q.electron.remote.BrowserWindow.getFocusedWindow();
+
+      if (win) {
+        win.close();
+      }
     },
     handleItem(
       event: Electron.IpcRendererEvent,
@@ -184,7 +193,7 @@ export default {
       this.handleResults(event, results);
     });
   }
-};
+});
 </script>
 
 <style>

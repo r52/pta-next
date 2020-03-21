@@ -20,7 +20,10 @@
 </template>
 
 <script lang="ts">
-export default {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Vue from 'vue';
+
+export default Vue.extend({
   name: 'Results',
 
   props: {
@@ -37,7 +40,7 @@ export default {
   },
 
   computed: {
-    type() {
+    type(): string {
       let type = 'default';
 
       if (this.item.category == 'gem') {
@@ -50,7 +53,7 @@ export default {
 
       return type;
     },
-    columns() {
+    columns(): any[] {
       const columns = {
         default: [
           {
@@ -133,16 +136,16 @@ export default {
             field: 'age'
           }
         ]
-      };
+      } as { [index: string]: any[] };
 
       return columns[this.type];
     },
-    listings() {
-      const lst = [];
+    listings(): any[] {
+      const lst: any[] = [];
       const now = this.now();
       const type = this.type;
 
-      this.results.result.forEach(entry => {
+      this.results.result.forEach((entry: any) => {
         const obj = {} as any;
 
         // name
@@ -232,5 +235,5 @@ export default {
       return Math.floor(dif / 86400).toString() + ' days';
     }
   }
-};
+});
 </script>

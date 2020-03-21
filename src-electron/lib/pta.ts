@@ -84,7 +84,7 @@ export class PTA {
     });
 
     ipcMain.on('clientlog-changed', () => {
-      // TODO
+      // TODO client monitor
     });
 
     winpoe.onForegroundChange((isPoe: boolean) => {
@@ -282,16 +282,18 @@ export class PTA {
 
     const item = PTA.parser.parse(itemtext);
 
-    if (item) {
+    if (!item) {
+      dialog.showErrorBox(
+        'Item Error',
+        'Error parsing item text. Check log for more details.'
+      );
+    } else {
       if (type === ItemHotkey.SIMPLE || type === ItemHotkey.ADVANCED) {
         const { settings, options } = this.fillSearchOptions(item);
 
         this.createItemUI(item, settings, options, type);
       }
     }
-
-    // TODOs here:
-    // Open window logic
   }
 
   private fillSearchOptions(item: any) {

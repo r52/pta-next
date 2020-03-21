@@ -397,11 +397,12 @@
 
 <script lang="ts">
 /* eslint-disable quotes */
+import Vue from 'vue';
 import { ipcRenderer } from 'electron';
 import cfg from 'electron-cfg';
 import Config from '../../src-electron/lib/config';
 
-export default {
+export default Vue.extend({
   name: 'Settings',
 
   data() {
@@ -672,7 +673,11 @@ export default {
       });
     },
     closeApp() {
-      this.$q.electron.remote.BrowserWindow.getFocusedWindow().close();
+      const win = this.$q.electron.remote.BrowserWindow.getFocusedWindow();
+
+      if (win) {
+        win.close();
+      }
     },
     openKeyRef() {
       this.$q.electron.remote.shell.openExternal(
@@ -680,7 +685,7 @@ export default {
       );
     }
   }
-};
+});
 </script>
 
 <style>
