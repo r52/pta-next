@@ -12,7 +12,7 @@
         :data="listings"
         :columns="columns"
         row-key="name"
-        no-data-label="I didn't find anything for you"
+        no-data-label="No Results"
         :pagination.sync="pagination"
       />
     </div>

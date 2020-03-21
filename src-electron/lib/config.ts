@@ -24,6 +24,12 @@ export default {
   prefillilvl: 'pricecheck.prefillilvl',
   prefillbase: 'pricecheck.prefillbase',
 
+  //client
+  clientlogpath: 'client.logpath',
+
+  // custom macros
+  macros: 'macros.list',
+
   default: {
     // hotkey
     simplehotkey: 'CmdOrCtrl+D',
@@ -48,6 +54,19 @@ export default {
     prefillnormals: false,
     prefillpseudos: true,
     prefillilvl: false,
-    prefillbase: false
+    prefillbase: false,
+
+    //client
+    clientlogpath: '',
+
+    // custom macros
+    macros: [
+      {
+        name: 'hideout',
+        key: 'F5',
+        type: 'chat',
+        command: '/hideout'
+      }
+    ]
   }
 };

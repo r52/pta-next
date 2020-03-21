@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeTheme, Menu, Tray, Event } from 'electron';
+import { app, nativeTheme, Menu, Tray, Event } from 'electron';
 import path from 'path';
 import { PTA } from '../lib/pta';
 import cfg from 'electron-cfg';

@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh Lpr fFf">
     <q-header elevated>
-      <q-toolbar>
+      <q-toolbar class="q-electron-drag">
         <q-avatar>
           <img src="statics/icon.png" />
         </q-avatar>
@@ -15,6 +15,8 @@
       <q-tabs v-model="tab">
         <q-tab name="hotkey" icon="space_bar" label="Hotkey" />
         <q-tab name="price" icon="shop" label="Price Check" />
+        <q-tab name="macro" icon="gamepad" label="Macros" />
+        <q-tab name="client" icon="desktop_windows" label="Client" />
       </q-tabs>
     </q-header>
     <q-footer>
@@ -241,6 +243,153 @@
             </q-card-section>
           </q-card>
         </q-tab-panel>
+
+        <q-tab-panel name="macro">
+          <q-card>
+            <a href="#" @click="openKeyRef()" class="text-orange"
+              >Keycode Reference</a
+            >
+            <q-card-section class="q-pt-none">
+              <q-table
+                title="Custom Macros"
+                :data="settings.macros.list"
+                :columns="macroColumns"
+                row-key="name"
+                :filter="macroFilter"
+              >
+                <template v-slot:top-right>
+                  <q-input
+                    dense
+                    debounce="300"
+                    color="primary"
+                    v-model="macroFilter"
+                  >
+                    <template v-slot:append>
+                      <q-icon name="search" />
+                    </template>
+                  </q-input>
+                </template>
+
+                <template v-slot:header="props">
+                  <q-tr :props="props">
+                    <q-th auto-width />
+                    <q-th
+                      v-for="col in props.cols"
+                      :key="col.name"
+                      :props="props"
+                    >
+                      {{ col.label }}
+                    </q-th>
+                  </q-tr>
+                </template>
+
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td auto-width>
+                      <q-btn
+                        size="sm"
+                        color="accent"
+                        round
+                        dense
+                        @click="deleteMacro(props.key)"
+                        icon="remove"
+                      />
+                    </q-td>
+                    <q-td key="name" :props="props">
+                      {{ props.row.name }}
+                    </q-td>
+                    <q-td key="key" :props="props">
+                      {{ props.row.key }}
+                      <q-popup-edit
+                        v-model="props.row.key"
+                        title="Update Key"
+                        buttons
+                      >
+                        <q-input v-model="props.row.key" dense autofocus />
+                      </q-popup-edit>
+                    </q-td>
+                    <q-td key="type" :props="props">
+                      {{ props.row.type }}
+                      <q-popup-edit v-model="props.row.type">
+                        <q-select
+                          v-model="props.row.type"
+                          :options="macroTypes"
+                          label="Macro Type"
+                          dense
+                          options-dense
+                          autofocus
+                        />
+                      </q-popup-edit>
+                    </q-td>
+                    <q-td key="command" :props="props">
+                      {{ props.row.command }}
+                      <q-popup-edit
+                        v-model="props.row.command"
+                        title="Update Command"
+                      >
+                        <q-input v-model="props.row.command" dense autofocus />
+                      </q-popup-edit>
+                    </q-td>
+                  </q-tr>
+                </template>
+              </q-table>
+            </q-card-section>
+          </q-card>
+
+          <q-dialog v-model="macroDialog">
+            <q-card style="min-width: 350px">
+              <q-card-section>
+                <div class="text-h6">New Macro</div>
+              </q-card-section>
+
+              <q-card-section class="q-pt-none">
+                <q-input dense v-model="macroAdd.name" label="Name" autofocus />
+                <q-input dense v-model="macroAdd.key" label="Key" />
+                <q-select
+                  v-model="macroAdd.type"
+                  :options="macroTypes"
+                  label="Type"
+                />
+                <q-input dense v-model="macroAdd.command" label="Command" />
+              </q-card-section>
+
+              <q-card-actions align="right" class="text-primary">
+                <q-btn flat label="Cancel" v-close-popup />
+                <q-btn flat label="Add" @click="addMacro" v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+
+          <q-page-sticky position="bottom-right" :offset="[18, 18]">
+            <q-btn fab icon="add" color="accent" @click="openMacroDialog" />
+          </q-page-sticky>
+        </q-tab-panel>
+
+        <q-tab-panel name="client">
+          <q-card>
+            <q-card-section>
+              <div class="text-h6">Game Client</div>
+            </q-card-section>
+
+            <q-card-section class="q-pt-none">
+              <div class="q-pa-xs">
+                <div class="row items-center">
+                  <div class="col">
+                    Client Log location:
+                  </div>
+                  <div class="col">
+                    <q-file
+                      v-model="settings.client.logpath"
+                      label="Client.txt"
+                      accept=".txt"
+                      clearable
+                    />
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </q-tab-panel>
       </q-tab-panels>
     </q-page-container>
   </q-layout>
@@ -300,10 +449,60 @@ export default {
       { label: 'Silver Coin', value: 'silver' }
     ];
 
+    const macroColumns = [
+      {
+        name: 'name',
+        align: 'left',
+        label: 'Name',
+        field: 'name'
+      },
+      {
+        name: 'key',
+        align: 'left',
+        label: 'Key',
+        field: 'key'
+      },
+      {
+        name: 'type',
+        align: 'left',
+        label: 'Type',
+        field: 'type'
+      },
+      {
+        name: 'command',
+        align: 'left',
+        label: 'Command',
+        field: 'command'
+      }
+    ];
+
+    const macros = cfg.get(Config.macros, Config.default.macros);
+
+    const clientpath = cfg.get(
+      Config.clientlogpath,
+      Config.default.clientlogpath
+    );
+
+    let clientfile = null;
+
+    if (clientpath) {
+      clientfile = { name: clientpath, path: clientpath } as File;
+    }
+
     return {
       tab: 'hotkey',
       leagues: Object.freeze(leagues),
       corrupts: ['Any', 'Yes', 'No'],
+      macroTypes: ['chat', 'url'],
+      macroColumns: macroColumns,
+      macroFilter: '',
+      macroAdd: {
+        name: '',
+        key: '',
+        type: '',
+        command: ''
+      },
+      macroDialog: false,
       currencies: Object.freeze(currencies),
       settings: {
         hotkey: {
@@ -366,12 +565,46 @@ export default {
           ),
           prefillilvl: cfg.get(Config.prefillilvl, Config.default.prefillilvl),
           prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase)
+        },
+        client: {
+          logpath: clientfile
+        },
+        macros: {
+          list: macros
         }
       }
     };
   },
 
   methods: {
+    openMacroDialog() {
+      this.macroAdd.name = '';
+      this.macroAdd.key = '';
+      this.macroAdd.type = '';
+      this.macroAdd.command = '';
+
+      this.macroDialog = true;
+    },
+    addMacro() {
+      if (
+        this.macroAdd.name &&
+        this.macroAdd.key &&
+        this.macroAdd.type &&
+        this.macroAdd.command
+      ) {
+        this.settings.macros.list.push({ ...this.macroAdd });
+      }
+
+      this.macroAdd.name = '';
+      this.macroAdd.key = '';
+      this.macroAdd.type = '';
+      this.macroAdd.command = '';
+    },
+    deleteMacro(key: string) {
+      this.settings.macros.list = this.settings.macros.list.filter((e: any) => {
+        return e.name != key;
+      });
+    },
     saveSettings() {
       const settings = this.settings;
 
@@ -403,8 +636,32 @@ export default {
       cfg.set(Config.prefillilvl, settings.pricecheck.prefillilvl);
       cfg.set(Config.prefillbase, settings.pricecheck.prefillbase);
 
-      // TODO notify hotkey change
-      ipcRenderer.send('hotkeys-changed', true);
+      cfg.set(Config.macros, settings.macros.list);
+
+      // notify hotkey change
+      ipcRenderer.send('hotkeys-changed');
+
+      // notify client log change
+      const origclient = cfg.get(
+        Config.clientlogpath,
+        Config.default.clientlogpath
+      );
+
+      if (settings.client.logpath) {
+        const logpath = settings.client.logpath.path;
+        cfg.set(Config.clientlogpath, logpath);
+
+        if (origclient != logpath) {
+          ipcRenderer.send('clientlog-changed');
+        }
+      } else {
+        // null/cleared
+        cfg.set(Config.clientlogpath, '');
+
+        if (origclient) {
+          ipcRenderer.send('clientlog-changed');
+        }
+      }
 
       this.$q.notify({
         color: 'green',
@@ -425,3 +682,18 @@ export default {
   }
 };
 </script>
+
+<style>
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+</style>

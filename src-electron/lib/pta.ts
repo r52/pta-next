@@ -4,7 +4,8 @@ import {
   clipboard,
   dialog,
   globalShortcut,
-  ipcMain
+  ipcMain,
+  shell
 } from 'electron';
 import { ItemParser } from '../lib/itemparser';
 import robot from 'robotjs';
@@ -14,6 +15,13 @@ import Config from '../lib/config';
 import * as PoE from '../lib/api/poe';
 import winpoe from 'winpoe';
 import axios from 'axios';
+
+interface Macro {
+  name: string;
+  key: string;
+  type: string;
+  command: string;
+}
 
 enum ItemHotkey {
   SIMPLE,
@@ -75,12 +83,29 @@ export class PTA {
       this.registerShortcuts();
     });
 
-    winpoe.InitializeHooks();
+    ipcMain.on('clientlog-changed', () => {
+      // TODO
+    });
+
+    winpoe.onForegroundChange((isPoe: boolean) => {
+      if (isPoe) {
+        this.registerShortcuts();
+      } else {
+        this.unregisterShortcuts();
+      }
+    });
+
+    if (process.env.NODE_ENV === 'production') {
+      winpoe.InitializeHooks();
+    }
   }
 
   public shutdown() {
     this.unregisterShortcuts();
-    winpoe.ShutdownHooks();
+
+    if (process.env.NODE_ENV === 'production') {
+      winpoe.ShutdownHooks();
+    }
   }
 
   private registerShortcuts() {
@@ -115,12 +140,50 @@ export class PTA {
       });
     }
 
+    // cscroll
     const cscroll = cfg.get(Config.cscroll, Config.default.cscroll);
     winpoe.SetScrollHookEnabled(cscroll);
+
+    // macros
+    const macros: Macro[] = cfg.get(Config.macros, Config.default.macros);
+    macros.forEach((macro: Macro) => {
+      const key = macro.key;
+      const type = macro.type;
+      const command = macro.command;
+
+      globalShortcut.register(key, () => {
+        this.handleMacro(type, command);
+      });
+    });
   }
 
   private unregisterShortcuts() {
+    winpoe.SetScrollHookEnabled(false);
     globalShortcut.unregisterAll();
+  }
+
+  private handleMacro(type: string, command: string) {
+    if (!winpoe.IsPoEForeground()) {
+      return;
+    }
+
+    switch (type) {
+      case 'chat':
+        this.executeChatCommand(command);
+        break;
+      case 'url':
+        shell.openExternal(command);
+        break;
+      default:
+        log.warn('Invalid macro type', type);
+        break;
+    }
+  }
+
+  private executeChatCommand(command: string) {
+    clipboard.writeText(command);
+
+    winpoe.SendPasteCommand();
   }
 
   public getLeague() {
@@ -229,7 +292,6 @@ export class PTA {
 
     // TODOs here:
     // Open window logic
-    // simple search/currency search
   }
 
   private fillSearchOptions(item: any) {

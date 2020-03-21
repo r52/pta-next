@@ -156,10 +156,47 @@ Napi::Boolean IsPoEForeground(const Napi::CallbackInfo &info)
     return Napi::Boolean::New(env, poefg);
 }
 
+void SendPasteCommand(const Napi::CallbackInfo &info)
+{
+    std::vector<INPUT> keystrokes;
+
+    // ensure all used keys are up
+    keystrokes.push_back(pta::CreateInput(VK_MENU, false));
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
+    keystrokes.push_back(pta::CreateInput('V', false));
+    keystrokes.push_back(pta::CreateInput('A', false));
+    keystrokes.push_back(pta::CreateInput(VK_BACK, false));
+
+    // open chat
+    keystrokes.push_back(pta::CreateInput(VK_RETURN, true));
+    keystrokes.push_back(pta::CreateInput(VK_RETURN, false));
+
+    // select all and delete
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, true));
+    keystrokes.push_back(pta::CreateInput('A', true));
+    keystrokes.push_back(pta::CreateInput('A', false));
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
+    keystrokes.push_back(pta::CreateInput(VK_BACK, true));
+    keystrokes.push_back(pta::CreateInput(VK_BACK, false));
+
+    // paste command
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, true));
+    keystrokes.push_back(pta::CreateInput('V', true));
+    keystrokes.push_back(pta::CreateInput('V', false));
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
+
+    // press enter
+    keystrokes.push_back(pta::CreateInput(VK_RETURN, true));
+    keystrokes.push_back(pta::CreateInput(VK_RETURN, false));
+
+    SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
+}
+
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // raw funcs
     exports.Set(Napi::String::New(env, "IsPoEForeground"), Napi::Function::New(env, IsPoEForeground));
+    exports.Set(Napi::String::New(env, "SendPasteCommand"), Napi::Function::New(env, SendPasteCommand));
 
     // cbs
     exports.Set(Napi::String::New(env, "onForegroundChange"), Napi::Function::New(env, InstallForegroundHookCb));

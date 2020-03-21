@@ -124,9 +124,7 @@ export default {
 
   methods: {
     closeApp() {
-      if (process.env.MODE === 'electron') {
-        this.$q.electron.remote.BrowserWindow.getFocusedWindow().close();
-      }
+      this.$q.electron.remote.BrowserWindow.getFocusedWindow().close();
     },
     handleItem(
       event: Electron.IpcRendererEvent,
@@ -177,7 +175,7 @@ export default {
       this.handleItem(event, item, settings, options, type);
 
       // If type == SIMPLE, queue a simple search
-      if (type == 0) {
+      if (type == 0 || !('filters' in item)) {
         ipcRenderer.send('search-defaults', item);
       }
     });
