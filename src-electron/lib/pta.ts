@@ -6,13 +6,13 @@ import {
   globalShortcut,
   ipcMain
 } from 'electron';
-import * as winapi from './winapi';
 import { ItemParser } from '../lib/itemparser';
 import robot from 'robotjs';
 import log from 'electron-log';
 import cfg from 'electron-cfg';
 import Config from '../lib/config';
 import * as PoE from '../lib/api/poe';
+import winpoe from 'winpoe';
 import axios from 'axios';
 
 enum ItemHotkey {
@@ -74,13 +74,16 @@ export class PTA {
       this.unregisterShortcuts();
       this.registerShortcuts();
     });
+
+    winpoe.InitializeHooks();
   }
 
   public shutdown() {
     this.unregisterShortcuts();
+    winpoe.ShutdownHooks();
   }
 
-  public registerShortcuts() {
+  private registerShortcuts() {
     // price check keys
     const smphotkeyenabled = cfg.get(
       Config.simplehotkeyenabled,
@@ -111,9 +114,12 @@ export class PTA {
         this.handleItemHotkey(ItemHotkey.ADVANCED);
       });
     }
+
+    const cscroll = cfg.get(Config.cscroll, Config.default.cscroll);
+    winpoe.SetScrollHookEnabled(cscroll);
   }
 
-  public unregisterShortcuts() {
+  private unregisterShortcuts() {
     globalShortcut.unregisterAll();
   }
 
@@ -156,7 +162,7 @@ export class PTA {
   }
 
   private handleItemHotkey(type: ItemHotkey) {
-    const poefg = winapi.IsPoEForeground();
+    const poefg = winpoe.IsPoEForeground();
 
     if (poefg) {
       robot.keyTap('c', 'control');

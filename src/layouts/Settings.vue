@@ -66,6 +66,14 @@
                   />
                 </div>
               </div>
+              <div class="row items-center">
+                <div class="col">
+                  <q-toggle
+                    v-model="settings.hotkey.cscroll"
+                    label="Ctrl+Mouse Wheel scrolls through stash tabs"
+                  />
+                </div>
+              </div>
             </div>
           </q-card-section>
         </q-tab-panel>

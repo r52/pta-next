@@ -1,0 +1,13 @@
+{
+  "name": "winpoe",
+  "version": "1.0.0",
+  "description": "A bunch of PoE specific Windows hooks and calls",
+  "main": "index.js",
+  "author": "r52",
+  "license": "GPL-3.0",
+  "private": true,
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^2.0.0"
+  }
+}
