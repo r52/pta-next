@@ -37,7 +37,13 @@ function processPriceResults(
   while (n < rlist.length && n < displaylimit) {
     const bucket = rlist.slice(n, n + 10);
     const codes = bucket.join(',');
-    urls.push(axios.get(uTradeFetch + codes + '?query=' + response['id']));
+    let url = uTradeFetch + codes + '?query=' + response['id'];
+
+    if (exchange) {
+      url += '&exchange';
+    }
+
+    urls.push(axios.get(url));
     n = n + 10;
   }
 
@@ -119,6 +125,8 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: any) {
     return;
   }
 
+  const url = uTradeExchange + PTA.getInstance().getLeague();
+
   const want = itemparser.exchange.get(item['type']) as string;
   let have = p_curr;
 
@@ -132,24 +140,22 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: any) {
 
   query.exchange.have.push(have);
 
-  const url = uTradeExchange + PTA.getInstance().getLeague();
-
   urls.push(axios.post(url, query));
 
-  if (have != s_curr) {
+  if (have != s_curr && want != s_curr) {
     have = s_curr;
+
+    query.exchange.have.pop();
+    query.exchange.have.push(have);
+
+    urls.push(axios.post(url, query));
   }
-
-  query.exchange.have.pop();
-  query.exchange.have.push(have);
-
-  urls.push(axios.post(url, query));
 
   axios.all(urls).then(results => {
     results.some(resp => {
       const data = resp.data;
 
-      if ('result' in data && 'id' in data && data['result'].length > 0) {
+      if ('result' in data && 'id' in data) {
         processPriceResults(data, event, null, true, true);
         return true;
       }
