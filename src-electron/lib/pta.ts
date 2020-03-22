@@ -379,12 +379,13 @@ export class PTA {
       uselinks: false,
       useilvl: prefillilvl,
       useitembase: prefillbase,
-      usecorrupted: 'corrupted' in item && item['corrupted'] ? 'Yes' : 'Any'
+      usecorrupted: 'corrupted' in item && item['corrupted'] ? 'Yes' : 'Any',
+      influences: []
     } as any;
 
     if (prefillbase) {
       if ('influences' in item) {
-        options['influences'] = [...item['influences']];
+        options.influences.push(...item['influences']);
       }
 
       if (
