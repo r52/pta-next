@@ -4,7 +4,7 @@
       <q-toggle
         dense
         class="magic--text"
-        v-model.lazy="filter.enabled"
+        v-model="filter.enabled"
         :label="`(${filter.type}) ${filter.text}`"
       />
     </div>

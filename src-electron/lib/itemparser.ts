@@ -454,7 +454,13 @@ export class ItemParser {
               item['pseudos'] = item['pseudos'] || {};
 
               if (!(pid in item['pseudos'])) {
-                const psEntry = { ...pentry, enabled: false, value: [] } as any;
+                const psEntry = {
+                  ...pentry,
+                  enabled: false,
+                  value: [],
+                  min: null,
+                  max: null
+                } as any;
 
                 for (const v of fil['value']) {
                   psEntry['value'].push(v * r['factor']);
@@ -1051,7 +1057,13 @@ export class ItemParser {
         }
 
         // use stat
-        filter = { ...entry, value: [...val], enabled: false };
+        filter = {
+          ...entry,
+          value: [...val],
+          enabled: false,
+          min: null,
+          max: null
+        };
         break;
       } else {
         if (entry['type'] == 'pseudo') {
@@ -1070,7 +1082,13 @@ export class ItemParser {
         }
 
         if (entry['type'] == 'explicit') {
-          filter = { ...entry, value: [...val], enabled: false };
+          filter = {
+            ...entry,
+            value: [...val],
+            enabled: false,
+            min: null,
+            max: null
+          };
         }
       }
     }

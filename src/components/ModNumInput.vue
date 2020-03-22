@@ -3,7 +3,7 @@
     dense
     clearable
     type="number"
-    v-model.number.lazy="filter[type]"
+    v-model.number="filter[type]"
     v-on:input="filter.enabled = true"
     :disabled="disabled"
     @keypress="isNumber($event)"
