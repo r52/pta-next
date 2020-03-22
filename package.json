@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "description": "PTA-Next",
   "productName": "PTA-Next",
-  "cordovaId": "",
-  "capacitorId": "",
   "author": "r52",
+  "homepage": "https://github.com/r52/pta-next",
+  "repository": "https://github.com/r52/pta-next",
   "private": true,
   "scripts": {
     "dev": "quasar dev -m electron",
