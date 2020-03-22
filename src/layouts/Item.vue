@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar class="q-electron-drag bg-grey-10">
         <q-toolbar-title :class="[itemClass]"
-          >{{ this.item.name }} {{ this.item.type }}</q-toolbar-title
+          >{{ item.name }} {{ item.type }}</q-toolbar-title
         >
         <q-btn flat round dense icon="close" accesskey="c" @click="closeApp" />
       </q-toolbar>
@@ -97,7 +97,7 @@ export default Vue.extend({
   data() {
     return {
       tab: null,
-      item: null,
+      item: null as Item | null,
       prediction: null,
       results: null,
       settings: null,
@@ -138,7 +138,7 @@ export default Vue.extend({
     },
     handleItem(
       event: Electron.IpcRendererEvent,
-      item: any,
+      item: Item,
       settings: any,
       options: any,
       type: number
@@ -150,15 +150,15 @@ export default Vue.extend({
       // If type == ADVANCED and has mods, switch tab
       if (
         item &&
-        'filters' in item &&
-        Object.keys(item['filters']).length > 0 &&
-        item['category'] != 'map' &&
+        item.filters &&
+        Object.keys(item.filters).length > 0 &&
+        item.category != 'map' &&
         type == 1
       ) {
         this.$router.replace({
           name: 'mods',
           params: {
-            item: item,
+            item: item as any,
             settings: settings,
             options: options
           }

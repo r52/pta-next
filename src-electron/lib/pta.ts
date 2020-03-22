@@ -230,12 +230,12 @@ export class PTA {
       winpoe.SendCopyCommand();
       setTimeout(() => {
         this.handleClipboard(type);
-      }, 10);
+      }, 50);
     }
   }
 
   private createItemUI(
-    item: any,
+    item: Item,
     settings: any,
     options: any,
     type: ItemHotkey
@@ -295,7 +295,7 @@ export class PTA {
     }
   }
 
-  private fillSearchOptions(item: any) {
+  private fillSearchOptions(item: Item) {
     const league = this.getLeague();
     const displaylimit = cfg.get(
       Config.displaylimit,
@@ -378,20 +378,16 @@ export class PTA {
       uselinks: false,
       useilvl: prefillilvl,
       useitembase: prefillbase,
-      usecorrupted: 'corrupted' in item && item['corrupted'] ? 'Yes' : 'Any',
+      usecorrupted: item.corrupted ? 'Yes' : 'Any',
       influences: []
     } as any;
 
     if (prefillbase) {
-      if ('influences' in item) {
-        options.influences.push(...item['influences']);
+      if (item.influences) {
+        options.influences.push(...item.influences);
       }
 
-      if (
-        'misc' in item &&
-        'synthesis' in item['misc'] &&
-        item['misc']['synthesis']
-      ) {
+      if (item.misc?.synthesis) {
         options['usesynthesisbase'] = prefillbase;
       }
     }

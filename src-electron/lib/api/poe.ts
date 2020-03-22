@@ -81,7 +81,7 @@ function processPriceResults(
   });
 }
 
-function doCurrencySearch(event: Electron.IpcMainEvent, item: any) {
+function doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
   const itemparser = ItemParser.getInstance();
 
   const query = {
@@ -112,13 +112,13 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: any) {
   }
 
   // Check for existing currencies
-  if (!itemparser.exchange.has(item['type'])) {
+  if (!itemparser.exchange.has(item.type)) {
     dialog.showErrorBox(
       'Currency Error',
       'Could not find this currency in the database. If you believe that this is a mistake, please file a bug report on GitHub.'
     );
 
-    log.warn('Currency not found:', item['type']);
+    log.warn('Currency not found:', item.type);
     log.warn(
       'If you believe that this is a mistake, please file a bug report on GitHub.'
     );
@@ -127,7 +127,7 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: any) {
 
   const url = uTradeExchange + PTA.getInstance().getLeague();
 
-  const want = itemparser.exchange.get(item['type']) as string;
+  const want = itemparser.exchange.get(item.type) as string;
   let have = p_curr;
 
   if (want == p_curr) {
@@ -167,14 +167,14 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: any) {
 
 export function searchItemWithDefaults(
   event: Electron.IpcMainEvent,
-  item: any
+  item: Item
 ) {
   const itemparser = ItemParser.getInstance();
   const league = PTA.getInstance().getLeague();
 
   // If its a currency and the currency is listed in the bulk exchange, try that first
   // Otherwise, try a regular search
-  if (item['category'] == 'currency' && itemparser.exchange.has(item['type'])) {
+  if (item.category == 'currency' && itemparser.exchange.has(item.type)) {
     doCurrencySearch(event, item);
     return;
   }
@@ -237,20 +237,17 @@ export function searchItemWithDefaults(
   }
 
   // Search by type if rare map, or if it has no name
-  if (
-    (item['category'] == 'map' && item['rarity'] == 'Rare') ||
-    !('name' in item)
-  ) {
-    isUniqueBase = itemparser.uniques.has(item['type']);
-    searchToken = item['type'];
+  if ((item.category == 'map' && item.rarity == 'Rare') || item.name == null) {
+    isUniqueBase = itemparser.uniques.has(item.type);
+    searchToken = item.type;
   } else {
-    isUniqueBase = itemparser.uniques.has(item['name']);
-    searchToken = item['name'];
+    isUniqueBase = itemparser.uniques.has(item.name);
+    searchToken = item.name;
   }
 
   // Force rarity if unique
-  if (item['rarity'] == 'Unique') {
-    const rarity = (item['rarity'] as string).toLowerCase();
+  if (item.rarity == 'Unique') {
+    const rarity = item.rarity.toLowerCase();
 
     query.query = merge(query.query, {
       filters: {
@@ -266,8 +263,8 @@ export function searchItemWithDefaults(
   }
 
   // Force category
-  if ('category' in item && item['category']) {
-    const category = (item['category'] as string).toLowerCase();
+  if ('category' in item && item.category) {
+    const category = item.category.toLowerCase();
 
     query.query = merge(query.query, {
       filters: {
@@ -287,11 +284,8 @@ export function searchItemWithDefaults(
     const range = itemparser.uniques.get(searchToken);
     for (const entry of range) {
       // If has discriminator, match discriminator and type
-      if ('misc' in item && 'disc' in item['misc']) {
-        if (
-          entry['disc'] == item['misc']['disc'] &&
-          entry['type'] == item['type']
-        ) {
+      if (item.misc?.disc) {
+        if (entry['disc'] == item.misc.disc && entry['type'] == item.type) {
           if ('name' in entry) {
             query.query['name'] = {
               discriminator: entry['disc'],
@@ -306,7 +300,7 @@ export function searchItemWithDefaults(
 
           break;
         }
-      } else if (entry['type'] == item['type']) {
+      } else if (entry['type'] == item.type) {
         // For everything else, just match type
         query.query['type'] = entry['type'];
 
@@ -319,16 +313,16 @@ export function searchItemWithDefaults(
     }
 
     // Default Gem options
-    if (item['category'] == 'gem') {
+    if (item.category == 'gem' && item.misc?.gemlevel) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
             filters: {
               gem_level: {
-                min: item['misc']['gem_level']
+                min: item.misc.gemlevel
               },
               quality: {
-                min: item['quality']
+                min: item.quality
               }
             }
           }
@@ -338,20 +332,20 @@ export function searchItemWithDefaults(
       sopts.children.push({
         label: 'Gem',
         children: [
-          { label: 'Level', children: [{ label: item['misc']['gem_level'] }] },
-          { label: 'Quality', children: [{ label: item['quality'] + '%' }] }
+          { label: 'Level', children: [{ label: item.misc.gemlevel }] },
+          { label: 'Quality', children: [{ label: item.quality + '%' }] }
         ]
       });
     }
 
     // Default socket options
-    if ('sockets' in item && item['sockets']['total'] == 6) {
+    if (item.sockets && item.sockets.total == 6) {
       query.query = merge(query.query, {
         filters: {
           socket_filters: {
             filters: {
               sockets: {
-                min: item['sockets']['total']
+                min: item.sockets.total
               }
             }
           }
@@ -360,18 +354,18 @@ export function searchItemWithDefaults(
 
       sopts.children.push({
         label: 'Sockets',
-        children: [{ label: item['sockets']['total'] }]
+        children: [{ label: item.sockets.total }]
       });
     }
 
     // Default link options
-    if ('sockets' in item && item['sockets']['links'] > 4) {
+    if (item.sockets && item.sockets.links > 4) {
       query.query = merge(query.query, {
         filters: {
           socket_filters: {
             filters: {
               links: {
-                min: item['sockets']['links']
+                min: item.sockets.links
               }
             }
           }
@@ -380,22 +374,18 @@ export function searchItemWithDefaults(
 
       sopts.children.push({
         label: 'Links',
-        children: [{ label: item['sockets']['links'] }]
+        children: [{ label: item.sockets.links }]
       });
     }
 
     // Force iLvl
-    if (
-      item['rarity'] != 'Unique' &&
-      item['category'] != 'card' &&
-      'ilvl' in item
-    ) {
+    if (item.rarity != 'Unique' && item.category != 'card' && item.ilvl) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
             filters: {
               ilvl: {
-                min: item['ilvl']
+                min: item.ilvl
               }
             }
           }
@@ -404,22 +394,18 @@ export function searchItemWithDefaults(
 
       sopts.children.push({
         label: 'Item Level',
-        children: [{ label: item['ilvl'] }]
+        children: [{ label: item.ilvl }]
       });
     }
 
     // Force map tier
-    if (
-      item['category'] == 'map' &&
-      'misc' in item &&
-      'map_tier' in item['misc']
-    ) {
+    if (item.category == 'map' && item.misc?.maptier) {
       query.query = merge(query.query, {
         filters: {
           map_filters: {
             filters: {
               map_tier: {
-                min: item['misc']['map_tier']
+                min: item.misc.maptier
               }
             }
           }
@@ -428,24 +414,24 @@ export function searchItemWithDefaults(
 
       sopts.children.push({
         label: 'Map Tier',
-        children: [{ label: item['misc']['map_tier'] }]
+        children: [{ label: item.misc.maptier }]
       });
     }
 
     // Note discriminator
-    if ('misc' in item && 'disc' in item['misc']) {
+    if (item.misc?.disc) {
       sopts.children.push({
         label: 'Discriminator',
-        children: [{ label: item['misc']['disc'] }]
+        children: [{ label: item.misc.disc }]
       });
     }
 
     // Force Influences
-    if (item['category'] != 'card' && 'influences' in item) {
-      const inflist = [] as any;
+    if (item.category != 'card' && item.influences) {
+      const inflist = [] as any[];
 
-      for (const i of item['influences']) {
-        const inf = i as string;
+      for (const i of item.influences) {
+        const inf = i;
         const infkey = inf + '_item';
 
         query.query = merge(query.query, {
@@ -469,7 +455,7 @@ export function searchItemWithDefaults(
     }
 
     // Force Synthesis
-    if ('misc' in item && 'synthesis' in item['misc']) {
+    if (item.misc?.synthesis) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
@@ -492,7 +478,7 @@ export function searchItemWithDefaults(
     );
 
     // No such thing as corrupted cards or prophecies
-    if (item['category'] != 'card' && item['category'] != 'prophecy') {
+    if (item.category != 'card' && item.category != 'prophecy') {
       if (corruptoverride) {
         const corrupt = cfg.get(
           Config.corruptsearch,
@@ -518,7 +504,7 @@ export function searchItemWithDefaults(
           children: [{ label: corrupt + ' (override)' }]
         });
       } else {
-        const corrupt = 'corrupted' in item && item['corrupted'];
+        const corrupt = item.corrupted ?? false;
 
         query.query = merge(query.query, {
           filters: {
@@ -561,22 +547,22 @@ export function searchItemWithDefaults(
 
 export function searchItemWithOptions(
   event: Electron.IpcMainEvent,
-  item: any,
+  item: Item,
   options: any,
   openbrowser: boolean
 ) {
   //
   if (
-    !('filters' in item) ||
-    !Object.keys(item['filters']).length ||
-    item['category'] == 'map'
+    item.filters == null ||
+    !Object.keys(item.filters).length ||
+    item.category == 'map'
   ) {
     // Cannot advanced search items with no filters
-    return null;
+    return false;
   }
 
-  if ('unidentified' in item) {
-    return null;
+  if (item.unidentified) {
+    return false;
   }
 
   const league = PTA.getInstance().getLeague();
@@ -637,19 +623,19 @@ export function searchItemWithOptions(
   let isUniqueBase = false;
   let searchToken: string;
 
-  if ('name' in item) {
-    isUniqueBase = itemparser.uniques.has(item['name']);
-    searchToken = item['name'];
+  if (item.name) {
+    isUniqueBase = itemparser.uniques.has(item.name);
+    searchToken = item.name;
   } else {
-    isUniqueBase = itemparser.uniques.has(item['type']);
-    searchToken = item['type'];
+    isUniqueBase = itemparser.uniques.has(item.type);
+    searchToken = item.type;
   }
 
   // Force rarity
   let rarity = 'nonunique';
 
-  if (item['rarity'] == 'Unique') {
-    rarity = (item['rarity'] as string).toLowerCase();
+  if (item.rarity == 'Unique') {
+    rarity = item.rarity.toLowerCase();
   }
 
   query.query = merge(query.query, {
@@ -665,8 +651,8 @@ export function searchItemWithOptions(
   });
 
   // Force category
-  if ('category' in item && item['category']) {
-    const category = (item['category'] as string).toLowerCase();
+  if (item.category) {
+    const category = item.category.toLowerCase();
 
     query.query = merge(query.query, {
       filters: {
@@ -717,25 +703,25 @@ export function searchItemWithOptions(
   });
 
   // Checked mods/pseudos
-  let mods = {} as any;
+  let mods = {} as { [index: string]: Filter };
 
-  if ('filters' in item && item['filters']) {
-    mods = merge(mods, item['filters']);
+  if (item.filters) {
+    mods = merge(mods, item.filters);
   }
 
-  if ('pseudos' in item && item['pseudos']) {
-    mods = merge(mods, item['pseudos']);
+  if (item.pseudos) {
+    mods = merge(mods, item.pseudos);
   }
 
-  const mflt = [] as any;
+  const mflt = [] as any[];
 
-  for (const [k, e] of Object.entries<any>(mods)) {
+  for (const [k, e] of Object.entries<Filter>(mods)) {
     // set id
-    e['id'] = k;
+    e.id = k;
 
-    if (e['enabled'] == true) {
-      e['disabled'] = false;
-      delete e['enabled'];
+    if (e.enabled == true) {
+      e.disabled = false;
+      delete e.enabled;
       query.query['stats'][0]['filters'].push(e);
 
       const vflt = [] as any;
@@ -761,7 +747,7 @@ export function searchItemWithOptions(
     const range = itemparser.uniques.get(searchToken);
     for (const entry of range) {
       // For everything else, match type
-      if (entry['type'] == item['type']) {
+      if (entry['type'] == item.type) {
         query.query['type'] = entry['type'];
 
         if ('name' in entry) {
@@ -774,13 +760,13 @@ export function searchItemWithOptions(
   }
 
   // Use sockets
-  if (options['usesockets']) {
+  if (options['usesockets'] && item.sockets) {
     query.query = merge(query.query, {
       filters: {
         socket_filters: {
           filters: {
             sockets: {
-              min: item['sockets']['total']
+              min: item.sockets.total
             }
           }
         }
@@ -789,18 +775,18 @@ export function searchItemWithOptions(
 
     sopts.children.push({
       label: 'Sockets',
-      children: [{ label: item['sockets']['total'] }]
+      children: [{ label: item.sockets.total }]
     });
   }
 
   // Use links
-  if (options['uselinks']) {
+  if (options['uselinks'] && item.sockets) {
     query.query = merge(query.query, {
       filters: {
         socket_filters: {
           filters: {
             links: {
-              min: item['sockets']['links']
+              min: item.sockets.links
             }
           }
         }
@@ -809,18 +795,18 @@ export function searchItemWithOptions(
 
     sopts.children.push({
       label: 'Links',
-      children: [{ label: item['sockets']['links'] }]
+      children: [{ label: item.sockets.links }]
     });
   }
 
   // Use iLvl
-  if (options['useilvl']) {
+  if (options['useilvl'] && item.ilvl) {
     query.query = merge(query.query, {
       filters: {
         misc_filters: {
           filters: {
             ilvl: {
-              min: item['ilvl']
+              min: item.ilvl
             }
           }
         }
@@ -829,16 +815,16 @@ export function searchItemWithOptions(
 
     sopts.children.push({
       label: 'Item Level',
-      children: [{ label: item['ilvl'] }]
+      children: [{ label: item.ilvl }]
     });
   }
 
   // Use item base
   if (options['useitembase']) {
-    query.query['type'] = item['type'];
+    query.query['type'] = item.type;
     sopts.children.push({
       label: 'Item Base',
-      children: [{ label: item['type'] }]
+      children: [{ label: item.type }]
     });
   }
 

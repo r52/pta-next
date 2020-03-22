@@ -23,7 +23,7 @@
     "lodash.merge": "^4.6.2",
     "multimap": "^1.1.0",
     "quasar": "^1.9.5",
-    "winpoe": "link:winpoe/"
+    "winpoe": "link:winpoe"
   },
   "devDependencies": {
     "@quasar/app": "^1.6.0",
@@ -53,8 +53,5 @@
   },
   "browserslist": [
     "last 1 version, not dead, ie >= 11"
-  ],
-  "resolutions": {
-    "@babel/parser": "7.7.5"
-  }
+  ]
 }

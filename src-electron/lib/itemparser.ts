@@ -332,10 +332,10 @@ export class ItemParser {
     return ItemParser.instance;
   }
 
-  public parse(itemtext: string) {
+  public parse(itemtext: string): Item | null {
     itemtext = itemtext.trim();
 
-    const item = {} as any;
+    const item = {} as Item;
     let sections = 0;
 
     const lines = new ItemText(itemtext);
@@ -352,11 +352,11 @@ export class ItemParser {
       return null;
     }
 
-    item['origtext'] = itemtext;
+    item.origtext = itemtext;
 
     // Rarity
     const parts = line.split(': ');
-    item['rarity'] = parts[1];
+    item.rarity = parts[1];
 
     let nametype = lines.readLine();
     let type = lines.readLine();
@@ -370,53 +370,50 @@ export class ItemParser {
 
     if (type && type.startsWith('---')) {
       // nametype has to be item type and not name
-      item['type'] = this.readType(item, nametype as string);
+      item.type = this.readType(item, nametype as string);
       sections++;
     } else {
-      item['name'] = this.readName(nametype as string);
-      item['type'] = this.readType(item, type as string);
+      item.name = this.readName(nametype as string);
+      item.type = this.readType(item, type as string);
     }
 
     // Process category
-    if ('Gem' == item['rarity']) {
-      item['category'] = 'gem';
+    if ('Gem' == item.rarity) {
+      item.category = 'gem';
 
       // Initialize quality
-      item['quality'] = 0;
-    } else if ('Divination Card' == item['rarity']) {
-      item['category'] = item['rarity'] = 'card';
+      item.quality = 0;
+    } else if ('Divination Card' == item.rarity) {
+      item.category = item.rarity = 'card';
     }
 
-    if (item['type'].endsWith('Map')) {
-      item['category'] = 'map';
+    if (item.type.endsWith('Map')) {
+      item.category = 'map';
 
-      item['misc'] = item['misc'] || {};
-      item['misc']['disc'] = this.mapDisc; // Default map discriminator
+      item.misc = item.misc ?? ({} as Misc);
+      item.misc.disc = this.mapDisc; // Default map discriminator
 
-      item['type'] = item['type'].replace('Elder ', '');
-      item['type'] = item['type'].replace('Shaped ', '');
+      item.type = item.type.replace('Elder ', '');
+      item.type = item.type.replace('Shaped ', '');
     }
 
-    if (
-      (!('category' in item) || !item['category']) &&
-      this.uniques.has(item['type'])
-    ) {
-      const search = this.uniques.get(item['type']);
+    if (item.category == null && this.uniques.has(item.type)) {
+      const search = this.uniques.get(item.type);
       if (search) {
         const je = search[0];
         if (je['type'] == 'Prophecy') {
           // this is a prophecy
-          item['name'] = item['type'];
-          item['type'] = 'Prophecy';
-          item['category'] = 'prophecy';
+          item.name = item.type;
+          item.type = 'Prophecy';
+          item.category = 'prophecy';
         }
       }
     }
 
-    if (!('category' in item) || !item['category']) {
-      if (this.baseMap.has(item['type'])) {
-        const cat = this.baseMap.get(item['type']) as any;
-        item['category'] = cat['category'];
+    if (item.category == null) {
+      if (this.baseMap.has(item.type)) {
+        const cat = this.baseMap.get(item.type) as any;
+        item.category = cat['category'];
       }
     }
 
@@ -440,43 +437,44 @@ export class ItemParser {
     }
 
     // Process special/pseudo rules
-    if ('filters' in item && Object.keys(item['filters']).length) {
-      for (const [key, fil] of Object.entries<any>(item['filters'])) {
+    if (item.filters != null && Object.keys(item.filters).length) {
+      for (const [key, fil] of Object.entries<Filter>(item.filters)) {
         if (this.pseudoRules.has(key)) {
           const rules = this.pseudoRules.get(key);
 
           if (rules) {
             for (const r of rules) {
-              const pid = r['id'];
+              const pid = r['id'] as string;
 
               const pentry = this.statsById.get(pid);
 
-              item['pseudos'] = item['pseudos'] || {};
+              item.pseudos =
+                item.pseudos ?? ({} as { [index: string]: Filter });
 
-              if (!(pid in item['pseudos'])) {
-                const psEntry = {
+              if (!(pid in item.pseudos)) {
+                const psEntry = ({
                   ...pentry,
                   enabled: false,
-                  value: [],
+                  value: [] as number[],
                   min: null,
                   max: null
-                } as any;
+                } as unknown) as Filter;
 
-                for (const v of fil['value']) {
-                  psEntry['value'].push(v * r['factor']);
+                for (const v of fil.value) {
+                  psEntry.value.push(v * r['factor']);
                 }
 
-                item['pseudos'][pid] = psEntry;
+                item.pseudos[pid] = psEntry;
               } else {
-                const psEntry = item['pseudos'][pid];
+                const psEntry = item.pseudos[pid];
 
-                for (let i = 0; i < fil['value'].length; i++) {
-                  const v = fil['value'][i];
+                for (let i = 0; i < fil.value.length; i++) {
+                  const v = fil.value[i];
 
                   // XXX: only support one operation right now
                   // also remove is useless
                   if (r['op'] == 'add') {
-                    psEntry['value'][i] = psEntry['value'][i] + v * r['factor'];
+                    psEntry.value[i] = psEntry.value[i] + v * r['factor'];
                   }
                 }
               }
@@ -494,17 +492,17 @@ export class ItemParser {
     return name;
   }
 
-  private readType(item: any, type: string) {
+  private readType(item: Item, type: string) {
     type = type.replace(/<<.*?>>|<.*?>/g, '');
     type = type.replace('Superior ', '');
 
     if (type.startsWith('Synthesised ')) {
       type = type.replace('Synthesised ', '');
-      item['misc'] = item['misc'] || {};
-      item['misc']['synthesis'] = true;
+      item.misc = item.misc ?? ({} as Misc);
+      item.misc.synthesis = true;
     }
 
-    if (item['rarity'] === 'Magic') {
+    if (item.rarity === 'Magic') {
       // Parse out magic affixes
       // Try to get rid of all suffixes by forward catching " of"
       const re = /[\w'-]+/g;
@@ -528,7 +526,7 @@ export class ItemParser {
     return type;
   }
 
-  private parseProp(item: any, prop: string) {
+  private parseProp(item: Item, prop: string) {
     const parts = prop.split(':');
 
     const p = parts[0];
@@ -546,79 +544,79 @@ export class ItemParser {
         item['quality'] = this.readPropInt(v);
         break;
       case 'Evasion Rating':
-        item['armour'] = item['armour'] || {};
-        item['armour']['ev'] = this.readPropInt(v);
+        item.armour = item.armour ?? ({} as Armour);
+        item.armour.ev = this.readPropInt(v);
         break;
       case 'Energy Shield':
-        item['armour'] = item['armour'] || {};
-        item['armour']['es'] = this.readPropInt(v);
+        item.armour = item.armour ?? ({} as Armour);
+        item.armour.es = this.readPropInt(v);
         break;
       case 'Armour':
-        item['armour'] = item['armour'] || {};
-        item['armour']['ar'] = this.readPropInt(v);
+        item.armour = item.armour ?? ({} as Armour);
+        item.armour.ar = this.readPropInt(v);
         break;
       case 'Chance to Block':
-        item['armour'] = item['armour'] || {};
-        item['armour']['block'] = this.readPropInt(v);
+        item.armour = item.armour ?? ({} as Armour);
+        item.armour.block = this.readPropInt(v);
         break;
       case 'Physical Damage':
-        item['weapon'] = item['weapon'] || {};
-        item['weapon']['pdps'] = this.readPropIntRange(v);
+        item.weapon = item.weapon ?? ({} as Weapon);
+        item.weapon.pdps = this.readPropIntRange(v);
         break;
       case 'Critical Strike Chance':
-        item['weapon'] = item['weapon'] || {};
-        item['weapon']['crit'] = this.readPropFloat(v);
+        item.weapon = item.weapon ?? ({} as Weapon);
+        item.weapon.crit = this.readPropFloat(v);
         break;
       case 'Attacks per Second':
-        item['weapon'] = item['weapon'] || {};
-        item['weapon']['aps'] = this.readPropFloat(v);
+        item.weapon = item.weapon ?? ({} as Weapon);
+        item.weapon.aps = this.readPropFloat(v);
         break;
       case 'Elemental Damage':
-        item['weapon'] = item['weapon'] || {};
-        item['weapon']['edps'] = this.readPropIntRange(v);
+        item.weapon = item.weapon ?? ({} as Weapon);
+        item.weapon.edps = this.readPropIntRange(v);
         break;
       case 'Requirements':
         this.section = 'Requirements';
         break;
       case 'Level':
         if (this.section == 'Requirements') {
-          item['requirements'] = item['requirements'] || {};
-          item['requirements']['lvl'] = this.readPropInt(v);
+          item.requirements = item.requirements || ({} as Requirements);
+          item.requirements.lvl = this.readPropInt(v);
         } else {
-          item['misc'] = item['misc'] || {};
-          item['misc']['gem_level'] = this.readPropInt(v);
+          item.misc = item.misc ?? ({} as Misc);
+          item.misc.gemlevel = this.readPropInt(v);
         }
         break;
       case 'Str':
-        item['requirements'] = item['requirements'] || {};
-        item['requirements']['str'] = this.readPropInt(v);
+        item.requirements = item.requirements || ({} as Requirements);
+        item.requirements.str = this.readPropInt(v);
         break;
       case 'Dex':
-        item['requirements'] = item['requirements'] || {};
-        item['requirements']['dex'] = this.readPropInt(v);
+        item.requirements = item.requirements || ({} as Requirements);
+        item.requirements.dex = this.readPropInt(v);
         break;
       case 'Int':
-        item['requirements'] = item['requirements'] || {};
-        item['requirements']['int'] = this.readPropInt(v);
+        item.requirements = item.requirements || ({} as Requirements);
+        item.requirements.int = this.readPropInt(v);
         break;
       case 'Sockets':
-        item['sockets'] = this.readSockets(v);
+        item.sockets = this.readSockets(v);
         break;
       case 'Item Level':
-        item['ilvl'] = this.readPropInt(v);
+        item.ilvl = this.readPropInt(v);
         break;
       case 'Experience':
-        item['misc'] = item['misc'] || {};
-        item['misc']['gem_progress'] = v;
+        item.misc = item.misc ?? ({} as Misc);
+        item.misc.gemprogress = v;
         break;
       case 'Map Tier':
-        item['misc'] = item['misc'] || {};
-        item['misc']['map_tier'] = this.readPropInt(v);
+        item.misc = item.misc ?? ({} as Misc);
+        item.misc.maptier = this.readPropInt(v);
         break;
     }
   }
 
-  private readPropInt(prop: string) {
+  private readPropInt(prop: string): number {
     // Remove augmented tag
     prop = prop.replace(' (augmented)', '');
 
@@ -634,11 +632,11 @@ export class ItemParser {
     return 0;
   }
 
-  private readPropIntRange(prop: string) {
+  private readPropIntRange(prop: string): NumericRange {
     const val = {
       min: 0,
       max: 0
-    };
+    } as NumericRange;
 
     // If it is a list, process list
     if (prop.includes(', ')) {
@@ -647,8 +645,8 @@ export class ItemParser {
 
       for (const item of list) {
         const nxt = this.readPropIntRange(item);
-        val['min'] = val['min'] + nxt['min'];
-        val['max'] = val['max'] + nxt['max'];
+        val.min = val.min + nxt.min;
+        val.max = val.max + nxt.max;
       }
 
       return val;
@@ -667,14 +665,14 @@ export class ItemParser {
       const v1 = match[0];
       const v2 = match[1];
 
-      val['min'] = parseInt(v1);
-      val['max'] = parseInt(v2);
+      val.min = parseInt(v1);
+      val.max = parseInt(v2);
     }
 
     return val;
   }
 
-  private readPropFloat(prop: string) {
+  private readPropFloat(prop: string): number {
     // Remove augmented tag
     prop = prop.replace(' (augmented)', '');
 
@@ -689,123 +687,118 @@ export class ItemParser {
     return 0.0;
   }
 
-  private readSockets(prop: string) {
-    const sockets = {} as any;
-
-    sockets['links'] = 0;
-    sockets['total'] = 0;
-    sockets['R'] = 0;
-    sockets['G'] = 0;
-    sockets['B'] = 0;
-    sockets['W'] = 0;
-    sockets['A'] = 0;
-    sockets['D'] = 0;
+  private readSockets(prop: string): Sockets {
+    const sockets = {
+      links: 0,
+      total: 0,
+      R: 0,
+      G: 0,
+      B: 0,
+      W: 0,
+      A: 0,
+      D: 0
+    } as Sockets;
 
     const llist = prop.split(' ');
 
     for (const lpart of llist) {
       const socks = lpart.split('-');
 
-      if (socks.length > 1 && socks.length > sockets['links']) {
+      if (socks.length > 1 && socks.length > sockets.links) {
         // New max links
-        sockets['links'] = socks.length;
+        sockets.links = socks.length;
       }
 
       for (const s of socks) {
         sockets[s] = sockets[s] + 1;
-        sockets['total'] = sockets['total'] + 1;
+        sockets.total = sockets.total + 1;
       }
     }
 
     return sockets;
   }
 
-  private parseStat(item: any, stat: string, stream: ItemText) {
+  private parseStat(item: Item, stat: string, stream: ItemText) {
     const origstat = String(stat);
 
     // Special rule for A Master Seeks Help
     if (
-      'category' in item &&
-      item['category'] &&
-      item['category'] == 'prophecy' &&
-      item['name'] == 'A Master Seeks Help'
+      item.category &&
+      item.name &&
+      item.category == 'prophecy' &&
+      item.name == 'A Master Seeks Help'
     ) {
       const re = /^You will find (\w+) and complete her mission.$/g;
       const match = stat.match(re);
       if (match) {
         const master = match[0];
 
-        item['misc'] = item['misc'] || {};
-        item['misc']['disc'] = master;
+        item.misc = item.misc ?? ({} as Misc);
+        item.misc.disc = master;
       }
 
       return true;
     }
 
     if (stat == 'Unidentified') {
-      item['unidentified'] = true;
+      item.unidentified = true;
       return true;
     }
 
     if (stat == 'Shaper Item') {
-      item['influences'] = item['influences'] || [];
-      item['influences'].push('shaper');
+      item.influences = item.influences ?? ([] as string[]);
+      item.influences.push('shaper');
       return true;
     }
 
     if (stat == 'Elder Item') {
-      item['influences'] = item['influences'] || [];
-      item['influences'].push('elder');
+      item.influences = item.influences ?? ([] as string[]);
+      item.influences.push('elder');
       return true;
     }
 
     if (stat == 'Crusader Item') {
-      item['influences'] = item['influences'] || [];
-      item['influences'].push('crusader');
+      item.influences = item.influences ?? ([] as string[]);
+      item.influences.push('crusader');
       return true;
     }
 
     if (stat == 'Redeemer Item') {
-      item['influences'] = item['influences'] || [];
-      item['influences'].push('redeemer');
+      item.influences = item.influences ?? ([] as string[]);
+      item.influences.push('redeemer');
 
       return true;
     }
 
     if (stat == 'Hunter Item') {
-      item['influences'] = item['influences'] || [];
-      item['influences'].push('hunter');
+      item.influences = item.influences ?? ([] as string[]);
+      item.influences.push('hunter');
 
       return true;
     }
 
     if (stat == 'Warlord Item') {
-      item['influences'] = item['influences'] || [];
-      item['influences'].push('warlord');
+      item.influences = item.influences ?? ([] as string[]);
+      item.influences.push('warlord');
 
       return true;
     }
 
     if (stat == 'Corrupted') {
-      item['corrupted'] = true;
+      item.corrupted = true;
       return true;
     }
 
     if (stat == 'Synthesised Item') {
       // Should already have been processed
-      item['misc'] = item['misc'] || {};
-      item['misc']['synthesis'] = true;
+      item.misc = item.misc ?? ({} as Misc);
+      item.misc.synthesis = true;
       return true;
     }
 
     // Vaal gems
-    if (
-      'category' in item &&
-      item['category'] &&
-      item['category'] == 'gem' &&
-      stat.startsWith('Vaal ')
-    ) {
-      item['type'] = stat;
+    if (item.category && item.category == 'gem' && stat.startsWith('Vaal ')) {
+      item.type = stat;
       return true;
     }
 
@@ -849,10 +842,10 @@ export class ItemParser {
     }
 
     // Process local rules
-    if ('weapon' in item || 'armour' in item) {
+    if (item.weapon || item.armour) {
       const islocalstat =
-        ('weapon' in item && this.weaponLocals.has(stoken)) ||
-        ('armour' in item && this.armourLocals.has(stoken));
+        (item.weapon && this.weaponLocals.has(stoken)) ||
+        (item.armour && this.armourLocals.has(stoken));
 
       if (islocalstat) {
         stat += ' (Local)';
@@ -990,7 +983,7 @@ export class ItemParser {
     }
 
     const multiline: string[] = [];
-    let filter = {} as any;
+    let filter = {} as Filter;
 
     const range = this.statsByText.get(stoken);
     for (const entry of range) {
@@ -1063,7 +1056,7 @@ export class ItemParser {
           enabled: false,
           min: null,
           max: null
-        };
+        } as Filter;
         break;
       } else {
         if (entry['type'] == 'pseudo') {
@@ -1074,8 +1067,9 @@ export class ItemParser {
         const id = entry['id'];
 
         if (
+          item.category &&
           this.discriminators.has(id) &&
-          (this.discriminators.get(id) as Set<string>).has(item['category'])
+          (this.discriminators.get(id) as Set<string>).has(item.category)
         ) {
           // Discriminator skip
           continue;
@@ -1088,7 +1082,7 @@ export class ItemParser {
             enabled: false,
             min: null,
             max: null
-          };
+          } as Filter;
         }
       }
     }
@@ -1098,21 +1092,21 @@ export class ItemParser {
       return false;
     }
 
-    item['filters'] = item['filters'] || {};
+    item.filters = item.filters ?? ({} as { [index: string]: Filter });
 
     const fid = filter['id'];
 
     // If the item already has this filter, merge them
-    if (fid in item['filters']) {
-      const efil = item['filters'][fid];
+    if (fid in item.filters) {
+      const efil = item.filters[fid];
 
-      const count = efil['value'].length;
+      const count = efil.value.length;
 
       for (let i = 0; i < count; i++) {
-        efil['value'][i] = efil['value'][i] + filter['value'][i];
+        efil.value[i] = efil.value[i] + filter.value[i];
       }
     } else {
-      item['filters'][fid] = { ...filter };
+      item.filters[fid] = { ...filter };
     }
 
     return true;
