@@ -192,8 +192,13 @@ module.exports = configure(function(/* ctx */) {
         // https://www.electron.build/configuration/configuration
 
         appId: 'com.electron.pta-next',
+        productName: 'PTA-Next',
         win: {
-          target: ['nsis', '7z']
+          target: ['nsis', '7z'],
+          artifactName: '${productName}-${version}.${ext}'
+        },
+        nsis: {
+          artifactName: '${productName}-${version}-Setup.${ext}'
         }
       },
 

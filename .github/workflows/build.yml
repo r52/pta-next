@@ -26,12 +26,12 @@ jobs:
       - uses: actions/upload-artifact@v2-preview
         with:
           name: PTA-Next-Setup.exe
-          path: 'dist/electron/Packaged/PTA-Next Setup ${{ env.CURVER }}.exe'
+          path: 'dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-Setup.exe'
 
       - uses: actions/upload-artifact@v2-preview
         with:
           name: PTA-Next-Portable.7z
-          path: 'dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-win.7z'
+          path: 'dist/electron/Packaged/PTA-Next-${{ env.CURVER }}.7z'
 
       - name: Upload release
         if: github.event.action == 'published' || github.event.action == 'prereleased'
@@ -41,6 +41,6 @@ jobs:
         with:
           files: |
             dist/electron/Packaged/latest.yml
-            dist/electron/Packaged/PTA-Next Setup ${{ env.CURVER }}.exe
-            dist/electron/Packaged/PTA-Next Setup ${{ env.CURVER }}.exe.blockmap
-            dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-win.7z
+            dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-Setup.exe
+            dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-Setup.exe.blockmap
+            dist/electron/Packaged/PTA-Next-${{ env.CURVER }}.7z
