@@ -185,6 +185,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Vue from 'vue';
 import { ipcRenderer } from 'electron';
 import BaseModFilter from 'components/BaseModFilter.vue';

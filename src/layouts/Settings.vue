@@ -396,6 +396,7 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable quotes */
 import Vue from 'vue';
 import { ipcRenderer } from 'electron';
