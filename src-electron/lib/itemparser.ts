@@ -389,6 +389,8 @@ export class ItemParser {
 
     if (item['type'].endsWith('Map')) {
       item['category'] = 'map';
+
+      item['misc'] = item['misc'] || {};
       item['misc']['disc'] = this.mapDisc; // Default map discriminator
 
       item['type'] = item['type'].replace('Elder ', '');
@@ -727,6 +729,7 @@ export class ItemParser {
       if (match) {
         const master = match[0];
 
+        item['misc'] = item['misc'] || {};
         item['misc']['disc'] = master;
       }
 
