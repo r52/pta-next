@@ -203,7 +203,7 @@ export class PTA {
 
   public createSettingsWindow() {
     if (!this.settingsWindow) {
-      this.settingsWindow = new BrowserWindow({
+      this.settingsWindow = cfg.window({ name: 'settings' }).create({
         width: 1000,
         height: 600,
         useContentSize: true,
@@ -240,7 +240,7 @@ export class PTA {
     options: any,
     type: ItemHotkey
   ) {
-    const itemWindow = new BrowserWindow({
+    const itemWindow = cfg.window({ name: 'item' }).create({
       width: 600,
       height: 800,
       alwaysOnTop: true,
