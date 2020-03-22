@@ -15,12 +15,12 @@ Only Windows is supported
 
 ```bash
 yarn
-yarn rebuild
 yarn build
 ```
 
 ### Dev build
 
 ```bash
+yarn rebuild
 yarn dev
 ```
