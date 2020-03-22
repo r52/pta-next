@@ -5,7 +5,7 @@
         <q-toolbar-title :class="[itemClass]"
           >{{ this.item.name }} {{ this.item.type }}</q-toolbar-title
         >
-        <q-btn flat round dense icon="close" @click="closeApp" />
+        <q-btn flat round dense icon="close" accesskey="c" @click="closeApp" />
       </q-toolbar>
       <q-toolbar class="bg-grey-10" inset>
         <q-chip

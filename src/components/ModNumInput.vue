@@ -12,7 +12,10 @@
 </template>
 
 <script lang="ts">
-export default {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Vue from 'vue';
+
+export default Vue.extend({
   name: 'ModNumInput',
 
   props: {
@@ -36,5 +39,5 @@ export default {
       }
     }
   }
-};
+}_;
 </script>
