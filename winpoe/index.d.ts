@@ -1,6 +1,8 @@
 declare class WinPoE {
   IsPoEForeground(): boolean;
 
+  SendCopyCommand(): void;
+
   SendPasteCommand(): void;
 
   onForegroundChange(foregroundCb: Function): void;

@@ -7782,7 +7782,7 @@ no-case@^2.2.0:
   dependencies:
     lower-case "^1.1.1"
 
-node-abi@^2.11.0, node-abi@^2.13.0, node-abi@^2.7.0:
+node-abi@^2.11.0, node-abi@^2.7.0:
   version "2.15.0"
   resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-2.15.0.tgz#51d55cc711bd9e4a24a572ace13b9231945ccb10"
   integrity sha512-FeLpTS0F39U7hHZU1srAK4Vx+5AHNVOTP+hxBNQknR/54laTHSFIJkDWDqiquY1LeLUgTfPN7sLPhMubx0PLAg==
@@ -9793,15 +9793,6 @@ roarr@^2.15.2:
     json-stringify-safe "^5.0.1"
     semver-compare "^1.0.0"
     sprintf-js "^1.1.2"
-
-robotjs@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/robotjs/-/robotjs-0.6.0.tgz#8d1f63221f5b18dc496c7768f75261043891f64a"
-  integrity sha512-6pRWI3d+CBZqCXT/rsJfabbZoELua+jTeXilG27F8Jvix/J2BYZ0O7Tly2WCmXyqw5xYdCvOwvCeLRHEtXkt4w==
-  dependencies:
-    nan "^2.14.0"
-    node-abi "^2.13.0"
-    prebuild-install "^5.3.3"
 
 rtlcss@2.5.0:
   version "2.5.0"

@@ -192,10 +192,28 @@ void SendPasteCommand(const Napi::CallbackInfo &info)
     SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
 }
 
+void SendCopyCommand(const Napi::CallbackInfo &info)
+{
+    std::vector<INPUT> keystrokes;
+
+    // ensure all used keys are up
+    keystrokes.push_back(pta::CreateInput(VK_MENU, false));
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
+    keystrokes.push_back(pta::CreateInput('C', false));
+
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, true));
+    keystrokes.push_back(pta::CreateInput('C', true));
+    keystrokes.push_back(pta::CreateInput('C', false));
+    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
+
+    SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
+}
+
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // raw funcs
     exports.Set(Napi::String::New(env, "IsPoEForeground"), Napi::Function::New(env, IsPoEForeground));
+    exports.Set(Napi::String::New(env, "SendCopyCommand"), Napi::Function::New(env, SendCopyCommand));
     exports.Set(Napi::String::New(env, "SendPasteCommand"), Napi::Function::New(env, SendPasteCommand));
 
     // cbs

@@ -8,7 +8,6 @@ import {
   shell
 } from 'electron';
 import { ItemParser } from '../lib/itemparser';
-import robot from 'robotjs';
 import log from 'electron-log';
 import cfg from 'electron-cfg';
 import Config from '../lib/config';
@@ -228,7 +227,7 @@ export class PTA {
     const poefg = winpoe.IsPoEForeground();
 
     if (poefg) {
-      robot.keyTap('c', 'control');
+      winpoe.SendCopyCommand();
       setTimeout(() => {
         this.handleClipboard(type);
       }, 10);
