@@ -39,5 +39,5 @@ export default Vue.extend({
       }
     }
   }
-}_;
+});
 </script>
