@@ -45,10 +45,17 @@ app.on('ready', () => {
       }
     },
     {
-      label: 'Exit',
+      type: 'separator'
+    },
+    {
+      label: 'About',
       click: () => {
-        app.quit();
+        global.pta.createAboutWindow();
       }
+    },
+    {
+      label: 'Exit',
+      role: 'quit'
     }
   ]);
   tray.setContextMenu(contextMenu);

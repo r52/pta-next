@@ -29,7 +29,7 @@
     <q-page-container>
       <q-tab-panels v-model="tab" animated>
         <q-tab-panel name="hotkey">
-          <q-card-section class="q-pt-none">
+          <q-card>
             <div class="q-pa-xs">
               <div class="row items-center justify-end">
                 <a href="#" @click="openKeyRef()" class="text-orange"
@@ -77,7 +77,7 @@
                 </div>
               </div>
             </div>
-          </q-card-section>
+          </q-card>
         </q-tab-panel>
 
         <q-tab-panel name="price">
@@ -251,96 +251,90 @@
         </q-tab-panel>
 
         <q-tab-panel name="macro">
-          <q-card>
-            <a href="#" @click="openKeyRef()" class="text-orange"
+          <div class="row justify-end q-py-xs">
+            <a href="#" @click="openKeyRef()" class="text-orange justify-end"
               >Keycode Reference</a
             >
-            <q-card-section class="q-pt-none">
-              <q-table
-                title="Custom Macros"
-                :data="settings.macros.list"
-                :columns="macroColumns"
-                row-key="name"
-                :filter="macroFilter"
+          </div>
+          <q-table
+            title="Custom Macros"
+            :data="settings.macros.list"
+            :columns="macroColumns"
+            row-key="name"
+            :filter="macroFilter"
+          >
+            <template v-slot:top-right>
+              <q-input
+                dense
+                debounce="300"
+                color="primary"
+                v-model="macroFilter"
               >
-                <template v-slot:top-right>
-                  <q-input
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+            </template>
+
+            <template v-slot:header="props">
+              <q-tr :props="props">
+                <q-th auto-width />
+                <q-th v-for="col in props.cols" :key="col.name" :props="props">
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
+
+            <template v-slot:body="props">
+              <q-tr :props="props">
+                <q-td auto-width>
+                  <q-btn
+                    size="sm"
+                    color="accent"
+                    round
                     dense
-                    debounce="300"
-                    color="primary"
-                    v-model="macroFilter"
+                    @click="deleteMacro(props.key)"
+                    icon="remove"
+                  />
+                </q-td>
+                <q-td key="name" :props="props">
+                  {{ props.row.name }}
+                </q-td>
+                <q-td key="key" :props="props">
+                  {{ props.row.key }}
+                  <q-popup-edit
+                    v-model="props.row.key"
+                    title="Update Key"
+                    buttons
                   >
-                    <template v-slot:append>
-                      <q-icon name="search" />
-                    </template>
-                  </q-input>
-                </template>
-
-                <template v-slot:header="props">
-                  <q-tr :props="props">
-                    <q-th auto-width />
-                    <q-th
-                      v-for="col in props.cols"
-                      :key="col.name"
-                      :props="props"
-                    >
-                      {{ col.label }}
-                    </q-th>
-                  </q-tr>
-                </template>
-
-                <template v-slot:body="props">
-                  <q-tr :props="props">
-                    <q-td auto-width>
-                      <q-btn
-                        size="sm"
-                        color="accent"
-                        round
-                        dense
-                        @click="deleteMacro(props.key)"
-                        icon="remove"
-                      />
-                    </q-td>
-                    <q-td key="name" :props="props">
-                      {{ props.row.name }}
-                    </q-td>
-                    <q-td key="key" :props="props">
-                      {{ props.row.key }}
-                      <q-popup-edit
-                        v-model="props.row.key"
-                        title="Update Key"
-                        buttons
-                      >
-                        <q-input v-model="props.row.key" dense autofocus />
-                      </q-popup-edit>
-                    </q-td>
-                    <q-td key="type" :props="props">
-                      {{ props.row.type }}
-                      <q-popup-edit v-model="props.row.type">
-                        <q-select
-                          v-model="props.row.type"
-                          :options="macroTypes"
-                          label="Macro Type"
-                          dense
-                          options-dense
-                          autofocus
-                        />
-                      </q-popup-edit>
-                    </q-td>
-                    <q-td key="command" :props="props">
-                      {{ props.row.command }}
-                      <q-popup-edit
-                        v-model="props.row.command"
-                        title="Update Command"
-                      >
-                        <q-input v-model="props.row.command" dense autofocus />
-                      </q-popup-edit>
-                    </q-td>
-                  </q-tr>
-                </template>
-              </q-table>
-            </q-card-section>
-          </q-card>
+                    <q-input v-model="props.row.key" dense autofocus />
+                  </q-popup-edit>
+                </q-td>
+                <q-td key="type" :props="props">
+                  {{ props.row.type }}
+                  <q-popup-edit v-model="props.row.type">
+                    <q-select
+                      v-model="props.row.type"
+                      :options="macroTypes"
+                      label="Macro Type"
+                      dense
+                      options-dense
+                      autofocus
+                    />
+                  </q-popup-edit>
+                </q-td>
+                <q-td key="command" :props="props">
+                  {{ props.row.command }}
+                  <q-popup-edit
+                    v-model="props.row.command"
+                    title="Update Command"
+                  >
+                    <q-input v-model="props.row.command" dense autofocus />
+                  </q-popup-edit>
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
 
           <q-dialog v-model="macroDialog">
             <q-card style="min-width: 350px">

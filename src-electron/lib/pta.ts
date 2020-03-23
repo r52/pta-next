@@ -34,6 +34,7 @@ export class PTA {
   private static parser: ItemParser;
   private settingsWindow: BrowserWindow | null = null;
   private itemWindow: BrowserWindow | null = null;
+  private aboutWindow: BrowserWindow | null = null;
 
   leagues: string[];
 
@@ -207,7 +208,6 @@ export class PTA {
       this.settingsWindow = cfg.window({ name: 'settings' }).create({
         width: 1000,
         height: 600,
-        useContentSize: true,
         frame: false,
         webPreferences: {
           nodeIntegration: true
@@ -220,6 +220,25 @@ export class PTA {
 
       this.settingsWindow.on('closed', () => {
         this.settingsWindow = null;
+      });
+    }
+  }
+
+  public createAboutWindow() {
+    if (!this.aboutWindow) {
+      this.aboutWindow = new BrowserWindow({
+        width: 1000,
+        height: 600,
+        frame: false,
+        webPreferences: {
+          nodeIntegration: true
+        }
+      });
+
+      this.aboutWindow.loadURL((process.env.APP_URL as string) + '#/about');
+
+      this.aboutWindow.on('closed', () => {
+        this.aboutWindow = null;
       });
     }
   }

@@ -1,5 +1,5 @@
 <template>
-  <q-item clickable tag="a" target="_blank" :href="link">
+  <q-item clickable tag="a" href="#" @click="openBrowser(link)">
     <q-item-section v-if="icon" avatar>
       <q-icon :name="icon" />
     </q-item-section>
@@ -34,6 +34,12 @@ export default {
       type: String,
       default: ''
     }
+  },
+
+  methods: {
+    openBrowser(link) {
+      this.$q.electron.remote.shell.openExternal(link);
+    }
   }
-}
+};
 </script>
