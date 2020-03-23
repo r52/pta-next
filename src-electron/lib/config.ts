@@ -16,6 +16,8 @@ export default {
   onlineonly: 'pricecheck.onlineonly',
   buyoutonly: 'pricecheck.buyoutonly',
   removedupes: 'pricecheck.removedupes',
+  poeprices: 'pricecheck.poeprices',
+
   prefillmin: 'pricecheck.prefillmin',
   prefillmax: 'pricecheck.prefillmax',
   prefillrange: 'pricecheck.prefillrange',
@@ -48,6 +50,8 @@ export default {
     onlineonly: true,
     buyoutonly: true,
     removedupes: true,
+    poeprices: true,
+
     prefillmin: false,
     prefillmax: false,
     prefillrange: 0,

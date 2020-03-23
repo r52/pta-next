@@ -173,6 +173,12 @@
                       label="Remove duplicates from the same account"
                     />
                   </div>
+                  <div class="col-auto">
+                    <q-toggle
+                      v-model="settings.pricecheck.poeprices"
+                      label="Perform poeprices.info price prediction"
+                    />
+                  </div>
                 </div>
               </div>
             </q-card-section>
@@ -551,6 +557,7 @@ export default Vue.extend({
           onlineonly: cfg.get(Config.onlineonly, Config.default.onlineonly),
           buyoutonly: cfg.get(Config.buyoutonly, Config.default.buyoutonly),
           removedupes: cfg.get(Config.removedupes, Config.default.removedupes),
+          poeprices: cfg.get(Config.poeprices, Config.default.poeprices),
           prefillmin: cfg.get(Config.prefillmin, Config.default.prefillmin),
           prefillmax: cfg.get(Config.prefillmax, Config.default.prefillmax),
           prefillrange: cfg.get(
@@ -630,6 +637,7 @@ export default Vue.extend({
       cfg.set(Config.onlineonly, settings.pricecheck.onlineonly);
       cfg.set(Config.buyoutonly, settings.pricecheck.buyoutonly);
       cfg.set(Config.removedupes, settings.pricecheck.removedupes);
+      cfg.set(Config.poeprices, settings.pricecheck.poeprices);
       cfg.set(Config.prefillmin, settings.pricecheck.prefillmin);
       cfg.set(Config.prefillmax, settings.pricecheck.prefillmax);
       cfg.set(Config.prefillrange, settings.pricecheck.prefillrange);

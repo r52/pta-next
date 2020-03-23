@@ -29,6 +29,12 @@ const routes: RouteConfig[] = [
         name: 'results',
         props: true,
         component: () => import('pages/Results.vue')
+      },
+      {
+        path: '/prediction',
+        name: 'prediction',
+        props: true,
+        component: () => import('pages/Prediction.vue')
       }
     ]
   }

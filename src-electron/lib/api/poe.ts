@@ -6,6 +6,7 @@ import cfg from 'electron-cfg';
 import Config from '../../lib/config';
 import { ItemParser } from '../../lib/itemparser';
 import { PTA } from '../../lib/pta';
+import * as poeprices from './poeprices';
 import log from 'electron-log';
 import axios from 'axios';
 import merge from 'lodash.merge';
@@ -180,7 +181,7 @@ export function searchItemWithDefaults(
   }
 
   // poeprices.info
-  //const use_poeprices = cfg.get(Config.poeprices, Config.default.poeprices);
+  const usepoeprices = cfg.get(Config.poeprices, Config.default.poeprices);
 
   const query = {
     query: {
@@ -535,6 +536,7 @@ export function searchItemWithDefaults(
       const resp = response.data;
 
       if (!('result' in resp) || !('id' in resp)) {
+        event.reply('error', 'Error querying trade site');
         log.warn('PoE API: Error querying trade API');
         log.warn('PoE API: Site responded with', resp);
         return;
@@ -542,7 +544,18 @@ export function searchItemWithDefaults(
 
       processPriceResults(resp, event, opttree, true);
     });
-  } // TODO poeprices.info
+  } else {
+    if (usepoeprices && item.rarity != 'Magic') {
+      // poeprices.info
+      poeprices.searchPoePricesInfo(event, item);
+    } else if (item.filters && Object.keys(item.filters).length > 0) {
+      event.reply('forcetab', 'mods');
+    } else {
+      event.reply('error', 'Price check is not available for this item type');
+    }
+
+    // XXX: potentially add more apis
+  }
 }
 
 export function searchItemWithOptions(
@@ -903,6 +916,7 @@ export function searchItemWithOptions(
     if (!('result' in resp) || !('id' in resp)) {
       log.warn('PoE API: Error querying trade API');
       log.warn('PoE API: Site responded with', resp);
+      event.reply('error', 'Error querying trade site');
       return;
     }
 

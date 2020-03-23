@@ -59,7 +59,12 @@
         <q-route-tab
           v-if="prediction"
           icon="cached"
-          to="/some/other/route"
+          :to="{
+            name: 'prediction',
+            params: {
+              prediction: prediction
+            }
+          }"
           replace
           label="poeprices.info"
         />
@@ -177,6 +182,18 @@ export default Vue.extend({
           }
         });
       }
+    },
+    handlePrediction(event: Electron.IpcRendererEvent, prediction: any) {
+      this.prediction = prediction;
+
+      if (this.tab == null) {
+        this.$router.replace({
+          name: 'prediction',
+          params: {
+            prediction: prediction
+          }
+        });
+      }
     }
   },
 
@@ -192,6 +209,33 @@ export default Vue.extend({
 
     ipcRenderer.on('results', (event, results) => {
       this.handleResults(event, results);
+    });
+
+    ipcRenderer.on('prediction', (event, prediction) => {
+      this.handlePrediction(event, prediction);
+    });
+
+    ipcRenderer.on('error', (event, error) => {
+      this.$q.notify({
+        color: 'red',
+        message: error,
+        position: 'top',
+        actions: [{ icon: 'close', color: 'white' }],
+        timeout: 2500
+      });
+    });
+
+    ipcRenderer.on('forcetab', (event, tab) => {
+      if (tab == 'mods') {
+        this.$router.replace({
+          name: 'mods',
+          params: {
+            item: this.item as any,
+            settings: this.settings as any,
+            options: this.options as any
+          }
+        });
+      }
     });
   }
 });
