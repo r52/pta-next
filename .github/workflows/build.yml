@@ -6,9 +6,6 @@ on:
   release:
     types: [published, prereleased]
 
-env:
-  CURVER: '0.0.1'
-
 jobs:
   build:
     runs-on: windows-latest
@@ -20,13 +17,17 @@ jobs:
         with:
           node-version: '12.x'
 
+      - name: Read package.json
+        uses: tyankatsu0105/read-package-version-actions@v1
+        id: package-version
+
       - run: yarn
       - run: yarn build
 
       - uses: actions/upload-artifact@v2-preview
         with:
           name: PTA-Next-Setup
-          path: 'dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-Setup.exe'
+          path: 'dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}-Setup.exe'
 
       - uses: actions/upload-artifact@v2-preview
         with:
@@ -41,6 +42,6 @@ jobs:
         with:
           files: |
             dist/electron/Packaged/latest.yml
-            dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-Setup.exe
-            dist/electron/Packaged/PTA-Next-${{ env.CURVER }}-Setup.exe.blockmap
-            dist/electron/Packaged/PTA-Next-${{ env.CURVER }}.7z
+            dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}-Setup.exe
+            dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}-Setup.exe.blockmap
+            dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}.7z
