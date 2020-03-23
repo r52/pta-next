@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh Lpr fFf">
     <q-header elevated>
-      <q-toolbar class="q-electron-drag">
+      <q-toolbar class="q-electron-drag bg-grey-10">
         <q-avatar>
           <img src="statics/icon.png" />
         </q-avatar>
@@ -12,7 +12,7 @@
         <q-btn flat round dense icon="close" @click="closeApp" />
       </q-toolbar>
 
-      <q-tabs v-model="tab">
+      <q-tabs v-model="tab" class="bg-brown-8">
         <q-tab name="hotkey" icon="space_bar" label="Hotkey" />
         <q-tab name="price" icon="shop" label="Price Check" />
         <q-tab name="macro" icon="gamepad" label="Macros" />
@@ -20,7 +20,7 @@
       </q-tabs>
     </q-header>
     <q-footer>
-      <q-toolbar>
+      <q-toolbar class="bg-grey-9">
         <q-space />
         <q-btn label="Save" color="green" @click="saveSettings()" />
       </q-toolbar>
