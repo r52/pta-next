@@ -237,6 +237,13 @@ export default Vue.extend({
         });
       }
     });
+  },
+  beforeDestroy() {
+    ipcRenderer.removeAllListeners('item');
+    ipcRenderer.removeAllListeners('results');
+    ipcRenderer.removeAllListeners('prediction');
+    ipcRenderer.removeAllListeners('error');
+    ipcRenderer.removeAllListeners('forcetab');
   }
 });
 </script>

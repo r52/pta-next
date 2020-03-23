@@ -33,6 +33,7 @@ export class PTA {
   private static instance: PTA;
   private static parser: ItemParser;
   private settingsWindow: BrowserWindow | null = null;
+  private itemWindow: BrowserWindow | null = null;
 
   leagues: string[];
 
@@ -240,27 +241,43 @@ export class PTA {
     options: any,
     type: ItemHotkey
   ) {
-    const itemWindow = cfg.window({ name: 'item' }).create({
-      width: 600,
-      height: 800,
-      alwaysOnTop: true,
-      transparent: true,
-      frame: false,
-      backgroundColor: '#00000000',
-      webPreferences: {
-        nodeIntegration: true
-      }
-    });
+    if (!this.itemWindow) {
+      this.itemWindow = cfg.window({ name: 'item' }).create({
+        width: 600,
+        height: 800,
+        alwaysOnTop: true,
+        transparent: true,
+        frame: false,
+        backgroundColor: '#00000000',
+        webPreferences: {
+          nodeIntegration: true
+        }
+      });
 
-    itemWindow.loadURL((process.env.APP_URL as string) + '#/item');
+      this.itemWindow.on('closed', () => {
+        this.itemWindow = null;
+      });
 
-    itemWindow.webContents.on('context-menu', () => {
-      itemWindow.close();
-    });
+      this.itemWindow.loadURL((process.env.APP_URL as string) + '#/item');
 
-    itemWindow.webContents.on('did-finish-load', () => {
-      itemWindow.webContents.send('item', item, settings, options, type);
-    });
+      this.itemWindow.webContents.on('context-menu', () => {
+        if (this.itemWindow) {
+          this.itemWindow.close();
+        }
+      });
+
+      this.itemWindow.webContents.on('did-finish-load', () => {
+        if (this.itemWindow) {
+          this.itemWindow.webContents.send(
+            'item',
+            item,
+            settings,
+            options,
+            type
+          );
+        }
+      });
+    }
   }
 
   private handleClipboard(type: ItemHotkey) {
