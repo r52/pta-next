@@ -14,6 +14,7 @@ import Config from '../lib/config';
 import * as PoE from '../lib/api/poe';
 import winpoe from 'winpoe';
 import axios from 'axios';
+import ClientMonitor from './clientmonitor';
 
 interface Macro {
   name: string;
@@ -35,6 +36,16 @@ export class PTA {
   private settingsWindow: BrowserWindow | null = null;
   private itemWindow: BrowserWindow | null = null;
   private aboutWindow: BrowserWindow | null = null;
+  private clientmonitor: ClientMonitor;
+
+  private macroVariables = new Map<string, () => string>([
+    [
+      'last_whisper',
+      () => {
+        return this.clientmonitor.getLastWhisperer();
+      }
+    ]
+  ]);
 
   leagues: string[];
 
@@ -57,6 +68,8 @@ export class PTA {
 
       log.info('League data loaded. Setting league to', setlg);
     });
+
+    this.clientmonitor = new ClientMonitor();
   }
 
   public static getInstance(): PTA {
@@ -84,10 +97,18 @@ export class PTA {
       this.registerShortcuts();
     });
 
-    ipcMain.on('clientlog-changed', () => {
-      // TODO client monitor
+    // setup client monitor
+    const clientlog = cfg.get(
+      Config.clientlogpath,
+      Config.default.clientlogpath
+    );
+    this.clientmonitor.setPath(clientlog);
+
+    ipcMain.on('clientlog-changed', (event, path) => {
+      this.clientmonitor.setPath(path);
     });
 
+    // setup hooks
     winpoe.onForegroundChange((isPoe: boolean) => {
       if (isPoe) {
         this.registerShortcuts();
@@ -182,6 +203,23 @@ export class PTA {
   }
 
   private executeChatCommand(command: string) {
+    if (this.clientmonitor.isEnabled()) {
+      const re = /!(\w+)!/g;
+
+      command = command.replace(re, (match, token) => {
+        if (this.macroVariables.has(token)) {
+          const fn = this.macroVariables.get(token) as () => string;
+          const rval = fn();
+
+          if (rval) {
+            return rval;
+          }
+        }
+
+        return token;
+      });
+    }
+
     clipboard.writeText(command);
 
     winpoe.SendPasteCommand();

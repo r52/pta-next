@@ -656,14 +656,14 @@ export default Vue.extend({
         cfg.set(Config.clientlogpath, logpath);
 
         if (origclient != logpath) {
-          ipcRenderer.send('clientlog-changed');
+          ipcRenderer.send('clientlog-changed', logpath);
         }
       } else {
         // null/cleared
         cfg.set(Config.clientlogpath, '');
 
         if (origclient) {
-          ipcRenderer.send('clientlog-changed');
+          ipcRenderer.send('clientlog-changed', '');
         }
       }
 
