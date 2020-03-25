@@ -125,10 +125,10 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
   const url = apis.official.trade.exchange + PTA.getInstance().getLeague();
 
   const want = itemparser.exchange.get(item.type) as string;
-  let have = p_curr;
+  let have = s_curr;
 
-  if (want == p_curr) {
-    have = s_curr;
+  if (want == s_curr) {
+    have = p_curr;
   }
 
   query.exchange.want.push(want);
@@ -139,8 +139,8 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
 
   urls.push(axios.post(url, query));
 
-  if (have != s_curr && want != s_curr) {
-    have = s_curr;
+  if (have != p_curr && want != p_curr) {
+    have = p_curr;
 
     query.exchange.have.pop();
     query.exchange.have.push(have);
