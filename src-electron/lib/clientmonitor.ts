@@ -26,6 +26,7 @@ export default class ClientMonitor extends EventEmitter {
       }
 
       this.logpath = '';
+      this.lastpos = -1;
       return;
     }
 
@@ -38,6 +39,11 @@ export default class ClientMonitor extends EventEmitter {
       this.logpath = path;
       fs.watchFile(this.logpath, { interval: pollingrate }, (curr, prev) => {
         this.processLogchange(curr, prev);
+      });
+
+      fs.stat(this.logpath, (err, stat) => {
+        this.lastpos = stat.size;
+        log.info('Initialized Client.txt at', stat.size);
       });
 
       this.enabled = true;
@@ -56,13 +62,13 @@ export default class ClientMonitor extends EventEmitter {
     //
     if (!this.enabled) {
       // shouldn't ever get here
+      log.warn('ClientMonitor.processLogchange called when disabled');
       return;
     }
 
     if (this.lastpos < 0) {
-      // Initialization
-      log.info('Initialized Client.txt at', prev.size);
-      this.lastpos = prev.size;
+      // Initialization error
+      log.warn('Uninitialized Client.txt');
       return;
     }
 

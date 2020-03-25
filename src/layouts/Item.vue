@@ -221,7 +221,7 @@ export default Vue.extend({
         message: error,
         position: 'top',
         actions: [{ icon: 'close', color: 'white' }],
-        timeout: 2500
+        timeout: 5000
       });
     });
 
