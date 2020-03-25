@@ -1,12 +1,15 @@
 <template>
   <div class="row items-center">
     <div class="col-8">
-      <q-toggle
-        dense
-        class="magic--text"
-        v-model="filter.enabled"
-        :label="`(${filter.type}) ${filter.text}`"
-      />
+      <q-item tag="label" v-ripple>
+        <q-item-section avatar>
+          <q-toggle dense v-model="filter.enabled" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label class="magic--text">{{ filter.text }}</q-item-label>
+          <q-item-label caption>{{ filter.type }}</q-item-label>
+        </q-item-section>
+      </q-item>
     </div>
     <div class="col">
       <mod-num-input
