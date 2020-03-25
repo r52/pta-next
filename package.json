@@ -20,6 +20,7 @@
     "axios": "^0.19.0",
     "electron-cfg": "^1.0.5",
     "electron-log": "^4.0.7",
+    "electron-updater": "^4.2.5",
     "lodash.merge": "^4.6.2",
     "multimap": "^1.1.0",
     "quasar": "^1.9.5",

@@ -16,6 +16,7 @@ import winpoe from 'winpoe';
 import axios from 'axios';
 import ClientMonitor from './clientmonitor';
 import apis from '../lib/api/apis';
+import { autoUpdater } from 'electron-updater';
 
 interface Macro {
   name: string;
@@ -117,6 +118,10 @@ export class PTA {
     });
 
     if (process.env.NODE_ENV === 'production') {
+      // Update check
+      autoUpdater.logger = log;
+      autoUpdater.checkForUpdatesAndNotify();
+
       winpoe.InitializeHooks();
     }
   }
