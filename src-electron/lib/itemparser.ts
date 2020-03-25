@@ -2,36 +2,7 @@
 import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
-
-// URLs
-
-// official
-const uApiStats = 'https://www.pathofexile.com/api/trade/data/stats';
-const uApiItems = 'https://www.pathofexile.com/api/trade/data/items';
-
-// RePoE
-const uRepoeBase =
-  'https://raw.githubusercontent.com/brather1ng/RePoE/master/RePoE/data/base_items.min.json';
-const uRepoeMods =
-  'https://raw.githubusercontent.com/brather1ng/RePoE/master/RePoE/data/mods.min.json';
-
-// PTA
-const uPtaBasecat =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/base_categories.json';
-const uPtaArmourlocals =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/armour_locals.json';
-const uPtaWeaponlocals =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/weapon_locals.json';
-const uPtaEnchantrules =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/enchant_rules.json';
-const uPtaPseudorules =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/pseudo_rules.json';
-const uPtaDisc =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/discriminators.json';
-const uPtaExcludes =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/excludes.json';
-const uPtaCurrency =
-  'https://raw.githubusercontent.com/r52/pta-data/master/data/currency.json';
+import apis from '../lib/api/apis';
 
 function replaceAt(str: string, idx: number, len: number, rep: string) {
   const replacement = str.substring(0, idx) + rep + str.substring(idx + len);
@@ -98,7 +69,7 @@ export class ItemParser {
     this.statsById = new Map();
     this.statsByText = new MultiMap();
 
-    axios.get(uPtaExcludes).then((response: any) => {
+    axios.get(apis.pta.exclude).then((response: any) => {
       const data = response.data;
 
       for (const e of data['excludes']) {
@@ -107,7 +78,7 @@ export class ItemParser {
 
       log.info('Excludes loaded');
 
-      axios.get(uApiStats).then((response: any) => {
+      axios.get(apis.official.stats).then((response: any) => {
         const data = response.data;
 
         const stt = data['result'];
@@ -139,7 +110,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Download unique items
     this.uniques = new MultiMap();
 
-    axios.get(uApiItems).then((response: any) => {
+    axios.get(apis.official.items).then((response: any) => {
       const data = response.data;
       const itm = data['result'];
 
@@ -164,7 +135,7 @@ export class ItemParser {
     this.baseCat = new Map();
     this.baseMap = new Map();
 
-    axios.get(uPtaBasecat).then((response: any) => {
+    axios.get(apis.pta.basecat).then((response: any) => {
       const data = response.data;
 
       for (const [k, o] of Object.entries(data)) {
@@ -173,7 +144,7 @@ export class ItemParser {
 
       log.info('Base categories loaded');
 
-      axios.get(uRepoeBase).then((response: any) => {
+      axios.get(apis.repoe.base).then((response: any) => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
@@ -202,7 +173,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Load RePoE mod data
     this.modData = new Map();
 
-    axios.get(uRepoeMods).then((response: any) => {
+    axios.get(apis.repoe.mods).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -232,7 +203,7 @@ export class ItemParser {
     this.armourLocals = new Set();
     this.weaponLocals = new Set();
 
-    axios.get(uPtaArmourlocals).then((response: any) => {
+    axios.get(apis.pta.armour).then((response: any) => {
       const data = response.data;
 
       for (const e of data['data']) {
@@ -242,7 +213,7 @@ export class ItemParser {
       log.info('Armour locals loaded');
     });
 
-    axios.get(uPtaWeaponlocals).then((response: any) => {
+    axios.get(apis.pta.weapon).then((response: any) => {
       const data = response.data;
 
       for (const e of data['data']) {
@@ -255,7 +226,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Load enchant rules
     this.enchantRules = new Map();
 
-    axios.get(uPtaEnchantrules).then((response: any) => {
+    axios.get(apis.pta.enchant).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -270,7 +241,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Load pseudo rules
     this.pseudoRules = new Map();
 
-    axios.get(uPtaPseudorules).then((response: any) => {
+    axios.get(apis.pta.pseudo).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -285,7 +256,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Mod Discriminators
     this.discriminators = new Map();
 
-    axios.get(uPtaDisc).then((response: any) => {
+    axios.get(apis.pta.disc).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -307,7 +278,7 @@ export class ItemParser {
     this.exchange = new Map();
     this.currencies = new Set();
 
-    axios.get(uPtaCurrency).then((response: any) => {
+    axios.get(apis.pta.currency).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {

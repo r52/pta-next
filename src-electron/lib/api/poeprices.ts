@@ -1,8 +1,7 @@
 import axios from 'axios';
 import log from 'electron-log';
 import { PTA } from '../../lib/pta';
-
-const uPoeprices = 'https://www.poeprices.info/api?';
+import apis from '../../lib/api/apis';
 
 export function searchPoePricesInfo(event: Electron.IpcMainEvent, item: Item) {
   let itemText = item.origtext;
@@ -23,7 +22,7 @@ export function searchPoePricesInfo(event: Electron.IpcMainEvent, item: Item) {
 
   const league = PTA.getInstance().getLeague();
 
-  const url = uPoeprices + 'l=' + league + '&i=' + itemData;
+  const url = apis.poeprices + 'l=' + league + '&i=' + itemData;
 
   axios.get(url).then((response: any) => {
     const data = response.data;

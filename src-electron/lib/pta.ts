@@ -11,10 +11,11 @@ import { ItemParser } from '../lib/itemparser';
 import log from 'electron-log';
 import cfg from 'electron-cfg';
 import Config from '../lib/config';
-import * as PoE from '../lib/api/poe';
+import * as poetrade from './api/poetrade';
 import winpoe from 'winpoe';
 import axios from 'axios';
 import ClientMonitor from './clientmonitor';
+import apis from '../lib/api/apis';
 
 interface Macro {
   name: string;
@@ -27,8 +28,6 @@ enum ItemHotkey {
   SIMPLE,
   ADVANCED
 }
-
-const uApiLeague = 'https://www.pathofexile.com/api/trade/data/leagues';
 
 export class PTA {
   private static instance: PTA;
@@ -55,7 +54,7 @@ export class PTA {
     ///////////////////////////////////////////// Download leagues
     this.leagues = [];
 
-    axios.get(uApiLeague).then((response: any) => {
+    axios.get(apis.official.leagues).then((response: any) => {
       const data = response.data;
 
       const lgs = data['result'];
@@ -85,11 +84,11 @@ export class PTA {
 
     // setup events
     ipcMain.on('search-defaults', (event, item) => {
-      PoE.searchItemWithDefaults(event, item);
+      this.searchItemDefault(event, item);
     });
 
     ipcMain.on('search', (event, item, options, openbrowser) => {
-      PoE.searchItemWithOptions(event, item, options, openbrowser);
+      this.searchItemOptions(event, item, options, openbrowser);
     });
 
     ipcMain.on('hotkeys-changed', () => {
@@ -467,5 +466,20 @@ export class PTA {
     }
 
     return { settings, options };
+  }
+
+  private searchItemDefault(event: Electron.IpcMainEvent, item: Item) {
+    poetrade.searchItemWithDefaults(event, item);
+
+    // XXX: potentially add more apis
+  }
+
+  private searchItemOptions(
+    event: Electron.IpcMainEvent,
+    item: Item,
+    options: any,
+    openbrowser: boolean
+  ) {
+    poetrade.searchItemWithOptions(event, item, options, openbrowser);
   }
 }

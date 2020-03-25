@@ -3,18 +3,14 @@
 // official PoE Trade Site search api
 import { shell, dialog } from 'electron';
 import cfg from 'electron-cfg';
-import Config from '../../lib/config';
-import { ItemParser } from '../../lib/itemparser';
-import { PTA } from '../../lib/pta';
+import Config from '../config';
+import { ItemParser } from '../itemparser';
+import { PTA } from '../pta';
 import * as poeprices from './poeprices';
 import log from 'electron-log';
 import axios from 'axios';
 import merge from 'lodash.merge';
-
-const uTradeFetch = 'https://www.pathofexile.com/api/trade/fetch/';
-const uTradeSearch = 'https://www.pathofexile.com/api/trade/search/';
-const uTradeExchange = 'https://www.pathofexile.com/api/trade/exchange/';
-const uTradeSite = 'https://www.pathofexile.com/trade/search/';
+import apis from '../../lib/api/apis';
 
 function processPriceResults(
   response: any,
@@ -38,7 +34,7 @@ function processPriceResults(
   while (n < rlist.length && n < displaylimit) {
     const bucket = rlist.slice(n, n + 10);
     const codes = bucket.join(',');
-    let url = uTradeFetch + codes + '?query=' + response['id'];
+    let url = apis.official.trade.fetch + codes + '?query=' + response['id'];
 
     if (exchange) {
       url += '&exchange';
@@ -126,7 +122,7 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
     return;
   }
 
-  const url = uTradeExchange + PTA.getInstance().getLeague();
+  const url = apis.official.trade.exchange + PTA.getInstance().getLeague();
 
   const want = itemparser.exchange.get(item.type) as string;
   let have = p_curr;
@@ -530,7 +526,7 @@ export function searchItemWithDefaults(
 
     const opttree = [sopts];
 
-    const url = uTradeSearch + league;
+    const url = apis.official.trade.search + league;
 
     axios.post(url, query).then((response: any) => {
       const resp = response.data;
@@ -908,7 +904,7 @@ export function searchItemWithOptions(
 
   const opttree = [sopts];
 
-  const url = uTradeSearch + league;
+  const url = apis.official.trade.search + league;
 
   axios.post(url, query).then((response: any) => {
     const resp = response.data;
@@ -921,7 +917,7 @@ export function searchItemWithOptions(
     }
 
     if (openbrowser) {
-      const burl = uTradeSite + league + '/' + resp['id'];
+      const burl = apis.official.trade.site + league + '/' + resp['id'];
       shell.openExternal(burl);
       return;
     }
