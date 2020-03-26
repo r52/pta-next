@@ -699,10 +699,10 @@ export class ItemParser {
       item.category == 'prophecy' &&
       item.name == 'A Master Seeks Help'
     ) {
-      const re = /^You will find (\w+) and complete her mission.$/g;
-      const match = stat.match(re);
-      if (match) {
-        const master = match[0];
+      const re = /^You will find (\w+) and complete her mission\.$/;
+      const match = re.exec(stat);
+      if (match && match.length > 1) {
+        const master = match[1];
 
         item.misc = item.misc ?? ({} as Misc);
         item.misc.disc = master;
