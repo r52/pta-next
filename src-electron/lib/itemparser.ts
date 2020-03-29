@@ -791,7 +791,7 @@ export class ItemParser {
     }
 
     // Match numerics
-    const re = /[+-]?\d+(\.\d+)?/g;
+    const re = /(?<!\d)[+-]?\d+(\.\d+)?/g;
     let captured: string[] = [];
 
     const val: number[] = [];
@@ -878,7 +878,12 @@ export class ItemParser {
       let frep = String(origstat);
       let frepplus = String(frep);
 
-      while (!found && frep.search(re) > 0 && captured.length) {
+      while (
+        !found &&
+        frep.search(re) > 0 &&
+        captured.length &&
+        frep.indexOf(captured[0]) > 0
+      ) {
         // Try putting back some values in case the mod itself has hardcoded values
         frep = replaceAt(
           frep,
@@ -915,7 +920,12 @@ export class ItemParser {
       let rrep = String(origstat);
       let rrepplus = String(rrep);
 
-      while (!found && rrep.search(re) > 0 && captured.length) {
+      while (
+        !found &&
+        rrep.search(re) > 0 &&
+        captured.length &&
+        rrep.lastIndexOf(captured[captured.length - 1]) > 0
+      ) {
         // Try putting back some values in case the mod itself has hardcoded values
         rrep = replaceAt(
           rrep,
