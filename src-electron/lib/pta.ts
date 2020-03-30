@@ -34,7 +34,6 @@ export class PTA {
   private static instance: PTA;
   private static parser: ItemParser;
   private settingsWindow: BrowserWindow | null = null;
-  private itemWindow: BrowserWindow | null = null;
   private aboutWindow: BrowserWindow | null = null;
   private clientmonitor: ClientMonitor;
 
@@ -251,6 +250,7 @@ export class PTA {
         width: 1000,
         height: 600,
         frame: false,
+        title: 'PTA-Next Settings',
         webPreferences: {
           nodeIntegration: true
         }
@@ -272,6 +272,7 @@ export class PTA {
         width: 1000,
         height: 600,
         frame: false,
+        title: 'About PTA-Next',
         webPreferences: {
           nodeIntegration: true
         }
@@ -302,43 +303,39 @@ export class PTA {
     options: any,
     type: ItemHotkey
   ) {
-    if (!this.itemWindow) {
-      this.itemWindow = cfg.window({ name: 'item' }).create({
-        width: 600,
-        height: 800,
-        alwaysOnTop: true,
-        transparent: true,
-        frame: false,
-        backgroundColor: '#00000000',
-        webPreferences: {
-          nodeIntegration: true
-        }
-      });
+    const wincfg = cfg.window({ name: 'item' });
+    const itemWindow = new BrowserWindow({
+      width: 600,
+      height: 800,
+      alwaysOnTop: true,
+      transparent: true,
+      frame: false,
+      backgroundColor: '#00000000',
+      title: item.name ?? item.type,
+      webPreferences: {
+        nodeIntegration: true
+      },
+      ...wincfg.options()
+    });
 
-      this.itemWindow.on('closed', () => {
-        this.itemWindow = null;
-      });
+    itemWindow.on('close', () => {
+      const state = {
+        ...wincfg.options(),
+        ...itemWindow.getBounds()
+      };
 
-      this.itemWindow.loadURL((process.env.APP_URL as string) + '#/item');
+      cfg.set('windowState.item', state);
+    });
 
-      this.itemWindow.webContents.on('context-menu', () => {
-        if (this.itemWindow) {
-          this.itemWindow.close();
-        }
-      });
+    itemWindow.loadURL((process.env.APP_URL as string) + '#/item');
 
-      this.itemWindow.webContents.on('did-finish-load', () => {
-        if (this.itemWindow) {
-          this.itemWindow.webContents.send(
-            'item',
-            item,
-            settings,
-            options,
-            type
-          );
-        }
-      });
-    }
+    itemWindow.webContents.on('context-menu', () => {
+      itemWindow.close();
+    });
+
+    itemWindow.webContents.on('did-finish-load', () => {
+      itemWindow.webContents.send('item', item, settings, options, type);
+    });
   }
 
   private handleClipboard(type: ItemHotkey) {
