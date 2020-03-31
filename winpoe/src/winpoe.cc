@@ -193,11 +193,15 @@ void SendPasteCommand(const Napi::CallbackInfo &info)
     keystrokes.push_back(pta::CreateInput(VK_RETURN, true));
     keystrokes.push_back(pta::CreateInput(VK_RETURN, false));
 
-    // restore previous line
+    // restore previous line before command
     keystrokes.push_back(pta::CreateInput(VK_UP, true));
     keystrokes.push_back(pta::CreateInput(VK_UP, false));
     keystrokes.push_back(pta::CreateInput(VK_UP, true));
     keystrokes.push_back(pta::CreateInput(VK_UP, false));
+
+    // exit chat
+    keystrokes.push_back(pta::CreateInput(VK_ESCAPE, true));
+    keystrokes.push_back(pta::CreateInput(VK_ESCAPE, false));
 
     SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
 }
