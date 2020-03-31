@@ -101,28 +101,30 @@ export default Vue.extend({
 
   methods: {
     getElapseTime() {
-      let dif = Date.now() - this.trade.time;
+      if (this.trade) {
+        let dif = Date.now() - this.trade.time;
 
-      // convert to seconds
-      dif = Math.floor(dif / 1000);
+        // convert to seconds
+        dif = Math.floor(dif / 1000);
 
-      if (dif < 60) {
-        this.time = dif.toString() + 's';
-        return;
+        if (dif < 60) {
+          this.time = dif.toString() + 's';
+          return;
+        }
+
+        // minutes
+        if (dif < 3600) {
+          this.time = Math.floor(dif / 60).toString() + 'm';
+          return;
+        }
+
+        if (dif < 86400) {
+          this.time = Math.floor(dif / 3600).toString() + 'h';
+          return;
+        }
+
+        this.time = Math.floor(dif / 86400).toString() + 'd';
       }
-
-      // minutes
-      if (dif < 3600) {
-        this.time = Math.floor(dif / 60).toString() + 'm';
-        return;
-      }
-
-      if (dif < 86400) {
-        this.time = Math.floor(dif / 3600).toString() + 'h';
-        return;
-      }
-
-      this.time = Math.floor(dif / 86400).toString() + 'd';
     },
     handleTrade(
       event: Electron.IpcRendererEvent,
