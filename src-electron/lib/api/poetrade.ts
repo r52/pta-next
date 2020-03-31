@@ -22,10 +22,17 @@ function processPriceResults(
   //
   const rlist = response['result'] as string[];
 
-  const displaylimit = cfg.get(
-    Config.displaylimit,
-    Config.default.displaylimit
-  );
+  let displaylimit = cfg.get(Config.displaylimit, Config.default.displaylimit);
+
+  // enforce display limits
+  if (displaylimit > 50) {
+    displaylimit = 50;
+    cfg.set(Config.displaylimit, displaylimit);
+  } else if (displaylimit < 10) {
+    displaylimit = 10;
+    cfg.set(Config.displaylimit, displaylimit);
+  }
+
   const removedupes = cfg.get(Config.removedupes, Config.default.removedupes);
 
   const urls = [];
