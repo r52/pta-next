@@ -17,6 +17,8 @@
         <div v-if="trade.type == 'incoming'">
           Tab: {{ trade.tab }}, x: {{ trade.x }}, y: {{ trade.y }}
         </div>
+        <q-space />
+        <div>{{ this.time }}</div>
       </q-bar>
     </q-header>
 
@@ -71,6 +73,7 @@
           <div class="col-auto q-px-xs" v-for="cmd in commands" :key="cmd">
             <q-btn
               color="primary"
+              size="12px"
               :label="cmd.label"
               @click="sendCustomCommand(cmd)"
             />
@@ -91,11 +94,36 @@ export default Vue.extend({
   data() {
     return {
       trade: null as TradeMsg | null,
-      commands: [] as TradeCommand[]
+      commands: [] as TradeCommand[],
+      time: ''
     };
   },
 
   methods: {
+    getElapseTime() {
+      let dif = Date.now() - this.trade.time;
+
+      // convert to seconds
+      dif = Math.floor(dif / 1000);
+
+      if (dif < 60) {
+        this.time = dif.toString() + 's';
+        return;
+      }
+
+      // minutes
+      if (dif < 3600) {
+        this.time = Math.floor(dif / 60).toString() + 'm';
+        return;
+      }
+
+      if (dif < 86400) {
+        this.time = Math.floor(dif / 3600).toString() + 'h';
+        return;
+      }
+
+      this.time = Math.floor(dif / 86400).toString() + 'd';
+    },
     handleTrade(
       event: Electron.IpcRendererEvent,
       trade: TradeMsg,
@@ -103,6 +131,10 @@ export default Vue.extend({
     ) {
       this.trade = trade;
       this.commands = commands;
+
+      setInterval(() => {
+        this.getElapseTime();
+      }, 1000);
     },
     sendTradeCommand(command: string) {
       ipcRenderer.send('trade-command', this.trade, command);

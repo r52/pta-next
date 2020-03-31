@@ -1,22 +1,37 @@
-import { clipboard, ipcMain } from 'electron';
+import { clipboard, ipcMain, Rectangle } from 'electron';
 import { BrowserWindow } from 'electron';
 import cfg from 'electron-cfg';
 import Config from '../lib/config';
 import winpoe from 'winpoe';
 
+const notificationMargin = 20; // pixels
+
 export default class TradeManager {
   private tradeBar: BrowserWindow | null = null;
+  private tradeNotifications: BrowserWindow[] = [];
 
   public setup() {
-    this.showTradeBar();
+    const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
+
+    if (showtradebar) {
+      this.showTradeBar();
+    }
 
     ipcMain.on('tradeui-enabled', (event, enabled) => {
+      const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
+
       if (enabled) {
-        // TODO do stuff
-        this.showTradeBar();
+        if (showtradebar) {
+          this.showTradeBar();
+        }
       } else {
-        // do stuff
         this.closeTradeBar();
+
+        this.tradeNotifications.forEach(notification => {
+          notification.close();
+        });
+
+        this.tradeNotifications = [];
       }
     });
 
@@ -52,17 +67,41 @@ export default class TradeManager {
   }
 
   public handleForegroundChange(ispoe: boolean) {
-    // TODO
     if (!ispoe) {
       this.tradeBar?.hide();
+
+      this.tradeNotifications.forEach(notification => {
+        notification.hide();
+      });
     } else {
       this.tradeBar?.show();
+
+      this.tradeNotifications.forEach(notification => {
+        notification.show();
+      });
     }
   }
 
   public showNewTrade(trade: TradeMsg) {
-    // TODO
     const wincfg = cfg.window({ name: 'trade' });
+    const state = wincfg.options() as Rectangle;
+
+    // Stack new notifications
+    if (this.tradeNotifications.length > 0) {
+      const direction =
+        cfg.get(Config.tradeuidirection, Config.default.tradeuidirection) ==
+        'up'
+          ? -1
+          : 1;
+
+      const y =
+        state.y +
+        (state.height + notificationMargin) *
+          this.tradeNotifications.length *
+          direction;
+
+      state.y = y;
+    }
 
     const tradewindow = new BrowserWindow({
       width: 400,
@@ -75,7 +114,8 @@ export default class TradeManager {
       backgroundColor: '#00000000',
       webPreferences: {
         nodeIntegration: true
-      }
+      },
+      ...state
     });
 
     tradewindow.loadURL((process.env.APP_URL as string) + '#/trade');
@@ -88,6 +128,17 @@ export default class TradeManager {
           ? cfg.get(Config.tradeuiincoming, Config.default.tradeuiincoming)
           : cfg.get(Config.tradeuioutgoing, Config.default.tradeuioutgoing)
       );
+    });
+
+    if (this.tradeNotifications.length == 0) {
+      // Track this window if its the first one
+      wincfg.assign(tradewindow);
+    }
+
+    this.addTradeNotification(tradewindow);
+
+    tradewindow.on('closed', () => {
+      this.removeTradeNotification(tradewindow);
     });
   }
 
@@ -166,5 +217,43 @@ export default class TradeManager {
     clipboard.writeText(command);
     winpoe.SendPasteCommand();
     clipboard.writeText(saved);
+  }
+
+  private addTradeNotification(notification: BrowserWindow) {
+    this.tradeNotifications.push(notification);
+  }
+
+  private removeTradeNotification(notification: BrowserWindow) {
+    const idx = this.tradeNotifications.indexOf(notification);
+
+    if (idx > -1) {
+      this.tradeNotifications.splice(idx, 1);
+
+      setTimeout(() => {
+        this.restackTradeNofitications();
+      }, 0);
+    }
+  }
+
+  private restackTradeNofitications() {
+    const direction =
+      cfg.get(Config.tradeuidirection, Config.default.tradeuidirection) == 'up'
+        ? -1
+        : 1;
+
+    const wincfg = cfg.window({ name: 'trade' });
+    const state = wincfg.options() as Rectangle;
+
+    this.tradeNotifications.forEach((notification, idx) => {
+      const nstate = { ...state };
+      nstate.y =
+        state.y + (state.height + notificationMargin) * idx * direction;
+
+      notification.setPosition(nstate.x, nstate.y, false);
+
+      if (idx == 0) {
+        wincfg.assign(notification);
+      }
+    });
   }
 }

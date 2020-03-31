@@ -24,6 +24,7 @@
         >
           <q-tooltip>Open Settings</q-tooltip>
         </q-btn>
+        <q-space />
         <q-btn dense flat icon="close" size="sm" @click="closeApp">
           <q-tooltip>Close Tradebar</q-tooltip>
         </q-btn>

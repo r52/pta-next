@@ -34,6 +34,7 @@ export default {
 
   // trade ui
   tradeui: 'tradeui.enabled',
+  tradebar: 'tradeui.tradebar',
   tradeuidirection: 'tradeui.direction',
   tradeuiincoming: 'tradeui.incoming',
   tradeuioutgoing: 'tradeui.outgoing',
@@ -81,6 +82,7 @@ export default {
 
     // trade ui
     tradeui: false,
+    tradebar: true,
     tradeuidirection: 'down',
     tradeuiincoming: [
       {
