@@ -1,7 +1,11 @@
+import { ipcMain } from 'electron';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import readline from 'readline';
+import trademsg from './trademsg';
+import cfg from 'electron-cfg';
+import Config from '../lib/config';
 
 // polling rate in milliseconds
 const pollingrate = 350;
@@ -15,6 +19,21 @@ export default class ClientMonitor extends EventEmitter {
   private enabled = false;
   private lastpos = -1;
   private lastwhisper = '';
+
+  constructor() {
+    super();
+
+    ipcMain.on('clientlog-changed', (event, path) => {
+      this.setPath(path);
+    });
+
+    // setup client monitor
+    const clientlog = cfg.get(
+      Config.clientlogpath,
+      Config.default.clientlogpath
+    );
+    this.setPath(clientlog);
+  }
 
   public setPath(path: string) {
     if (!path) {
@@ -116,11 +135,17 @@ export default class ClientMonitor extends EventEmitter {
     if (ltxt.startsWith('@')) {
       // Whisper
 
+      let type = 'incoming';
+
+      if (ltxt.startsWith('@To')) {
+        type = 'outgoing';
+      }
+
       // Remove whisper tags
       const tag = /^@(From|To) (<\S+> )?/;
       ltxt = ltxt.replace(tag, '');
 
-      const msgparts = ltxt.split(': ');
+      const msgparts = ltxt.split(/: (.+)/, 2);
 
       if (msgparts.length < 2) {
         log.warn('Error parsing whisper text:', ltxt);
@@ -131,7 +156,48 @@ export default class ClientMonitor extends EventEmitter {
 
       this.lastwhisper = pname;
 
-      // TODO: process whisper text
+      const msg = msgparts[1];
+
+      Object.entries(trademsg).some(entry => {
+        const mobj = entry[1];
+
+        if (msg.startsWith(mobj.test)) {
+          // process
+          this.processTradeMsg(pname, type, msg, mobj.reg);
+          return true;
+        }
+
+        return false;
+      });
     }
+  }
+
+  private processTradeMsg(
+    name: string,
+    type: string,
+    msg: string,
+    reg: RegExp
+  ) {
+    const match = reg.exec(msg);
+
+    if (!match || match.length != 8) {
+      // invalid/unrecognized trade msg
+      return;
+    }
+
+    const tradeobj = {
+      name: name,
+      type: type,
+      item: match[1],
+      price: parseFloat(match[2]),
+      currency: match[3],
+      league: match[4],
+      tab: match[5],
+      x: parseInt(match[6]),
+      y: parseInt(match[7]),
+      time: Date.now()
+    } as TradeMsg;
+
+    this.emit('new-trade', tradeobj);
   }
 }

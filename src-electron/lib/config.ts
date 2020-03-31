@@ -26,11 +26,17 @@ export default {
   prefillilvl: 'pricecheck.prefillilvl',
   prefillbase: 'pricecheck.prefillbase',
 
-  //client
+  // client
   clientlogpath: 'client.logpath',
 
   // custom macros
   macros: 'macros.list',
+
+  // trade ui
+  tradeui: 'tradeui.enabled',
+  tradeuidirection: 'tradeui.direction',
+  tradeuiincoming: 'tradeui.incoming',
+  tradeuioutgoing: 'tradeui.outgoing',
 
   default: {
     // hotkey
@@ -70,6 +76,34 @@ export default {
         key: 'F5',
         type: 'chat',
         command: '/hideout'
+      }
+    ],
+
+    // trade ui
+    tradeui: false,
+    tradeuidirection: 'down',
+    tradeuiincoming: [
+      {
+        label: 'ty',
+        command: 'ty',
+        close: false
+      },
+      {
+        label: '1m',
+        command: '1 minute',
+        close: false
+      },
+      {
+        label: 'no thx',
+        command: 'no thanks',
+        close: true
+      }
+    ],
+    tradeuioutgoing: [
+      {
+        label: 'ty',
+        command: 'ty',
+        close: false
       }
     ]
   }

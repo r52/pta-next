@@ -17,6 +17,7 @@
         <q-tab name="price" icon="shop" label="Price Check" />
         <q-tab name="macro" icon="gamepad" label="Macros" />
         <q-tab name="client" icon="desktop_windows" label="Client" />
+        <q-tab name="tradeui" icon="swap_horiz" label="Trade UI" />
       </q-tabs>
     </q-header>
     <q-footer>
@@ -390,6 +391,21 @@
             </q-card-section>
           </q-card>
         </q-tab-panel>
+
+        <q-tab-panel name="tradeui">
+          <q-card>
+            <div class="q-pa-xs">
+              <div class="row items-center">
+                <div class="col">
+                  <q-toggle
+                    v-model="settings.tradeui.enabled"
+                    label="Enable Trade UI (Client.txt path must be set for this to work!)"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-card>
+        </q-tab-panel>
       </q-tab-panels>
     </q-page-container>
   </q-layout>
@@ -574,6 +590,21 @@ export default Vue.extend({
         },
         macros: {
           list: macros
+        },
+        tradeui: {
+          enabled: cfg.get(Config.tradeui, Config.default.tradeui),
+          direction: cfg.get(
+            Config.tradeuidirection,
+            Config.default.tradeuidirection
+          ),
+          incoming: cfg.get(
+            Config.tradeuiincoming,
+            Config.default.tradeuiincoming
+          ),
+          outgoing: cfg.get(
+            Config.tradeuioutgoing,
+            Config.default.tradeuioutgoing
+          )
         }
       }
     };
@@ -666,6 +697,14 @@ export default Vue.extend({
           ipcRenderer.send('clientlog-changed', '');
         }
       }
+
+      // trade ui
+      cfg.set(Config.tradeui, settings.tradeui.enabled);
+      cfg.set(Config.tradeuidirection, settings.tradeui.direction);
+      cfg.set(Config.tradeuiincoming, settings.tradeui.incoming);
+      cfg.set(Config.tradeuioutgoing, settings.tradeui.outgoing);
+
+      ipcRenderer.send('tradeui-enabled', settings.tradeui.enabled);
 
       this.$q.notify({
         color: 'green',

@@ -39,6 +39,12 @@ app.on('ready', () => {
 
   const contextMenu = Menu.buildFromTemplate([
     {
+      label: 'Open Tradebar',
+      click: () => {
+        global.pta.openTradeBar();
+      }
+    },
+    {
       label: 'Settings',
       click: () => {
         global.pta.createSettingsWindow();
