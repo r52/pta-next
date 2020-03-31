@@ -17,6 +17,7 @@
         <q-tab name="price" icon="shop" label="Price Check" />
         <q-tab name="macro" icon="gamepad" label="Macros" />
         <q-tab name="client" icon="desktop_windows" label="Client" />
+        <q-tab name="tradeui" icon="swap_horiz" label="Trade UI" />
       </q-tabs>
     </q-header>
     <q-footer>
@@ -390,6 +391,205 @@
             </q-card-section>
           </q-card>
         </q-tab-panel>
+
+        <q-tab-panel name="tradeui">
+          <q-card>
+            <q-card-section>
+              <div class="text-h6">Trade UI</div>
+            </q-card-section>
+
+            <q-card-section class="q-pt-none">
+              <div class="q-pa-xs">
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.tradeui.enabled"
+                      label="Enable Trade UI (Client.txt path must be set for this to work!)"
+                    />
+                  </div>
+                </div>
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.tradeui.tradebar"
+                      label="Show Trade Bar on startup"
+                    />
+                  </div>
+                </div>
+
+                <div class="row items-center">
+                  <div class="col">
+                    Trade Notification Stack Direction:
+                  </div>
+                  <div class="col-auto">
+                    <q-select
+                      v-model="settings.tradeui.direction"
+                      :options="tradeDirections"
+                      label="Stack Direction"
+                      style="width: 250px"
+                    />
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+
+          <q-card>
+            <q-card-section>
+              <div class="text-h6">Commands</div>
+            </q-card-section>
+            <q-card-section class="q-pt-none">
+              <q-table
+                title="Incoming Trade Commands"
+                :data="settings.tradeui.incoming"
+                :columns="tradeColumns"
+                row-key="label"
+              >
+                <template v-slot:top-right>
+                  <q-btn
+                    color="primary"
+                    label="Add Command"
+                    @click="openTradeCmdDialog('incoming')"
+                  />
+                </template>
+
+                <template v-slot:header="props">
+                  <q-tr :props="props">
+                    <q-th auto-width />
+                    <q-th
+                      v-for="col in props.cols"
+                      :key="col.name"
+                      :props="props"
+                    >
+                      {{ col.label }}
+                    </q-th>
+                  </q-tr>
+                </template>
+
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td auto-width>
+                      <q-btn
+                        size="sm"
+                        color="accent"
+                        round
+                        dense
+                        @click="deleteTradeCmd(props.key, 'incoming')"
+                        icon="remove"
+                      />
+                    </q-td>
+                    <q-td key="label" :props="props">
+                      {{ props.row.label }}
+                    </q-td>
+                    <q-td key="command" :props="props">
+                      {{ props.row.command }}
+                      <q-popup-edit
+                        v-model="props.row.command"
+                        title="Update Command"
+                      >
+                        <q-input v-model="props.row.command" dense autofocus />
+                      </q-popup-edit>
+                    </q-td>
+                    <q-td key="close" :props="props">
+                      <q-checkbox v-model="props.row.close" />
+                    </q-td>
+                  </q-tr>
+                </template>
+              </q-table>
+            </q-card-section>
+            <q-card-section class="q-pt-none">
+              <q-table
+                title="Outgoing Trade Commands"
+                :data="settings.tradeui.outgoing"
+                :columns="tradeColumns"
+                row-key="label"
+              >
+                <template v-slot:top-right>
+                  <q-btn
+                    color="primary"
+                    label="Add Command"
+                    @click="openTradeCmdDialog('outgoing')"
+                  />
+                </template>
+
+                <template v-slot:header="props">
+                  <q-tr :props="props">
+                    <q-th auto-width />
+                    <q-th
+                      v-for="col in props.cols"
+                      :key="col.name"
+                      :props="props"
+                    >
+                      {{ col.label }}
+                    </q-th>
+                  </q-tr>
+                </template>
+
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td auto-width>
+                      <q-btn
+                        size="sm"
+                        color="accent"
+                        round
+                        dense
+                        @click="deleteTradeCmd(props.key, 'outgoing')"
+                        icon="remove"
+                      />
+                    </q-td>
+                    <q-td key="label" :props="props">
+                      {{ props.row.label }}
+                    </q-td>
+                    <q-td key="command" :props="props">
+                      {{ props.row.command }}
+                      <q-popup-edit
+                        v-model="props.row.command"
+                        title="Update Command"
+                      >
+                        <q-input v-model="props.row.command" dense autofocus />
+                      </q-popup-edit>
+                    </q-td>
+                    <q-td key="close" :props="props">
+                      <q-checkbox v-model="props.row.close" />
+                    </q-td>
+                  </q-tr>
+                </template>
+              </q-table>
+            </q-card-section>
+          </q-card>
+
+          <q-dialog v-model="tradeCmdDialog">
+            <q-card style="min-width: 350px">
+              <q-card-section>
+                <div class="text-h6">New Command</div>
+              </q-card-section>
+
+              <q-card-section class="q-pt-none">
+                <q-input
+                  dense
+                  v-model="tradeCmdAdd.label"
+                  label="Label"
+                  autofocus
+                />
+                <q-input dense v-model="tradeCmdAdd.command" label="Command" />
+                <q-checkbox
+                  v-model="tradeCmdAdd.close"
+                  label="Closes Notification?"
+                />
+              </q-card-section>
+
+              <q-card-actions align="right" class="text-primary">
+                <q-btn flat label="Cancel" v-close-popup />
+                <q-btn
+                  flat
+                  label="Add"
+                  @click="addTradeCmd(tradeCmdAddType)"
+                  v-close-popup
+                />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+        </q-tab-panel>
       </q-tab-panels>
     </q-page-container>
   </q-layout>
@@ -491,6 +691,27 @@ export default Vue.extend({
       clientfile = { name: clientpath, path: clientpath } as File;
     }
 
+    const tradeuicolumns = [
+      {
+        name: 'label',
+        align: 'left',
+        label: 'Label',
+        field: 'label'
+      },
+      {
+        name: 'command',
+        align: 'left',
+        label: 'Command',
+        field: 'command'
+      },
+      {
+        name: 'close',
+        align: 'left',
+        label: 'Closes Notification?',
+        field: 'close'
+      }
+    ];
+
     return {
       tab: 'hotkey',
       leagues: Object.freeze(leagues),
@@ -506,6 +727,15 @@ export default Vue.extend({
       },
       macroDialog: false,
       currencies: Object.freeze(currencies),
+      tradeDirections: ['up', 'down'],
+      tradeColumns: tradeuicolumns,
+      tradeCmdDialog: false,
+      tradeCmdAddType: '',
+      tradeCmdAdd: {
+        label: '',
+        command: '',
+        close: false
+      },
       settings: {
         hotkey: {
           simplehotkey: cfg.get(
@@ -574,6 +804,22 @@ export default Vue.extend({
         },
         macros: {
           list: macros
+        },
+        tradeui: {
+          enabled: cfg.get(Config.tradeui, Config.default.tradeui),
+          tradebar: cfg.get(Config.tradebar, Config.default.tradebar),
+          direction: cfg.get(
+            Config.tradeuidirection,
+            Config.default.tradeuidirection
+          ),
+          incoming: cfg.get(
+            Config.tradeuiincoming,
+            Config.default.tradeuiincoming
+          ),
+          outgoing: cfg.get(
+            Config.tradeuioutgoing,
+            Config.default.tradeuioutgoing
+          )
         }
       }
     };
@@ -607,6 +853,42 @@ export default Vue.extend({
       this.settings.macros.list = this.settings.macros.list.filter((e: any) => {
         return e.name != key;
       });
+    },
+    openTradeCmdDialog(type: string) {
+      this.tradeCmdAddType = type;
+      this.tradeCmdAdd.label = '';
+      this.tradeCmdAdd.command = '';
+      this.tradeCmdAdd.close = false;
+
+      this.tradeCmdDialog = true;
+    },
+    addTradeCmd(type: string) {
+      if (this.tradeCmdAdd.label && this.tradeCmdAdd.command) {
+        if (type == 'incoming') {
+          this.settings.tradeui.incoming.push({ ...this.tradeCmdAdd });
+        } else {
+          this.settings.tradeui.outgoing.push({ ...this.tradeCmdAdd });
+        }
+      }
+
+      this.tradeCmdAdd.label = '';
+      this.tradeCmdAdd.command = '';
+      this.tradeCmdAdd.close = false;
+    },
+    deleteTradeCmd(label: string, type: string) {
+      if (type == 'incoming') {
+        this.settings.tradeui.incoming = this.settings.tradeui.incoming.filter(
+          (e: any) => {
+            return e.label != label;
+          }
+        );
+      } else {
+        this.settings.tradeui.outgoing = this.settings.tradeui.outgoing.filter(
+          (e: any) => {
+            return e.label != label;
+          }
+        );
+      }
     },
     saveSettings() {
       const settings = this.settings;
@@ -666,6 +948,15 @@ export default Vue.extend({
           ipcRenderer.send('clientlog-changed', '');
         }
       }
+
+      // trade ui
+      cfg.set(Config.tradeui, settings.tradeui.enabled);
+      cfg.set(Config.tradebar, settings.tradeui.tradebar);
+      cfg.set(Config.tradeuidirection, settings.tradeui.direction);
+      cfg.set(Config.tradeuiincoming, settings.tradeui.incoming);
+      cfg.set(Config.tradeuioutgoing, settings.tradeui.outgoing);
+
+      ipcRenderer.send('tradeui-enabled', settings.tradeui.enabled);
 
       this.$q.notify({
         color: 'green',

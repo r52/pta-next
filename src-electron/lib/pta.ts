@@ -17,6 +17,7 @@ import axios from 'axios';
 import ClientMonitor from './clientmonitor';
 import apis from '../lib/api/apis';
 import { autoUpdater } from 'electron-updater';
+import TradeManager from './trademanager';
 
 interface Macro {
   name: string;
@@ -36,6 +37,7 @@ export class PTA {
   private settingsWindow: BrowserWindow | null = null;
   private aboutWindow: BrowserWindow | null = null;
   private clientmonitor: ClientMonitor;
+  private trademanager: TradeManager;
 
   private macroVariables = new Map<string, () => string>([
     [
@@ -69,6 +71,7 @@ export class PTA {
     });
 
     this.clientmonitor = new ClientMonitor();
+    this.trademanager = new TradeManager();
   }
 
   public static getInstance(): PTA {
@@ -96,24 +99,27 @@ export class PTA {
       this.registerShortcuts();
     });
 
-    // setup client monitor
-    const clientlog = cfg.get(
-      Config.clientlogpath,
-      Config.default.clientlogpath
-    );
-    this.clientmonitor.setPath(clientlog);
-
-    ipcMain.on('clientlog-changed', (event, path) => {
-      this.clientmonitor.setPath(path);
+    ipcMain.on('open-settings', () => {
+      this.createSettingsWindow();
     });
 
-    // setup hooks
+    // setup trade manager
+    this.trademanager.setup();
+
+    // setup trade hook
+    this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
+      this.trademanager.showNewTrade(trademsg);
+    });
+
+    // setup native hooks
     winpoe.onForegroundChange((isPoe: boolean) => {
       if (isPoe) {
         this.registerShortcuts();
       } else {
         this.unregisterShortcuts();
       }
+
+      this.trademanager.handleForegroundChange(isPoe);
     });
 
     if (process.env.NODE_ENV === 'production') {
@@ -223,9 +229,10 @@ export class PTA {
       });
     }
 
+    const saved = clipboard.readText();
     clipboard.writeText(command);
-
     winpoe.SendPasteCommand();
+    clipboard.writeText(saved);
   }
 
   public getLeague() {
@@ -284,6 +291,10 @@ export class PTA {
         this.aboutWindow = null;
       });
     }
+  }
+
+  public openTradeBar() {
+    this.trademanager.showTradeBar();
   }
 
   private handleItemHotkey(type: ItemHotkey) {

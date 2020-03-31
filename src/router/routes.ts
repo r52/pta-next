@@ -36,6 +36,14 @@ const routes: RouteConfig[] = [
         component: () => import('pages/Prediction.vue')
       }
     ]
+  },
+  {
+    path: '/tradebar',
+    component: () => import('layouts/Tradebar.vue')
+  },
+  {
+    path: '/trade',
+    component: () => import('layouts/TradeNotification.vue')
   }
 ];
 
