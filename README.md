@@ -29,7 +29,7 @@ Portable version: Extract the archive and run **PTA-Next.exe**
 - poeprices.info prediction (`default: enabled`. Can be disabled in settings)
 - Ctrl + Mousewheel stash scrolling.
 - Custom macros. Suppports in-game chat commands as well as opening URLs in your browser. See [wiki](https://github.com/r52/pta-next/wiki) for more information.
-- [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI (`default: disabled`). Please set your Client.txt path in the settings to activate.
+- [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI (`default: disabled`). Please ensure that your Client.txt path in set in the settings for this to work.
 
 All shortcuts and macros can be re-configured in the settings.
 
