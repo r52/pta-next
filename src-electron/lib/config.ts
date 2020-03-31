@@ -49,7 +49,7 @@ export default {
 
     // price check
     league: 0,
-    displaylimit: 50,
+    displaylimit: 20,
     corruptoverride: false,
     corruptsearch: 'Any',
     primarycurrency: 'chaos',

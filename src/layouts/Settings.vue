@@ -140,12 +140,18 @@
                 </div>
 
                 <div class="row items-center">
-                  <div class="col">Maximum number of results to query:</div>
+                  <div class="col">
+                    Maximum number of results to query:
+                    <q-tooltip
+                      >Keep this value low to improve trade site load
+                      times</q-tooltip
+                    >
+                  </div>
                   <div class="col">
                     <q-slider
                       v-model="settings.pricecheck.displaylimit"
                       :min="10"
-                      :max="100"
+                      :max="50"
                       :step="10"
                       label
                       :label-value="
