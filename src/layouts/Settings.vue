@@ -436,6 +436,18 @@
                     />
                   </div>
                 </div>
+
+                <div class="row items-center">
+                  <div class="col">
+                    Character Name (for leaving parties):
+                  </div>
+                  <div class="col">
+                    <q-input
+                      v-model="settings.tradeui.charname"
+                      label="Character Name"
+                    />
+                  </div>
+                </div>
               </div>
             </q-card-section>
           </q-card>
@@ -818,6 +830,7 @@ export default Vue.extend({
             Config.tradeuidirection,
             Config.default.tradeuidirection
           ),
+          charname: cfg.get(Config.tradecharname, Config.default.tradecharname),
           incoming: cfg.get(
             Config.tradeuiincoming,
             Config.default.tradeuiincoming
@@ -959,6 +972,7 @@ export default Vue.extend({
       cfg.set(Config.tradeui, settings.tradeui.enabled);
       cfg.set(Config.tradebar, settings.tradeui.tradebar);
       cfg.set(Config.tradeuidirection, settings.tradeui.direction);
+      cfg.set(Config.tradecharname, settings.tradeui.charname);
       cfg.set(Config.tradeuiincoming, settings.tradeui.incoming);
       cfg.set(Config.tradeuioutgoing, settings.tradeui.outgoing);
 

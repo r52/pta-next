@@ -64,6 +64,16 @@
         >
           <q-tooltip>Kick</q-tooltip>
         </q-btn>
+        <q-btn
+          dense
+          flat
+          icon="person_add_disabled"
+          color="red"
+          v-if="trade.type == 'outgoing'"
+          @click="sendTradeCommand('leave')"
+        >
+          <q-tooltip>Leave Party</q-tooltip>
+        </q-btn>
       </q-bar>
     </q-footer>
 

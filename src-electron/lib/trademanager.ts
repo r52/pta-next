@@ -197,6 +197,16 @@ export default class TradeManager {
       case 'hideout':
         this.executeChatCommand('/hideout ' + trade.name);
         break;
+      case 'leave': {
+        const charname = cfg.get(
+          Config.tradecharname,
+          Config.default.tradecharname
+        );
+        if (charname) {
+          this.executeChatCommand('/kick ' + charname);
+        }
+        break;
+      }
     }
   }
 
