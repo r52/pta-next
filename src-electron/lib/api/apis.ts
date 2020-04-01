@@ -32,7 +32,9 @@ export default {
     exclude:
       'https://raw.githubusercontent.com/r52/pta-data/master/data/excludes.json',
     currency:
-      'https://raw.githubusercontent.com/r52/pta-data/master/data/currency.json'
+      'https://raw.githubusercontent.com/r52/pta-data/master/data/currency.json',
+    priority:
+      'https://raw.githubusercontent.com/r52/pta-data/master/data/priority_rules.json'
   },
   poeprices: 'https://www.poeprices.info/api?'
 };
