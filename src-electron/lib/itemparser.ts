@@ -1106,7 +1106,7 @@ export class ItemParser {
 
       let numval: number;
 
-      if (word.search('.') > 0) {
+      if (word.indexOf('.') > 0) {
         numval = parseFloat(word);
       } else {
         numval = parseInt(word);
