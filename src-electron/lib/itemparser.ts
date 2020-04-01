@@ -5,11 +5,6 @@ import axios from 'axios';
 import apis from '../lib/api/apis';
 import Fuse from 'fuse.js';
 
-function replaceAt(str: string, idx: number, len: number, rep: string) {
-  const replacement = str.substring(0, idx) + rep + str.substring(idx + len);
-  return replacement;
-}
-
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
