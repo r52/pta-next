@@ -30,6 +30,7 @@
           dense
           flat
           icon="home"
+          color="green"
           v-if="trade.type == 'outgoing'"
           @click="sendTradeCommand('hideout')"
         >
