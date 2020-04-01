@@ -15,7 +15,7 @@ init:
 environment:
   nodejs_version: 'LTS'
 install:
-  - ps: Install-Product node $env:nodejs_version
+  - ps: Install-Product node $env:nodejs_version $env:platform
   - yarn
 build_script:
   - yarn build
