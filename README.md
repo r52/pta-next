@@ -1,7 +1,7 @@
 # PTA-Next
 
 [![License](https://img.shields.io/github/license/r52/pta-next)](https://github.com/r52/pta-next/blob/master/LICENSE)
-[![Windows Build](https://github.com/r52/pta-next/workflows/Windows%20Build/badge.svg)](https://github.com/r52/pta-next/actions?query=workflow%3A%22Windows+Build%22)
+[![Windows Build](https://github.com/r52/pta-next/workflows/Windows%20Build/badge.svg)](https://github.com/r52/pta-next/actions?query=workflow%3A%22Windows+Build%22+branch%3Amaster)
 [![Build status](https://ci.appveyor.com/api/projects/status/9wd2911nsfftijk9?svg=true)](https://ci.appveyor.com/project/r52/pta-next)
 
 PTA-Next is yet another simple, no frills price checking tool based on [PoE-TradeMacro](https://github.com/PoE-TradeMacro/POE-TradeMacro) that operates on the [Official Path of Exile Trade](https://www.pathofexile.com/trade) site. PTA-Next is the revamped version of [PTA](https://github.com/r52/PTA).
@@ -16,7 +16,7 @@ PTA is licensed under GPL-3.0
 
 ## Installation
 
-[Download the latest release from Releases](https://github.com/r52/pta-next/releases/latest/) **OR** a development build from [here](https://ci.appveyor.com/project/r52/pta-next/build/artifacts) or [here](https://github.com/r52/pta-next/actions?query=workflow%3A%22Windows+Build%22)
+[Download the latest release from Releases](https://github.com/r52/pta-next/releases/latest/) **OR** a development build from [here](https://ci.appveyor.com/project/r52/pta-next/build/artifacts) or [here](https://github.com/r52/pta-next/actions?query=workflow%3A%22Windows+Build%22+branch%3Amaster)
 
 Installer version: Install PTA-Next using the installer and run it from start menu
 
