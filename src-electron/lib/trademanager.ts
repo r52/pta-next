@@ -223,10 +223,8 @@ export default class TradeManager {
   }
 
   private executeChatCommand(command: string) {
-    const saved = clipboard.readText();
     clipboard.writeText(command);
     winpoe.SendPasteCommand();
-    clipboard.writeText(saved);
   }
 
   private addTradeNotification(notification: BrowserWindow) {

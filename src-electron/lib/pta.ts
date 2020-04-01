@@ -229,10 +229,8 @@ export class PTA {
       });
     }
 
-    const saved = clipboard.readText();
     clipboard.writeText(command);
     winpoe.SendPasteCommand();
-    clipboard.writeText(saved);
   }
 
   public getLeague() {
