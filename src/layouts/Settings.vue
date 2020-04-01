@@ -987,7 +987,7 @@ export default Vue.extend({
       });
     },
     closeApp() {
-      const win = this.$q.electron.remote.BrowserWindow.getFocusedWindow();
+      const win = this.$q.electron.remote.getCurrentWindow();
 
       if (win) {
         win.close();
