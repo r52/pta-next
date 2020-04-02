@@ -61,7 +61,6 @@ export class ItemParser {
   currencies: Set<string>;
   mapDisc = 'warfortheatlas';
 
-  // stats
   stats: { [index: string]: StatType };
 
   private section = '';
@@ -88,26 +87,27 @@ export class ItemParser {
 
         for (const type of stt) {
           const el = type['entries'];
-          const lb = (type['label'] as string).toLowerCase();
+          const tlb = (type['label'] as string).toLowerCase();
+
+          for (const et of el as StatFilter[]) {
+            if (!this.excludes.has(et.id)) {
+              this.statsById.set(et.id, et);
+            }
+
+            // construct option indices
+            if (et.option != null) {
+              et.option.index = Fuse.createIndex(['text'], et.option.options);
+            }
+          }
 
           // construct indices
-          this.stats[lb] = {
+          this.stats[tlb] = {
             entries: el as StatFilter[],
             index: Fuse.createIndex<StatFilter>(
-              ['id', 'text', 'option.options.text'],
+              ['text', 'option.options.text'],
               el
             )
           };
-
-          // TODO construct option indices
-
-          for (const et of el) {
-            const id = et['id'];
-
-            if (!this.excludes.has(id)) {
-              this.statsById.set(id, et);
-            }
-          }
         }
 
         log.info('Mod stats loaded');
@@ -444,6 +444,7 @@ export class ItemParser {
                   ...pentry,
                   enabled: false,
                   value: [] as number[],
+                  selected: null,
                   min: null,
                   max: null
                 } as unknown) as Filter;
@@ -874,6 +875,20 @@ export class ItemParser {
       }
     }
 
+    // Handle special mods with a colon
+    if (stat.includes(': ')) {
+      if (
+        stat.startsWith('Added Small Passive Skills grant: ') &&
+        stattype !== 'enchant'
+      ) {
+        // ignore first line of double lined cluster jewel enchants
+        log.debug('Ignored/unprocessed line', origstat);
+        return false;
+      }
+
+      stat = stat.substring(0, stat.indexOf(': ') + 2);
+    }
+
     if (!found) {
       const options: Fuse.IFuseOptions<StatFilter> = {
         keys: ['text', 'option.options.text'],
@@ -966,9 +981,11 @@ export class ItemParser {
         valstat = multiline.join('\n');
       }
 
-      // Check numerics
+      // Check numerics/options
+      let selected: number | null = null;
+
       if (foundEntry.text.includes('#')) {
-        if (!foundEntry.option) {
+        if (foundEntry.option == null) {
           let textreg = escapeRegExp(foundEntry.text);
           textreg = textreg.replace('#', '(.+)');
 
@@ -988,7 +1005,34 @@ export class ItemParser {
             }
           }
         } else {
-          // TODO: do something with options
+          const options: Fuse.IFuseOptions<FilterOption> = {
+            keys: ['text'],
+            shouldSort: true,
+            threshold: 0.6,
+            location: 0,
+            distance: 1000,
+            includeScore: true
+          };
+
+          const fuse = new Fuse(
+            foundEntry.option.options,
+            options,
+            foundEntry.option.index
+          );
+
+          const search = valstat.substring(foundEntry.text.indexOf('#'));
+
+          const results = fuse.search(search);
+
+          // look for exact matches within results
+          results.some(e => {
+            if (e.item.text.includes(search)) {
+              selected = e.item.id;
+              return true;
+            }
+
+            return false;
+          });
         }
       }
 
@@ -997,7 +1041,7 @@ export class ItemParser {
         ...foundEntry,
         value: [...val],
         enabled: false,
-        selected: null,
+        selected: selected,
         min: null,
         max: null
       } as Filter;
@@ -1010,8 +1054,11 @@ export class ItemParser {
 
         const count = efil.value.length;
 
-        for (let i = 0; i < count; i++) {
-          efil.value[i] = efil.value[i] + filter.value[i];
+        // Only merge if they have the same length count
+        if (count == filter.value.length) {
+          for (let i = 0; i < count; i++) {
+            efil.value[i] = efil.value[i] + filter.value[i];
+          }
         }
       } else {
         item.filters[filter.id] = { ...filter };

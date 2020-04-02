@@ -33,10 +33,7 @@ interface Filter {
   text: string;
   value: number[];
   option?: {
-    options: {
-      id: number;
-      text: string;
-    }[];
+    options: FilterOption[];
   };
 
   selected: number | null;
@@ -110,8 +107,10 @@ interface StatFilter {
 
 interface StatFilterOptions {
   index: ReadonlyArray<Fuse.FuseIndexRecord>;
-  options: {
-    id: number;
-    text: string;
-  }[];
+  options: FilterOption[];
+}
+
+interface FilterOption {
+  id: number;
+  text: string;
 }

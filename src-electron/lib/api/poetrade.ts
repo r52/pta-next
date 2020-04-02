@@ -732,18 +732,26 @@ export function searchItemWithOptions(
   const mflt = [] as any[];
 
   for (const [k, e] of Object.entries<Filter>(mods)) {
-    // set id
-    e.id = k;
-
     if (e.enabled == true) {
-      e.disabled = false;
-      delete e.enabled;
-      query.query['stats'][0]['filters'].push(e);
+      const entry = {
+        disabled: false,
+        id: k,
+        value:
+          e.min || e.max || e.selected
+            ? {
+                min: e.min,
+                max: e.max,
+                option: e.selected
+              }
+            : null
+      } as any;
+
+      query.query['stats'][0]['filters'].push(entry);
 
       const vflt = [] as any;
 
       ['min', 'max'].forEach(vl => {
-        if (vl in e) {
+        if (vl in e && e[vl]) {
           vflt.push({ label: vl, children: [{ label: e[vl] }] });
         }
       });
