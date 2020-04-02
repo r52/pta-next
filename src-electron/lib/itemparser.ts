@@ -987,7 +987,7 @@ export class ItemParser {
       if (foundEntry.text.includes('#')) {
         if (foundEntry.option == null) {
           let textreg = escapeRegExp(foundEntry.text);
-          textreg = textreg.replace('#', '(.+)');
+          textreg = textreg.replace(/#/g, '(.+)');
 
           const rg = new RegExp(textreg);
           const matches = rg.exec(valstat);
