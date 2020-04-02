@@ -36,6 +36,8 @@ export default {
   tradeui: 'tradeui.enabled',
   tradebar: 'tradeui.tradebar',
   tradecharname: 'tradeui.charname',
+  tradestashhighlight: 'tradeui.highlight',
+  tradestashquad: 'tradeui.quad',
   tradeuidirection: 'tradeui.direction',
   tradeuiincoming: 'tradeui.incoming',
   tradeuioutgoing: 'tradeui.outgoing',
@@ -86,6 +88,8 @@ export default {
     tradebar: true,
     tradeuidirection: 'down',
     tradecharname: '',
+    tradestashhighlight: false,
+    tradestashquad: [],
     tradeuiincoming: [
       {
         label: 'ty',

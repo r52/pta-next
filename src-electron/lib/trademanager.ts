@@ -9,12 +9,23 @@ const notificationMargin = 20; // pixels
 export default class TradeManager {
   private tradeBar: BrowserWindow | null = null;
   private tradeNotifications: BrowserWindow[] = [];
+  private stashSetup: BrowserWindow | null = null;
+  private stashHighlight: BrowserWindow | null = null;
 
   public setup() {
     const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
 
     if (showtradebar) {
       this.showTradeBar();
+    }
+
+    const stashhighlight = cfg.get(
+      Config.tradestashhighlight,
+      Config.default.tradestashhighlight
+    );
+
+    if (stashhighlight) {
+      this.openStashHighlighter();
     }
 
     ipcMain.on('tradeui-enabled', (event, enabled) => {
@@ -32,6 +43,16 @@ export default class TradeManager {
         });
 
         this.tradeNotifications = [];
+      }
+    });
+
+    ipcMain.on('set-stash-highlight', (event, enabled) => {
+      if (enabled) {
+        this.openStashHighlighter();
+      } else {
+        if (this.stashHighlight) {
+          this.stashHighlight.close();
+        }
       }
     });
 
@@ -58,6 +79,30 @@ export default class TradeManager {
 
     ipcMain.on('trade-custom-command', (event, trade, command) => {
       this.handleTradeCustomCommand(event, trade, command);
+    });
+
+    ipcMain.on('stash-setup', () => {
+      this.toggleStashSetup();
+    });
+
+    ipcMain.on('highlight-stash', (event, name, x, y) => {
+      const quads = cfg.get(
+        Config.tradestashquad,
+        Config.default.tradestashquad
+      ) as string[];
+
+      const tabinfo = {
+        name: name,
+        x: x,
+        y: y,
+        quad: quads.includes(name)
+      };
+
+      this.highlightStash(tabinfo);
+    });
+
+    ipcMain.on('stop-highlight-stash', () => {
+      this.stophighlightStash();
     });
   }
 
@@ -266,5 +311,91 @@ export default class TradeManager {
         wincfg.assign(notification);
       }
     });
+  }
+
+  private toggleStashSetup() {
+    if (!this.stashSetup) {
+      if (this.stashHighlight) {
+        this.stashHighlight.close();
+      }
+
+      this.stashSetup = cfg.window({ name: 'stash' }).create({
+        width: 1000,
+        height: 800,
+        alwaysOnTop: true,
+        frame: false,
+        transparent: true,
+        backgroundColor: '#00000000',
+        resizable: true,
+        focusable: false,
+        skipTaskbar: true,
+        webPreferences: {
+          nodeIntegration: true
+        }
+      });
+
+      this.stashSetup.loadURL((process.env.APP_URL as string) + '#/stashsetup');
+
+      this.stashSetup.on('closed', () => {
+        this.stashSetup = null;
+      });
+    } else {
+      this.stashSetup.close();
+
+      const stashhighlight = cfg.get(
+        Config.tradestashhighlight,
+        Config.default.tradestashhighlight
+      );
+
+      if (stashhighlight) {
+        this.openStashHighlighter();
+      }
+    }
+  }
+
+  private openStashHighlighter() {
+    if (!this.stashHighlight) {
+      const wincfg = cfg.window({ name: 'stash' });
+      this.stashHighlight = new BrowserWindow({
+        width: 1000,
+        height: 800,
+        alwaysOnTop: true,
+        frame: false,
+        transparent: true,
+        backgroundColor: '#00000000',
+        resizable: false,
+        focusable: false,
+        skipTaskbar: true,
+        webPreferences: {
+          nodeIntegration: true
+        },
+        ...wincfg.options()
+      });
+
+      this.stashHighlight.loadURL(
+        (process.env.APP_URL as string) + '#/stashhighlight'
+      );
+
+      this.stashHighlight.on('closed', () => {
+        this.stashHighlight = null;
+      });
+
+      this.stashHighlight.setIgnoreMouseEvents(true);
+      this.stashHighlight.hide();
+    }
+  }
+
+  private highlightStash(tabinfo: TabInfo) {
+    if (this.stashHighlight) {
+      this.stashHighlight.webContents.send('highlight', tabinfo);
+      this.stashHighlight.show();
+    }
+  }
+
+  private stophighlightStash() {
+    if (this.stashHighlight) {
+      this.stashHighlight.webContents.send('stop-highlight');
+      this.stashHighlight.hide();
+    }
   }
 }

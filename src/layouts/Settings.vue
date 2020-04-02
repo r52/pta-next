@@ -28,587 +28,629 @@
     </q-footer>
 
     <q-page-container>
-      <q-tab-panels v-model="tab" animated>
-        <q-tab-panel name="hotkey">
-          <q-card>
-            <div class="q-pa-xs">
-              <div class="row items-center justify-end">
-                <a href="#" @click="openKeyRef()" class="text-orange"
-                  >Keycode Reference</a
-                >
-              </div>
-              <div class="row items-center">
-                <div class="col">
-                  <q-toggle
-                    v-model="settings.hotkey.simplehotkeyenabled"
-                    label="Simple Hotkey"
-                  />
-                </div>
-                <div class="col">
-                  <q-input
-                    color="teal"
-                    v-model="settings.hotkey.simplehotkey"
-                    label="Simple Hotkey"
-                    :disable="!settings.hotkey.simplehotkeyenabled"
-                  />
-                </div>
-              </div>
-              <div class="row items-center">
-                <div class="col">
-                  <q-toggle
-                    v-model="settings.hotkey.advancedhotkeyenabled"
-                    label="Advanced Hotkey"
-                  />
-                </div>
-                <div class="col">
-                  <q-input
-                    color="teal"
-                    v-model="settings.hotkey.advancedhotkey"
-                    label="Advanced Hotkey"
-                    :disable="!settings.hotkey.advancedhotkeyenabled"
-                  />
-                </div>
-              </div>
-              <div class="row items-center">
-                <div class="col">
-                  <q-toggle
-                    v-model="settings.hotkey.cscroll"
-                    label="Ctrl+Mouse Wheel scrolls through stash tabs"
-                  />
-                </div>
-              </div>
-            </div>
-          </q-card>
-        </q-tab-panel>
-
-        <q-tab-panel name="price">
-          <q-card>
-            <q-card-section>
-              <div class="text-h6">Price Check</div>
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
+      <q-page padding>
+        <q-tab-panels v-model="tab" animated>
+          <q-tab-panel name="hotkey">
+            <q-card>
               <div class="q-pa-xs">
-                <div class="row items-center">
-                  <div class="col">
-                    <q-select
-                      v-model="settings.pricecheck.league"
-                      :options="leagues"
-                      label="League"
-                      map-options
-                    />
-                  </div>
-                </div>
-                <div class="row items-center">
-                  <div class="col">
-                    <q-toggle
-                      v-model="settings.pricecheck.corruptoverride"
-                      label="Corrupt Override"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-select
-                      v-model="settings.pricecheck.corruptsearch"
-                      :options="corrupts"
-                      label="Corrupt Override Option"
-                      :disable="!settings.pricecheck.corruptoverride"
-                      style="width: 250px"
-                    />
-                  </div>
-                </div>
-
-                <div class="row items-center">
-                  <div class="col">
-                    <q-select
-                      v-model="settings.pricecheck.primarycurrency"
-                      :options="currencies"
-                      label="Primary Currency"
-                      map-options
-                    />
-                  </div>
-                </div>
-
-                <div class="row items-center">
-                  <div class="col">
-                    <q-select
-                      v-model="settings.pricecheck.secondarycurrency"
-                      :options="currencies"
-                      label="Secondary Currency"
-                      map-options
-                    />
-                  </div>
-                </div>
-
-                <div class="row items-center">
-                  <div class="col">
-                    Maximum number of results to query:
-                    <q-tooltip
-                      >Keep this value low to improve trade site load
-                      times</q-tooltip
-                    >
-                  </div>
-                  <div class="col">
-                    <q-slider
-                      v-model="settings.pricecheck.displaylimit"
-                      :min="10"
-                      :max="50"
-                      :step="10"
-                      label
-                      :label-value="
-                        settings.pricecheck.displaylimit + ' results'
-                      "
-                    />
-                  </div>
-                </div>
-
-                <div class="row items-center">
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.onlineonly"
-                      label="Online Only"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.buyoutonly"
-                      label="Buyout Only"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.removedupes"
-                      label="Remove duplicates from the same account"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.poeprices"
-                      label="Perform poeprices.info price prediction"
-                    />
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-          <q-card>
-            <q-card-section>
-              <div class="text-h6">Pre-Selected Options</div>
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <div class="q-pa-xs">
-                <div class="row items-center">
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.prefillmin"
-                      label="Pre-fill minimums"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.prefillmax"
-                      label="Pre-fill maximums"
-                    />
-                  </div>
-                </div>
-                <div class="row items-center">
-                  <div class="col">Pre-fill range (+/-%):</div>
-                  <div class="col">
-                    <q-slider
-                      v-model="settings.pricecheck.prefillrange"
-                      :min="0"
-                      :max="100"
-                      :step="5"
-                      label
-                      :label-value="
-                        '+/- ' + settings.pricecheck.prefillrange + '%'
-                      "
-                    />
-                  </div>
-                </div>
-                <div class="row items-center">
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.prefillnormals"
-                      label="Pre-fill normal mods"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.prefillpseudos"
-                      label="Pre-fill pseudo mods"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.prefillilvl"
-                      label="Pre-fill iLvl"
-                    />
-                  </div>
-                  <div class="col-auto">
-                    <q-toggle
-                      v-model="settings.pricecheck.prefillbase"
-                      label="Pre-fill Item Base"
-                    />
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </q-tab-panel>
-
-        <q-tab-panel name="macro">
-          <div class="row justify-end q-py-xs">
-            <a href="#" @click="openKeyRef()" class="text-orange justify-end"
-              >Keycode Reference</a
-            >
-          </div>
-          <q-table
-            title="Custom Macros"
-            :data="settings.macros.list"
-            :columns="macroColumns"
-            row-key="name"
-            :filter="macroFilter"
-          >
-            <template v-slot:top-right>
-              <q-input
-                dense
-                debounce="300"
-                color="primary"
-                v-model="macroFilter"
-              >
-                <template v-slot:append>
-                  <q-icon name="search" />
-                </template>
-              </q-input>
-            </template>
-
-            <template v-slot:header="props">
-              <q-tr :props="props">
-                <q-th auto-width />
-                <q-th v-for="col in props.cols" :key="col.name" :props="props">
-                  {{ col.label }}
-                </q-th>
-              </q-tr>
-            </template>
-
-            <template v-slot:body="props">
-              <q-tr :props="props">
-                <q-td auto-width>
-                  <q-btn
-                    size="sm"
-                    color="accent"
-                    round
-                    dense
-                    @click="deleteMacro(props.key)"
-                    icon="remove"
-                  />
-                </q-td>
-                <q-td key="name" :props="props">
-                  {{ props.row.name }}
-                </q-td>
-                <q-td key="key" :props="props">
-                  {{ props.row.key }}
-                  <q-popup-edit
-                    v-model="props.row.key"
-                    title="Update Key"
-                    buttons
+                <div class="row items-center justify-end">
+                  <a href="#" @click="openKeyRef()" class="text-orange"
+                    >Keycode Reference</a
                   >
-                    <q-input v-model="props.row.key" dense autofocus />
-                  </q-popup-edit>
-                </q-td>
-                <q-td key="type" :props="props">
-                  {{ props.row.type }}
-                  <q-popup-edit v-model="props.row.type">
-                    <q-select
-                      v-model="props.row.type"
-                      :options="macroTypes"
-                      label="Macro Type"
-                      dense
-                      options-dense
-                      autofocus
-                    />
-                  </q-popup-edit>
-                </q-td>
-                <q-td key="command" :props="props">
-                  {{ props.row.command }}
-                  <q-popup-edit
-                    v-model="props.row.command"
-                    title="Update Command"
-                  >
-                    <q-input v-model="props.row.command" dense autofocus />
-                  </q-popup-edit>
-                </q-td>
-              </q-tr>
-            </template>
-          </q-table>
-
-          <q-dialog v-model="macroDialog">
-            <q-card style="min-width: 350px">
-              <q-card-section>
-                <div class="text-h6">New Macro</div>
-              </q-card-section>
-
-              <q-card-section class="q-pt-none">
-                <q-input dense v-model="macroAdd.name" label="Name" autofocus />
-                <q-input dense v-model="macroAdd.key" label="Key" />
-                <q-select
-                  v-model="macroAdd.type"
-                  :options="macroTypes"
-                  label="Type"
-                />
-                <q-input dense v-model="macroAdd.command" label="Command" />
-              </q-card-section>
-
-              <q-card-actions align="right" class="text-primary">
-                <q-btn flat label="Cancel" v-close-popup />
-                <q-btn flat label="Add" @click="addMacro" v-close-popup />
-              </q-card-actions>
-            </q-card>
-          </q-dialog>
-
-          <q-page-sticky position="bottom-right" :offset="[18, 18]">
-            <q-btn fab icon="add" color="accent" @click="openMacroDialog" />
-          </q-page-sticky>
-        </q-tab-panel>
-
-        <q-tab-panel name="client">
-          <q-card>
-            <q-card-section>
-              <div class="text-h6">Game Client</div>
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <div class="q-pa-xs">
-                <div class="row items-center">
-                  <div class="col">
-                    Client Log location:
-                  </div>
-                  <div class="col">
-                    <q-file
-                      v-model="settings.client.logpath"
-                      label="Client.txt"
-                      accept=".txt"
-                      clearable
-                    />
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </q-tab-panel>
-
-        <q-tab-panel name="tradeui">
-          <q-card>
-            <q-card-section>
-              <div class="text-h6">Trade UI</div>
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <div class="q-pa-xs">
-                <div class="row items-center">
-                  <div class="col">
-                    <q-toggle
-                      v-model="settings.tradeui.enabled"
-                      label="Enable Trade UI (Client.txt path must be set for this to work!)"
-                    />
-                  </div>
                 </div>
                 <div class="row items-center">
                   <div class="col">
                     <q-toggle
-                      v-model="settings.tradeui.tradebar"
-                      label="Show Trade Bar on startup"
+                      v-model="settings.hotkey.simplehotkeyenabled"
+                      label="Simple Hotkey"
                     />
-                  </div>
-                </div>
-
-                <div class="row items-center">
-                  <div class="col">
-                    Trade Notification Stack Direction:
-                  </div>
-                  <div class="col-auto">
-                    <q-select
-                      v-model="settings.tradeui.direction"
-                      :options="tradeDirections"
-                      label="Stack Direction"
-                      style="width: 250px"
-                    />
-                  </div>
-                </div>
-
-                <div class="row items-center">
-                  <div class="col">
-                    Character Name (for leaving parties):
                   </div>
                   <div class="col">
                     <q-input
-                      v-model="settings.tradeui.charname"
-                      label="Character Name"
+                      color="teal"
+                      v-model="settings.hotkey.simplehotkey"
+                      label="Simple Hotkey"
+                      :disable="!settings.hotkey.simplehotkeyenabled"
+                    />
+                  </div>
+                </div>
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.hotkey.advancedhotkeyenabled"
+                      label="Advanced Hotkey"
+                    />
+                  </div>
+                  <div class="col">
+                    <q-input
+                      color="teal"
+                      v-model="settings.hotkey.advancedhotkey"
+                      label="Advanced Hotkey"
+                      :disable="!settings.hotkey.advancedhotkeyenabled"
+                    />
+                  </div>
+                </div>
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.hotkey.cscroll"
+                      label="Ctrl+Mouse Wheel scrolls through stash tabs"
                     />
                   </div>
                 </div>
               </div>
-            </q-card-section>
-          </q-card>
+            </q-card>
+          </q-tab-panel>
 
-          <q-card>
-            <q-card-section>
-              <div class="text-h6">Commands</div>
-            </q-card-section>
-            <q-card-section class="q-pt-none">
-              <q-table
-                title="Incoming Trade Commands"
-                :data="settings.tradeui.incoming"
-                :columns="tradeColumns"
-                row-key="label"
-              >
-                <template v-slot:top-right>
-                  <q-btn
-                    color="primary"
-                    label="Add Command"
-                    @click="openTradeCmdDialog('incoming')"
-                  />
-                </template>
-
-                <template v-slot:header="props">
-                  <q-tr :props="props">
-                    <q-th auto-width />
-                    <q-th
-                      v-for="col in props.cols"
-                      :key="col.name"
-                      :props="props"
-                    >
-                      {{ col.label }}
-                    </q-th>
-                  </q-tr>
-                </template>
-
-                <template v-slot:body="props">
-                  <q-tr :props="props">
-                    <q-td auto-width>
-                      <q-btn
-                        size="sm"
-                        color="accent"
-                        round
-                        dense
-                        @click="deleteTradeCmd(props.key, 'incoming')"
-                        icon="remove"
-                      />
-                    </q-td>
-                    <q-td key="label" :props="props">
-                      {{ props.row.label }}
-                    </q-td>
-                    <q-td key="command" :props="props">
-                      {{ props.row.command }}
-                      <q-popup-edit
-                        v-model="props.row.command"
-                        title="Update Command"
-                      >
-                        <q-input v-model="props.row.command" dense autofocus />
-                      </q-popup-edit>
-                    </q-td>
-                    <q-td key="close" :props="props">
-                      <q-checkbox v-model="props.row.close" />
-                    </q-td>
-                  </q-tr>
-                </template>
-              </q-table>
-            </q-card-section>
-            <q-card-section class="q-pt-none">
-              <q-table
-                title="Outgoing Trade Commands"
-                :data="settings.tradeui.outgoing"
-                :columns="tradeColumns"
-                row-key="label"
-              >
-                <template v-slot:top-right>
-                  <q-btn
-                    color="primary"
-                    label="Add Command"
-                    @click="openTradeCmdDialog('outgoing')"
-                  />
-                </template>
-
-                <template v-slot:header="props">
-                  <q-tr :props="props">
-                    <q-th auto-width />
-                    <q-th
-                      v-for="col in props.cols"
-                      :key="col.name"
-                      :props="props"
-                    >
-                      {{ col.label }}
-                    </q-th>
-                  </q-tr>
-                </template>
-
-                <template v-slot:body="props">
-                  <q-tr :props="props">
-                    <q-td auto-width>
-                      <q-btn
-                        size="sm"
-                        color="accent"
-                        round
-                        dense
-                        @click="deleteTradeCmd(props.key, 'outgoing')"
-                        icon="remove"
-                      />
-                    </q-td>
-                    <q-td key="label" :props="props">
-                      {{ props.row.label }}
-                    </q-td>
-                    <q-td key="command" :props="props">
-                      {{ props.row.command }}
-                      <q-popup-edit
-                        v-model="props.row.command"
-                        title="Update Command"
-                      >
-                        <q-input v-model="props.row.command" dense autofocus />
-                      </q-popup-edit>
-                    </q-td>
-                    <q-td key="close" :props="props">
-                      <q-checkbox v-model="props.row.close" />
-                    </q-td>
-                  </q-tr>
-                </template>
-              </q-table>
-            </q-card-section>
-          </q-card>
-
-          <q-dialog v-model="tradeCmdDialog">
-            <q-card style="min-width: 350px">
+          <q-tab-panel name="price">
+            <q-card>
               <q-card-section>
-                <div class="text-h6">New Command</div>
+                <div class="text-h6">Price Check</div>
               </q-card-section>
 
               <q-card-section class="q-pt-none">
-                <q-input
-                  dense
-                  v-model="tradeCmdAdd.label"
-                  label="Label"
-                  autofocus
-                />
-                <q-input dense v-model="tradeCmdAdd.command" label="Command" />
-                <q-checkbox
-                  v-model="tradeCmdAdd.close"
-                  label="Closes Notification?"
-                />
+                <div class="q-pa-xs">
+                  <div class="row items-center">
+                    <div class="col">
+                      <q-select
+                        v-model="settings.pricecheck.league"
+                        :options="leagues"
+                        label="League"
+                        map-options
+                      />
+                    </div>
+                  </div>
+                  <div class="row items-center">
+                    <div class="col">
+                      <q-toggle
+                        v-model="settings.pricecheck.corruptoverride"
+                        label="Corrupt Override"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-select
+                        v-model="settings.pricecheck.corruptsearch"
+                        :options="corrupts"
+                        label="Corrupt Override Option"
+                        :disable="!settings.pricecheck.corruptoverride"
+                        style="width: 250px"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      <q-select
+                        v-model="settings.pricecheck.primarycurrency"
+                        :options="currencies"
+                        label="Primary Currency"
+                        map-options
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      <q-select
+                        v-model="settings.pricecheck.secondarycurrency"
+                        :options="currencies"
+                        label="Secondary Currency"
+                        map-options
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      Maximum number of results to query:
+                      <q-tooltip
+                        >Keep this value low to improve trade site load
+                        times</q-tooltip
+                      >
+                    </div>
+                    <div class="col">
+                      <q-slider
+                        v-model="settings.pricecheck.displaylimit"
+                        :min="10"
+                        :max="50"
+                        :step="10"
+                        label
+                        :label-value="
+                          settings.pricecheck.displaylimit + ' results'
+                        "
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.onlineonly"
+                        label="Online Only"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.buyoutonly"
+                        label="Buyout Only"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.removedupes"
+                        label="Remove duplicates from the same account"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.poeprices"
+                        label="Perform poeprices.info price prediction"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+            <q-card>
+              <q-card-section>
+                <div class="text-h6">Pre-Selected Options</div>
               </q-card-section>
 
-              <q-card-actions align="right" class="text-primary">
-                <q-btn flat label="Cancel" v-close-popup />
-                <q-btn
-                  flat
-                  label="Add"
-                  @click="addTradeCmd(tradeCmdAddType)"
-                  v-close-popup
-                />
-              </q-card-actions>
+              <q-card-section class="q-pt-none">
+                <div class="q-pa-xs">
+                  <div class="row items-center">
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.prefillmin"
+                        label="Pre-fill minimums"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.prefillmax"
+                        label="Pre-fill maximums"
+                      />
+                    </div>
+                  </div>
+                  <div class="row items-center">
+                    <div class="col">Pre-fill range (+/-%):</div>
+                    <div class="col">
+                      <q-slider
+                        v-model="settings.pricecheck.prefillrange"
+                        :min="0"
+                        :max="100"
+                        :step="5"
+                        label
+                        :label-value="
+                          '+/- ' + settings.pricecheck.prefillrange + '%'
+                        "
+                      />
+                    </div>
+                  </div>
+                  <div class="row items-center">
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.prefillnormals"
+                        label="Pre-fill normal mods"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.prefillpseudos"
+                        label="Pre-fill pseudo mods"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.prefillilvl"
+                        label="Pre-fill iLvl"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-toggle
+                        v-model="settings.pricecheck.prefillbase"
+                        label="Pre-fill Item Base"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
             </q-card>
-          </q-dialog>
-        </q-tab-panel>
-      </q-tab-panels>
+          </q-tab-panel>
+
+          <q-tab-panel name="macro">
+            <div class="row justify-end q-py-xs">
+              <a href="#" @click="openKeyRef()" class="text-orange justify-end"
+                >Keycode Reference</a
+              >
+            </div>
+            <q-table
+              title="Custom Macros"
+              :data="settings.macros.list"
+              :columns="macroColumns"
+              row-key="name"
+              :filter="macroFilter"
+            >
+              <template v-slot:top-right>
+                <q-input
+                  dense
+                  debounce="300"
+                  color="primary"
+                  v-model="macroFilter"
+                >
+                  <template v-slot:append>
+                    <q-icon name="search" />
+                  </template>
+                </q-input>
+              </template>
+
+              <template v-slot:header="props">
+                <q-tr :props="props">
+                  <q-th auto-width />
+                  <q-th
+                    v-for="col in props.cols"
+                    :key="col.name"
+                    :props="props"
+                  >
+                    {{ col.label }}
+                  </q-th>
+                </q-tr>
+              </template>
+
+              <template v-slot:body="props">
+                <q-tr :props="props">
+                  <q-td auto-width>
+                    <q-btn
+                      size="sm"
+                      color="accent"
+                      round
+                      dense
+                      @click="deleteMacro(props.key)"
+                      icon="remove"
+                    />
+                  </q-td>
+                  <q-td key="name" :props="props">
+                    {{ props.row.name }}
+                  </q-td>
+                  <q-td key="key" :props="props">
+                    {{ props.row.key }}
+                    <q-popup-edit
+                      v-model="props.row.key"
+                      title="Update Key"
+                      buttons
+                    >
+                      <q-input v-model="props.row.key" dense autofocus />
+                    </q-popup-edit>
+                  </q-td>
+                  <q-td key="type" :props="props">
+                    {{ props.row.type }}
+                    <q-popup-edit v-model="props.row.type">
+                      <q-select
+                        v-model="props.row.type"
+                        :options="macroTypes"
+                        label="Macro Type"
+                        dense
+                        options-dense
+                        autofocus
+                      />
+                    </q-popup-edit>
+                  </q-td>
+                  <q-td key="command" :props="props">
+                    {{ props.row.command }}
+                    <q-popup-edit
+                      v-model="props.row.command"
+                      title="Update Command"
+                    >
+                      <q-input v-model="props.row.command" dense autofocus />
+                    </q-popup-edit>
+                  </q-td>
+                </q-tr>
+              </template>
+            </q-table>
+
+            <q-dialog v-model="macroDialog">
+              <q-card style="min-width: 350px">
+                <q-card-section>
+                  <div class="text-h6">New Macro</div>
+                </q-card-section>
+
+                <q-card-section class="q-pt-none">
+                  <q-input
+                    dense
+                    v-model="macroAdd.name"
+                    label="Name"
+                    autofocus
+                  />
+                  <q-input dense v-model="macroAdd.key" label="Key" />
+                  <q-select
+                    v-model="macroAdd.type"
+                    :options="macroTypes"
+                    label="Type"
+                  />
+                  <q-input dense v-model="macroAdd.command" label="Command" />
+                </q-card-section>
+
+                <q-card-actions align="right" class="text-primary">
+                  <q-btn flat label="Cancel" v-close-popup />
+                  <q-btn flat label="Add" @click="addMacro" v-close-popup />
+                </q-card-actions>
+              </q-card>
+            </q-dialog>
+
+            <q-page-sticky position="bottom-right" :offset="[18, 18]">
+              <q-btn fab icon="add" color="accent" @click="openMacroDialog" />
+            </q-page-sticky>
+          </q-tab-panel>
+
+          <q-tab-panel name="client">
+            <q-card>
+              <q-card-section>
+                <div class="text-h6">Game Client</div>
+              </q-card-section>
+
+              <q-card-section class="q-pt-none">
+                <div class="q-pa-xs">
+                  <div class="row items-center">
+                    <div class="col">
+                      Client Log location:
+                    </div>
+                    <div class="col">
+                      <q-file
+                        v-model="settings.client.logpath"
+                        label="Client.txt"
+                        accept=".txt"
+                        clearable
+                      />
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-tab-panel>
+
+          <q-tab-panel name="tradeui">
+            <q-card>
+              <q-card-section>
+                <div class="text-h6">Trade UI</div>
+              </q-card-section>
+
+              <q-card-section class="q-pt-none">
+                <div class="q-pa-xs">
+                  <div class="row items-center">
+                    <div class="col">
+                      <q-toggle
+                        v-model="settings.tradeui.enabled"
+                        label="Enable Trade UI (Client.txt path must be set for this to work!)"
+                      />
+                    </div>
+                  </div>
+                  <div class="row items-center">
+                    <div class="col">
+                      <q-toggle
+                        v-model="settings.tradeui.tradebar"
+                        label="Show Trade Bar on startup"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      Quad Stash Tabs for stash highlighting (separate each
+                      entry with a comma):
+                    </div>
+                    <div class="col">
+                      <q-input v-model="quadtabs" label="Quad Tabs" />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      <q-toggle
+                        v-model="settings.tradeui.highlight"
+                        label="Stash highlighting (setup alignment using Trade bar)"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      Trade Notification Stack Direction:
+                    </div>
+                    <div class="col-auto">
+                      <q-select
+                        v-model="settings.tradeui.direction"
+                        :options="tradeDirections"
+                        label="Stack Direction"
+                        style="width: 250px"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      Character Name (for leaving parties):
+                    </div>
+                    <div class="col">
+                      <q-input
+                        v-model="settings.tradeui.charname"
+                        label="Character Name"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card>
+              <q-card-section>
+                <div class="text-h6">Commands</div>
+              </q-card-section>
+              <q-card-section class="q-pt-none">
+                <q-table
+                  title="Incoming Trade Commands"
+                  :data="settings.tradeui.incoming"
+                  :columns="tradeColumns"
+                  row-key="label"
+                >
+                  <template v-slot:top-right>
+                    <q-btn
+                      color="primary"
+                      label="Add Command"
+                      @click="openTradeCmdDialog('incoming')"
+                    />
+                  </template>
+
+                  <template v-slot:header="props">
+                    <q-tr :props="props">
+                      <q-th auto-width />
+                      <q-th
+                        v-for="col in props.cols"
+                        :key="col.name"
+                        :props="props"
+                      >
+                        {{ col.label }}
+                      </q-th>
+                    </q-tr>
+                  </template>
+
+                  <template v-slot:body="props">
+                    <q-tr :props="props">
+                      <q-td auto-width>
+                        <q-btn
+                          size="sm"
+                          color="accent"
+                          round
+                          dense
+                          @click="deleteTradeCmd(props.key, 'incoming')"
+                          icon="remove"
+                        />
+                      </q-td>
+                      <q-td key="label" :props="props">
+                        {{ props.row.label }}
+                      </q-td>
+                      <q-td key="command" :props="props">
+                        {{ props.row.command }}
+                        <q-popup-edit
+                          v-model="props.row.command"
+                          title="Update Command"
+                        >
+                          <q-input
+                            v-model="props.row.command"
+                            dense
+                            autofocus
+                          />
+                        </q-popup-edit>
+                      </q-td>
+                      <q-td key="close" :props="props">
+                        <q-checkbox v-model="props.row.close" />
+                      </q-td>
+                    </q-tr>
+                  </template>
+                </q-table>
+              </q-card-section>
+              <q-card-section class="q-pt-none">
+                <q-table
+                  title="Outgoing Trade Commands"
+                  :data="settings.tradeui.outgoing"
+                  :columns="tradeColumns"
+                  row-key="label"
+                >
+                  <template v-slot:top-right>
+                    <q-btn
+                      color="primary"
+                      label="Add Command"
+                      @click="openTradeCmdDialog('outgoing')"
+                    />
+                  </template>
+
+                  <template v-slot:header="props">
+                    <q-tr :props="props">
+                      <q-th auto-width />
+                      <q-th
+                        v-for="col in props.cols"
+                        :key="col.name"
+                        :props="props"
+                      >
+                        {{ col.label }}
+                      </q-th>
+                    </q-tr>
+                  </template>
+
+                  <template v-slot:body="props">
+                    <q-tr :props="props">
+                      <q-td auto-width>
+                        <q-btn
+                          size="sm"
+                          color="accent"
+                          round
+                          dense
+                          @click="deleteTradeCmd(props.key, 'outgoing')"
+                          icon="remove"
+                        />
+                      </q-td>
+                      <q-td key="label" :props="props">
+                        {{ props.row.label }}
+                      </q-td>
+                      <q-td key="command" :props="props">
+                        {{ props.row.command }}
+                        <q-popup-edit
+                          v-model="props.row.command"
+                          title="Update Command"
+                        >
+                          <q-input
+                            v-model="props.row.command"
+                            dense
+                            autofocus
+                          />
+                        </q-popup-edit>
+                      </q-td>
+                      <q-td key="close" :props="props">
+                        <q-checkbox v-model="props.row.close" />
+                      </q-td>
+                    </q-tr>
+                  </template>
+                </q-table>
+              </q-card-section>
+            </q-card>
+
+            <q-dialog v-model="tradeCmdDialog">
+              <q-card style="min-width: 350px">
+                <q-card-section>
+                  <div class="text-h6">New Command</div>
+                </q-card-section>
+
+                <q-card-section class="q-pt-none">
+                  <q-input
+                    dense
+                    v-model="tradeCmdAdd.label"
+                    label="Label"
+                    autofocus
+                  />
+                  <q-input
+                    dense
+                    v-model="tradeCmdAdd.command"
+                    label="Command"
+                  />
+                  <q-checkbox
+                    v-model="tradeCmdAdd.close"
+                    label="Closes Notification?"
+                  />
+                </q-card-section>
+
+                <q-card-actions align="right" class="text-primary">
+                  <q-btn flat label="Cancel" v-close-popup />
+                  <q-btn
+                    flat
+                    label="Add"
+                    @click="addTradeCmd(tradeCmdAddType)"
+                    v-close-popup
+                  />
+                </q-card-actions>
+              </q-card>
+            </q-dialog>
+          </q-tab-panel>
+        </q-tab-panels>
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>
@@ -623,6 +665,18 @@ import Config from '../../src-electron/lib/config';
 
 export default Vue.extend({
   name: 'Settings',
+
+  computed: {
+    quadtabs: {
+      get(): string {
+        return this.settings.tradeui.quad.join(',');
+      },
+      set(newval: string) {
+        const tabs = newval.split(',');
+        this.settings.tradeui.quad = tabs;
+      }
+    }
+  },
 
   data() {
     let leagues = this.$q.electron.remote.getGlobal('pta').leagues;
@@ -831,6 +885,11 @@ export default Vue.extend({
             Config.default.tradeuidirection
           ),
           charname: cfg.get(Config.tradecharname, Config.default.tradecharname),
+          highlight: cfg.get(
+            Config.tradestashhighlight,
+            Config.default.tradestashhighlight
+          ),
+          quad: cfg.get(Config.tradestashquad, Config.default.tradestashquad),
           incoming: cfg.get(
             Config.tradeuiincoming,
             Config.default.tradeuiincoming
@@ -973,10 +1032,13 @@ export default Vue.extend({
       cfg.set(Config.tradebar, settings.tradeui.tradebar);
       cfg.set(Config.tradeuidirection, settings.tradeui.direction);
       cfg.set(Config.tradecharname, settings.tradeui.charname);
+      cfg.set(Config.tradestashhighlight, settings.tradeui.highlight);
+      cfg.set(Config.tradestashquad, settings.tradeui.quad);
       cfg.set(Config.tradeuiincoming, settings.tradeui.incoming);
       cfg.set(Config.tradeuioutgoing, settings.tradeui.outgoing);
 
       ipcRenderer.send('tradeui-enabled', settings.tradeui.enabled);
+      ipcRenderer.send('set-stash-highlight', settings.tradeui.highlight);
 
       this.$q.notify({
         color: 'green',

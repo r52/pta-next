@@ -16,3 +16,10 @@ interface TradeCommand {
   command: string;
   close: boolean;
 }
+
+interface TabInfo {
+  name: string;
+  x: number;
+  y: number;
+  quad: boolean;
+}

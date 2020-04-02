@@ -35,46 +35,48 @@
     </q-drawer>
 
     <q-page-container>
-      <div class="q-ma-md">
-        <q-card class="q-my-md">
-          <q-card-section>
-            <div class="text-h6">
-              PTA-Next v{{ this.$q.electron.remote.app.getVersion() }}
-            </div>
-          </q-card-section>
-          <q-separator dark inset />
-          <q-card-section>
-            <p>
-              <a
-                href="#"
-                @click="openBrowser('https://github.com/r52/pta-next')"
-                class="text-white"
-                >GitHub</a
-              >
-            </p>
-          </q-card-section>
-        </q-card>
+      <q-page padding>
+        <div class="q-ma-md">
+          <q-card class="q-my-md">
+            <q-card-section>
+              <div class="text-h6">
+                PTA-Next v{{ this.$q.electron.remote.app.getVersion() }}
+              </div>
+            </q-card-section>
+            <q-separator dark inset />
+            <q-card-section>
+              <p>
+                <a
+                  href="#"
+                  @click="openBrowser('https://github.com/r52/pta-next')"
+                  class="text-white"
+                  >GitHub</a
+                >
+              </p>
+            </q-card-section>
+          </q-card>
 
-        <q-card>
-          <q-card-section>
-            <div class="text-h6">Components</div>
-          </q-card-section>
+          <q-card>
+            <q-card-section>
+              <div class="text-h6">Components</div>
+            </q-card-section>
 
-          <q-separator dark inset />
+            <q-separator dark inset />
 
-          <q-card-section>
-            <p>Node: {{ this.$q.electron.remote.process.versions.node }}</p>
-            <p>
-              Electron:
-              {{ this.$q.electron.remote.process.versions.electron }}
-            </p>
-            <p>
-              Chrome:
-              {{ this.$q.electron.remote.process.versions.chrome }}
-            </p>
-          </q-card-section>
-        </q-card>
-      </div>
+            <q-card-section>
+              <p>Node: {{ this.$q.electron.remote.process.versions.node }}</p>
+              <p>
+                Electron:
+                {{ this.$q.electron.remote.process.versions.electron }}
+              </p>
+              <p>
+                Chrome:
+                {{ this.$q.electron.remote.process.versions.chrome }}
+              </p>
+            </q-card-section>
+          </q-card>
+        </div>
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>

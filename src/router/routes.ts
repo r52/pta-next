@@ -44,6 +44,14 @@ const routes: RouteConfig[] = [
   {
     path: '/trade',
     component: () => import('layouts/TradeNotification.vue')
+  },
+  {
+    path: '/stashsetup',
+    component: () => import('layouts/StashSetup.vue')
+  },
+  {
+    path: '/stashhighlight',
+    component: () => import('layouts/StashHighlight.vue')
   }
 ];
 

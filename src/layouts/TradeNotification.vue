@@ -8,8 +8,12 @@
       </q-bar>
       <q-bar dense class="bg-grey-9">
         <div class="text-orange">{{ trade.name }}</div>
-        <div v-if="trade.type == 'incoming'">
-          Tab: {{ trade.tab }}, x: {{ trade.x }}, y: {{ trade.y }}
+        <div
+          v-if="trade.type == 'incoming'"
+          @mouseover="highlightStash"
+          @mouseout="stopHighlightStash"
+        >
+          Tab: {{ trade.tab }}, left: {{ trade.x }}, top: {{ trade.y }}
         </div>
         <q-space />
         <div>{{ this.time }}</div>
@@ -160,6 +164,17 @@ export default Vue.extend({
       setInterval(() => {
         this.getElapseTime();
       }, 1000);
+    },
+    highlightStash() {
+      ipcRenderer.send(
+        'highlight-stash',
+        this.trade?.tab,
+        this.trade?.x,
+        this.trade?.y
+      );
+    },
+    stopHighlightStash() {
+      ipcRenderer.send('stop-highlight-stash');
     },
     sendTradeCommand(command: string) {
       ipcRenderer.send('trade-command', this.trade, command);
