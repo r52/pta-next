@@ -11,24 +11,38 @@
         </q-item-section>
       </q-item>
     </div>
-    <div class="col">
-      <mod-num-input
-        type="min"
-        :filter="filter"
-        :disabled="filter.value.length < 1 || filter.value.length > 2"
-      />
-    </div>
-    <div class="col text-center vertical-middle">
-      <span v-if="filter.value.length">{{ filterval }}</span>
-      <span v-else>N/A</span>
-    </div>
-    <div class="col">
-      <mod-num-input
-        type="max"
-        :filter="filter"
-        :disabled="filter.value.length < 1 || filter.value.length > 2"
-      />
-    </div>
+    <template v-if="filter.option">
+      <div class="col">
+        <q-select
+          v-model="filter.selected"
+          :options="filter.option.options"
+          option-value="id"
+          option-label="text"
+          emit-value
+          map-options
+        />
+      </div>
+    </template>
+    <template v-else>
+      <div class="col">
+        <mod-num-input
+          type="min"
+          :filter="filter"
+          :disabled="filter.value.length < 1 || filter.value.length > 2"
+        />
+      </div>
+      <div class="col text-center vertical-middle">
+        <span v-if="filter.value.length">{{ filterval }}</span>
+        <span v-else>N/A</span>
+      </div>
+      <div class="col">
+        <mod-num-input
+          type="max"
+          :filter="filter"
+          :disabled="filter.value.length < 1 || filter.value.length > 2"
+        />
+      </div>
+    </template>
   </div>
 </template>
 

@@ -3,10 +3,10 @@ import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
 import apis from '../lib/api/apis';
+import Fuse from 'fuse.js';
 
-function replaceAt(str: string, idx: number, len: number, rep: string) {
-  const replacement = str.substring(0, idx) + rep + str.substring(idx + len);
-  return replacement;
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 class ItemText {
@@ -50,16 +50,18 @@ export class ItemParser {
   baseCat: Map<string, string>;
   baseMap: Map<string, Record<string, any>>;
   excludes: Set<string>;
-  statsByText: MultiMap;
   statsById: Map<string, Record<string, any>>;
   weaponLocals: Set<string>;
   armourLocals: Set<string>;
   enchantRules: Map<string, Record<string, any>>;
   pseudoRules: Map<string, Record<string, any>[]>;
   discriminators: Map<string, Set<string>>;
+  priorityRules: Map<string, Record<string, any>>;
   exchange: Map<string, string>;
   currencies: Set<string>;
   mapDisc = 'warfortheatlas';
+
+  stats: { [index: string]: StatType };
 
   private section = '';
 
@@ -67,7 +69,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Download excludes/stats
     this.excludes = new Set();
     this.statsById = new Map();
-    this.statsByText = new MultiMap();
+    this.stats = {};
 
     axios.get(apis.pta.exclude).then((response: any) => {
       const data = response.data;
@@ -85,22 +87,27 @@ export class ItemParser {
 
         for (const type of stt) {
           const el = type['entries'];
+          const tlb = (type['label'] as string).toLowerCase();
 
-          for (const et of el) {
-            // Cut the key for multiline mods
-            let text = et['text'];
-            const id = et['id'];
-
-            const nl = text.search('\n');
-            if (nl > 0) {
-              text = text.substring(0, nl);
+          for (const et of el as StatFilter[]) {
+            if (!this.excludes.has(et.id)) {
+              this.statsById.set(et.id, et);
             }
 
-            if (!this.excludes.has(id)) {
-              this.statsByText.set(text, et);
-              this.statsById.set(id, et);
+            // construct option indices
+            if (et.option != null) {
+              et.option.index = Fuse.createIndex(['text'], et.option.options);
             }
           }
+
+          // construct indices
+          this.stats[tlb] = {
+            entries: el as StatFilter[],
+            index: Fuse.createIndex<StatFilter>(
+              ['text', 'option.options.text'],
+              el
+            )
+          };
         }
 
         log.info('Mod stats loaded');
@@ -293,6 +300,19 @@ export class ItemParser {
 
       log.info('Currencies loaded');
     });
+
+    ///////////////////////////////////////////// Priority rules
+    this.priorityRules = new Map();
+
+    axios.get(apis.pta.priority).then((response: any) => {
+      const data = response.data;
+
+      for (const [k, val] of Object.entries(data)) {
+        this.priorityRules.set(k, val as any);
+      }
+
+      log.info('Priority rules loaded');
+    });
   }
 
   public static getInstance(): ItemParser {
@@ -398,10 +418,7 @@ export class ItemParser {
         continue;
       }
 
-      if (line.includes(':')) {
-        // parse item prop
-        this.parseProp(item, line);
-      } else if (sections > 1) {
+      if (!this.parseProp(item, line) && sections > 1) {
         // parse item stat
         this.parseStat(item, line, lines);
       }
@@ -427,6 +444,7 @@ export class ItemParser {
                   ...pentry,
                   enabled: false,
                   value: [] as number[],
+                  selected: null,
                   min: null,
                   max: null
                 } as unknown) as Filter;
@@ -499,6 +517,10 @@ export class ItemParser {
 
   private parseProp(item: Item, prop: string) {
     const parts = prop.split(':');
+
+    if (parts.length < 2) {
+      return false;
+    }
 
     const p = parts[0];
     const v = parts[1].trim();
@@ -584,7 +606,11 @@ export class ItemParser {
         item.misc = item.misc ?? ({} as Misc);
         item.misc.maptier = this.readPropInt(v);
         break;
+      default:
+        return false;
     }
+
+    return true;
   }
 
   private readPropInt(prop: string): number {
@@ -773,7 +799,7 @@ export class ItemParser {
       return true;
     }
 
-    let stattype = '';
+    let stattype = 'explicit';
 
     if (stat.endsWith('(crafted)')) {
       stattype = 'crafted';
@@ -790,82 +816,58 @@ export class ItemParser {
       stat = stat.replace(' (enchant)', '');
     }
 
+    let valstat = String(stat);
+
+    let found = false;
+    let foundEntry: StatFilter | null = null;
+
     // Match numerics
     const re = /(?<!\d)[+-]?\d+(\.\d+)?/g;
-    let captured: string[] = [];
 
-    const val: number[] = [];
-    let stoken = stat;
+    let val: number[] = [];
+    let factor = 1;
 
-    // First try original line
-    let found = this.statsByText.has(stoken);
-
-    if (!found) {
-      // Then, try replacing the num stats
-
-      this.captureNumerics(stat, re, val, captured);
-
-      // Craft search token
-      stat = stat.replace(re, '#');
-
-      stoken = stat;
-      found = this.statsByText.has(stoken);
-    }
+    // Craft search token
+    stat = stat.replace(re, '#');
 
     // Process local rules
     if (item.weapon || item.armour) {
       const islocalstat =
-        (item.weapon && this.weaponLocals.has(stoken)) ||
-        (item.armour && this.armourLocals.has(stoken));
+        (item.weapon && this.weaponLocals.has(stat)) ||
+        (item.armour && this.armourLocals.has(stat));
 
       if (islocalstat) {
         stat += ' (Local)';
-
-        stoken = stat;
-        found = this.statsByText.has(stoken);
+        valstat += ' (Local)';
       }
     }
 
     if (
-      !found &&
-      val.length &&
-      (stat.search('reduced') > 0 || stat.search('less') > 0)
+      stat.includes('#') &&
+      (stat.indexOf('reduced') > 0 || stat.indexOf('less') > 0)
     ) {
       // If the stat line has a "reduced" value, try to
       // flip it and try again
 
-      if (stat.search('reduced') > 0) {
+      if (stat.indexOf('reduced') > 0) {
         stat = stat.replace('reduced', 'increased');
-        // orig_stat.replace("reduced", "increased");
+        valstat = valstat.replace('reduced', 'increased');
       } else {
         stat = stat.replace('less', 'more');
-        // orig_stat.replace("less", "more");
+        valstat = valstat.replace('less', 'more');
       }
 
-      // replace last
-      let v = val[val.length - 1];
-
-      if (Number.isInteger(v)) {
-        v = v * -1;
-      } else {
-        v = v * -1.0;
-      }
-
-      stoken = stat;
-      found = this.statsByText.has(stoken);
+      // set factor
+      factor = -1;
     }
 
     // Handle enchant rules
-    if (this.enchantRules.has(stoken)) {
-      const rule = this.enchantRules.get(stoken) as any;
+    if (this.enchantRules.has(stat)) {
+      const rule = this.enchantRules.get(stat) as any;
 
       if ('id' in rule) {
         found = true;
-
-        const modobj = this.statsById.get(rule['id']) as any;
-
-        stoken = modobj['text'] as string;
-        stat = stoken;
+        foundEntry = this.statsById.get(rule['id']) as StatFilter;
       }
 
       if ('value' in rule) {
@@ -873,224 +875,199 @@ export class ItemParser {
       }
     }
 
-    if (!found) {
-      // Try forward replace search
-      let frep = String(origstat);
-      let frepplus = String(frep);
-
-      while (
-        !found &&
-        frep.search(re) > 0 &&
-        captured.length &&
-        frep.indexOf(captured[0]) > 0
+    // Handle special mods with a colon
+    if (stat.includes(': ')) {
+      if (
+        stat.startsWith('Added Small Passive Skills grant: ') &&
+        stattype !== 'enchant'
       ) {
-        // Try putting back some values in case the mod itself has hardcoded values
-        frep = replaceAt(
-          frep,
-          frep.indexOf(captured[0]),
-          captured[0].length,
-          '#'
-        );
-        frepplus = replaceAt(
-          frepplus,
-          frepplus.indexOf(captured[0]),
-          captured[0].length,
-          '+#'
-        );
-
-        stoken = frep;
-        found = this.statsByText.has(stoken);
-
-        if (!found) {
-          // Try plus version
-          stoken = frepplus;
-          found = this.statsByText.has(stoken);
-        }
-
-        if (found) {
-          // Delete value used
-          captured.pop();
-          val.pop();
-        }
+        // ignore first line of double lined cluster jewel enchants
+        log.debug('Ignored/unprocessed line', origstat);
+        return false;
       }
+
+      stat = stat.substring(0, stat.indexOf(': ') + 2);
     }
 
     if (!found) {
-      // Reverse replace search
-      let rrep = String(origstat);
-      let rrepplus = String(rrep);
+      const options: Fuse.IFuseOptions<StatFilter> = {
+        keys: ['text', 'option.options.text'],
+        shouldSort: true,
+        threshold: 0.5,
+        location: 0,
+        includeScore: true
+      };
 
-      while (
-        !found &&
-        rrep.search(re) > 0 &&
-        captured.length &&
-        rrep.lastIndexOf(captured[captured.length - 1]) > 0
-      ) {
-        // Try putting back some values in case the mod itself has hardcoded values
-        rrep = replaceAt(
-          rrep,
-          rrep.lastIndexOf(captured[captured.length - 1]),
-          captured[captured.length - 1].length,
-          '#'
-        );
-        rrepplus = replaceAt(
-          rrepplus,
-          rrepplus.lastIndexOf(captured[captured.length - 1]),
-          captured[captured.length - 1].length,
-          '#'
-        );
+      const fuse = new Fuse(
+        this.stats[stattype].entries,
+        options,
+        this.stats[stattype].index
+      );
 
-        stoken = rrep;
-        found = this.statsByText.has(stoken);
+      const results = fuse.search(stat);
 
-        if (!found) {
-          // Try plus version
-          stoken = rrepplus;
-          found = this.statsByText.has(stoken);
+      // loop thru the first couple of results
+      let idx = 0;
+      while (results.length && idx < results.length) {
+        const entry = results[idx].item;
+
+        // check priority rules
+        if (this.priorityRules.has(entry.id)) {
+          const rule = this.priorityRules.get(entry.id) as Record<string, any>;
+
+          if (item.filters == null) {
+            // This mod has priorities but item has no filters yet
+            idx++;
+            continue;
+          }
+
+          const keys = Object.keys(item.filters);
+
+          // check each priority
+          const priorities = rule['priority'] as string[];
+          const pass = priorities.every(p => {
+            return keys.includes(p);
+          });
+
+          if (!pass) {
+            // doesn't pass priority rules
+            idx++;
+            continue;
+          }
         }
 
-        if (found) {
-          // Delete value used
-          captured.shift();
-          val.shift();
+        // check excludes
+        if (this.excludes.has(entry.id)) {
+          // Exclude skip
+          idx++;
+          continue;
         }
+
+        if (
+          item.category &&
+          this.discriminators.has(entry.id) &&
+          (this.discriminators.get(entry.id) as Set<string>).has(item.category)
+        ) {
+          // Discriminator skip
+          idx++;
+          continue;
+        }
+
+        foundEntry = entry;
+        found = true;
+        break;
       }
     }
 
-    // Give up
-    if (!found) {
+    if (!found || !foundEntry) {
       log.debug('Ignored/unprocessed line', origstat);
       return false;
     }
 
-    const multiline: string[] = [];
-    let filter = {} as Filter;
+    if (foundEntry) {
+      // process multiline mods
+      const lines = (foundEntry.text.match(/\n/g) || '').length + 1;
 
-    const range = this.statsByText.get(stoken);
-    for (const entry of range) {
-      const text = entry['text'];
+      if (lines > 1) {
+        const multiline: string[] = [];
 
-      const proc = new ItemText(text);
-      const lines = proc.lines;
+        multiline.push(valstat);
 
-      // Bump the first line since we know it has matched
-      lines.shift();
-
-      if (lines.length > 0) {
-        // If this is a multiline mod
-        // Match the other lines as well
-        let matches = true;
-
-        // Read in the other lines if we haven't yet
-        while (multiline.length < lines.length) {
+        while (multiline.length < lines) {
           const nextline = stream.readLine();
           multiline.push(nextline as string);
         }
 
-        const lvals: number[] = [];
-        const lcap: string[] = [];
+        valstat = multiline.join('\n');
+      }
 
-        for (let i = 0; i < multiline.length; i++) {
-          if (multiline[i] != lines[i]) {
-            // Try capturing values
-            let statline = multiline[i];
-            this.captureNumerics(statline, re, lvals, lcap);
+      // Check numerics/options
+      let selected: number | null = null;
 
-            statline = statline.replace(re, '#');
+      if (foundEntry.text.includes('#')) {
+        if (foundEntry.option == null) {
+          let textreg = escapeRegExp(foundEntry.text);
+          textreg = textreg.replace('#', '(.+)');
 
-            if (statline != lines[i]) {
-              // Try the plus version
-              statline = multiline[i];
-              statline = statline.replace(re, '+#');
+          const rg = new RegExp(textreg);
+          const matches = rg.exec(valstat);
 
-              if (statline != lines[i]) {
-                matches = false;
-                break;
-              }
+          if (matches) {
+            // delete the full match line
+            matches.shift();
+
+            if (matches.length) {
+              val = matches.map(Number);
+              val = val.map(x => x * factor);
+            } else {
+              // shouldn't ever get here
+              val = [];
             }
           }
-        }
+        } else {
+          const options: Fuse.IFuseOptions<FilterOption> = {
+            keys: ['text'],
+            shouldSort: true,
+            threshold: 0.6,
+            location: 0,
+            distance: 1000,
+            includeScore: true
+          };
 
-        if (!matches) {
-          // Doesn't match, continue
-          continue;
-        }
+          const fuse = new Fuse(
+            foundEntry.option.options,
+            options,
+            foundEntry.option.index
+          );
 
-        // Need to merge captured numerics
-        for (let i = 0; i < lvals.length; i++) {
-          val.push(lvals[i]);
-        }
+          const search = valstat.substring(foundEntry.text.indexOf('#'));
 
-        captured = captured.concat(lcap);
+          const results = fuse.search(search);
+
+          // look for exact matches within results
+          results.some(e => {
+            if (e.item.text.includes(search)) {
+              selected = e.item.id;
+              return true;
+            }
+
+            return false;
+          });
+        }
       }
 
-      if (stattype) {
-        if (entry['type'] != stattype) {
-          // skip this entry
-          continue;
-        }
+      // insert this filter
+      const filter = {
+        ...foundEntry,
+        value: [...val],
+        enabled: false,
+        selected: selected,
+        min: null,
+        max: null
+      } as Filter;
 
-        // use stat
-        filter = {
-          ...entry,
-          value: [...val],
-          enabled: false,
-          min: null,
-          max: null
-        } as Filter;
-        break;
+      item.filters = item.filters ?? ({} as { [index: string]: Filter });
+
+      // If the item already has this filter, merge them
+      if (filter.id in item.filters) {
+        const efil = item.filters[filter.id];
+
+        const count = efil.value.length;
+
+        // Only merge if they have the same length count
+        if (count == filter.value.length) {
+          for (let i = 0; i < count; i++) {
+            efil.value[i] = efil.value[i] + filter.value[i];
+          }
+        }
       } else {
-        if (entry['type'] == 'pseudo') {
-          // skip pseudos
-          continue;
-        }
-
-        const id = entry['id'];
-
-        if (
-          item.category &&
-          this.discriminators.has(id) &&
-          (this.discriminators.get(id) as Set<string>).has(item.category)
-        ) {
-          // Discriminator skip
-          continue;
-        }
-
-        if (entry['type'] == 'explicit') {
-          filter = {
-            ...entry,
-            value: [...val],
-            enabled: false,
-            min: null,
-            max: null
-          } as Filter;
-        }
+        item.filters[filter.id] = { ...filter };
       }
+
+      return true;
     }
 
-    if (Object.keys(filter).length === 0) {
-      log.debug('Error parsing stat line', origstat);
-      return false;
-    }
-
-    item.filters = item.filters ?? ({} as { [index: string]: Filter });
-
-    const fid = filter['id'];
-
-    // If the item already has this filter, merge them
-    if (fid in item.filters) {
-      const efil = item.filters[fid];
-
-      const count = efil.value.length;
-
-      for (let i = 0; i < count; i++) {
-        efil.value[i] = efil.value[i] + filter.value[i];
-      }
-    } else {
-      item.filters[fid] = { ...filter };
-    }
-
-    return true;
+    return false;
   }
 
   private captureNumerics(
@@ -1106,7 +1083,7 @@ export class ItemParser {
 
       let numval: number;
 
-      if (word.indexOf('.') > 0) {
+      if (word.includes('.')) {
         numval = parseFloat(word);
       } else {
         numval = parseInt(word);

@@ -5504,6 +5504,11 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
+fuse.js@^5.0.10-beta:
+  version "5.0.10-beta"
+  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-5.0.10-beta.tgz#1bb70763f71b469f6f51237e45a13be04196bf5b"
+  integrity sha512-/tZI6BiF4zToF1neZxOIa5YmSw6j5+3yJW/agoYUZBiaxHJk/ANBxafYDS/60Tvo3JQM2u/ceRvOgBmRYkv70A==
+
 galactus@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/galactus/-/galactus-0.2.1.tgz#cbed2d20a40c1f5679a35908e2b9415733e78db9"

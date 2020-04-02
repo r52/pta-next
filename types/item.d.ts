@@ -32,8 +32,14 @@ interface Filter {
   type: string;
   text: string;
   value: number[];
+  option?: {
+    options: FilterOption[];
+  };
+
+  selected: number | null;
   min: number | null;
   max: number | null;
+
   // these 2 should not exist at the same time
   // and is only there to support reactive states in vue
   // as well as how the trade site handles this flag
@@ -85,4 +91,26 @@ interface Armour {
 interface NumericRange {
   min: number;
   max: number;
+}
+
+interface StatType {
+  index: ReadonlyArray<Fuse.FuseIndexRecord>;
+  entries: StatFilter[];
+}
+
+interface StatFilter {
+  id: string;
+  text: string;
+  type: string;
+  option?: StatFilterOptions;
+}
+
+interface StatFilterOptions {
+  index: ReadonlyArray<Fuse.FuseIndexRecord>;
+  options: FilterOption[];
+}
+
+interface FilterOption {
+  id: number;
+  text: string;
 }
