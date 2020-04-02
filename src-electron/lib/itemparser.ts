@@ -1020,7 +1020,14 @@ export class ItemParser {
             foundEntry.option.index
           );
 
-          const search = valstat.substring(foundEntry.text.indexOf('#'));
+          let search = valstat.substring(foundEntry.text.indexOf('#'));
+          const end = foundEntry.text.substring(
+            foundEntry.text.indexOf('#') + 1
+          );
+
+          if (end) {
+            search = search.replace(end, '');
+          }
 
           const results = fuse.search(search);
 
