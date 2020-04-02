@@ -194,6 +194,9 @@ export default class TradeManager {
       case 'kick':
         this.executeChatCommand('/kick ' + trade.name);
         break;
+      case 'self-hideout':
+        this.executeChatCommand('/hideout');
+        break;
       case 'hideout':
         this.executeChatCommand('/hideout ' + trade.name);
         break;

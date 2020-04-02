@@ -2,18 +2,12 @@
   <q-layout view="hHh Lpr fFf" v-if="trade">
     <q-header elevated>
       <q-bar dense class="q-electron-drag bg-grey-8">
-        <div>{{ trade.item }}</div>
+        <div class="text-yellow">{{ trade.item }}</div>
         <q-space />
         <q-btn dense flat icon="close" @click="closeApp" />
       </q-bar>
       <q-bar dense class="bg-grey-9">
-        <div>{{ trade.name }}</div>
-        <q-icon name="arrow_back" color="green" v-if="trade.type == 'incoming'">
-          <q-tooltip>Incoming</q-tooltip>
-        </q-icon>
-        <q-icon name="arrow_forward" color="red" v-if="trade.type == 'outgoing'"
-          ><q-tooltip>Outgoing</q-tooltip></q-icon
-        >
+        <div class="text-orange">{{ trade.name }}</div>
         <div v-if="trade.type == 'incoming'">
           Tab: {{ trade.tab }}, x: {{ trade.x }}, y: {{ trade.y }}
         </div>
@@ -23,8 +17,19 @@
     </q-header>
 
     <q-footer>
-      <q-bar dense class="q-electron-drag bg-grey-8">
+      <q-bar dense class="bg-grey-8">
+        <q-icon
+          :name="trade.type == 'incoming' ? `arrow_back` : `arrow_forward`"
+          :color="trade.type == 'incoming' ? `green` : `red`"
+        />
         <div>{{ trade.price }} {{ trade.currency }}</div>
+        <div>
+          <img
+            :src="`statics/images/${trade.currency}.png`"
+            style="height: 25px; max-width: 25px"
+            class="q-pt-xs"
+          />
+        </div>
         <q-space />
         <q-btn
           dense
@@ -81,7 +86,11 @@
     <q-page-container>
       <q-page padding>
         <div class="fit row wrap justify-center items-center content-center">
-          <div class="col-auto q-px-xs" v-for="cmd in commands" :key="cmd">
+          <div
+            class="col-auto q-px-xs"
+            v-for="cmd in commands"
+            :key="cmd.label"
+          >
             <q-btn
               color="primary"
               size="12px"
@@ -98,6 +107,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ipcRenderer } from 'electron';
+import log from 'electron-log';
+
+Object.assign(console, log.functions);
 
 export default Vue.extend({
   name: 'TradeNotification',

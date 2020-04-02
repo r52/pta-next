@@ -9,6 +9,17 @@
         <q-btn
           dense
           flat
+          color="green"
+          icon="home"
+          size="sm"
+          @click="sendCommand('self-hideout')"
+        >
+          <q-tooltip>Hideout</q-tooltip>
+        </q-btn>
+        <q-btn
+          dense
+          flat
+          color="yellow"
           icon="warning"
           size="sm"
           @click="sendMsg('test-trade-notification')"
@@ -44,6 +55,9 @@ export default Vue.extend({
   methods: {
     sendMsg(msg: string) {
       ipcRenderer.send(msg);
+    },
+    sendCommand(command: string) {
+      ipcRenderer.send('trade-command', {}, command);
     },
     closeApp() {
       const win = this.$q.electron.remote.getCurrentWindow();
