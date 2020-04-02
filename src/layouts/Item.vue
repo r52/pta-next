@@ -251,7 +251,7 @@ export default Vue.extend({
 <style>
 @font-face {
   font-family: 'Fontin-SmallCaps';
-  src: url(../statics/Fontin-SmallCaps.ttf) format('truetype');
+  src: url(../statics/fonts/Fontin-SmallCaps.woff) format('woff');
 }
 
 ::-webkit-scrollbar {
