@@ -174,7 +174,9 @@ export default Vue.extend({
       );
     },
     stopHighlightStash() {
-      ipcRenderer.send('stop-highlight-stash');
+      setTimeout(() => {
+        ipcRenderer.send('stop-highlight-stash');
+      }, 2000);
     },
     sendTradeCommand(command: string) {
       ipcRenderer.send('trade-command', this.trade, command);
