@@ -505,7 +505,7 @@ export class ItemParser {
         words.shift();
       }
 
-      if (words.indexOf('of')) {
+      if (words.includes('of')) {
         words = words.slice(0, words.indexOf('of'));
       }
 
@@ -844,12 +844,12 @@ export class ItemParser {
 
     if (
       stat.includes('#') &&
-      (stat.indexOf('reduced') > 0 || stat.indexOf('less') > 0)
+      (stat.includes('reduced') || stat.includes('less'))
     ) {
       // If the stat line has a "reduced" value, try to
       // flip it and try again
 
-      if (stat.indexOf('reduced') > 0) {
+      if (stat.includes('reduced')) {
         stat = stat.replace('reduced', 'increased');
         valstat = valstat.replace('reduced', 'increased');
       } else {
