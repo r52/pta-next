@@ -672,7 +672,8 @@ export default Vue.extend({
         return this.settings.tradeui.quad.join(',');
       },
       set(newval: string) {
-        const tabs = newval.split(',');
+        let tabs = newval.split(',');
+        tabs = tabs.map(t => t.trim());
         this.settings.tradeui.quad = tabs;
       }
     }
