@@ -30,6 +30,7 @@
           <q-btn
             dense
             flat
+            color="indigo"
             icon="grid_on"
             size="sm"
             @click="sendMsg('stash-setup')"
@@ -39,6 +40,7 @@
           <q-btn
             dense
             flat
+            color="brown"
             icon="settings"
             size="sm"
             @click="sendMsg('open-settings')"
