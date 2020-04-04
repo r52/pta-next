@@ -16,6 +16,7 @@
       name="viewport"
       content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width<% if (htmlWebpackPlugin.options.ctx.mode.cordova || htmlWebpackPlugin.options.ctx.mode.capacitor) { %>, viewport-fit=cover<% } %>"
     />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self';" />
 
     <link rel="icon" type="image/png" href="statics/app-logo-128x128.png" />
     <link
