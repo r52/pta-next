@@ -5,7 +5,7 @@ import {
   dialog,
   globalShortcut,
   ipcMain,
-  shell
+  shell,
 } from 'electron';
 import { ItemParser } from '../lib/itemparser';
 import log from 'electron-log';
@@ -28,7 +28,7 @@ interface Macro {
 
 enum ItemHotkey {
   SIMPLE,
-  ADVANCED
+  ADVANCED,
 }
 
 export class PTA {
@@ -44,8 +44,8 @@ export class PTA {
       'last_whisper',
       () => {
         return this.clientmonitor.getLastWhisperer();
-      }
-    ]
+      },
+    ],
   ]);
 
   leagues: string[];
@@ -72,20 +72,8 @@ export class PTA {
 
     this.clientmonitor = new ClientMonitor();
     this.trademanager = new TradeManager();
-  }
 
-  public static getInstance(): PTA {
-    if (!PTA.instance) {
-      PTA.instance = new PTA();
-    }
-
-    return PTA.instance;
-  }
-
-  public setup() {
-    this.registerShortcuts();
-
-    // setup events
+    // initialize events
     ipcMain.on('search-defaults', (event, item) => {
       this.searchItemDefault(event, item);
     });
@@ -103,13 +91,25 @@ export class PTA {
       this.createSettingsWindow();
     });
 
+    // initialize trade hook
+    this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
+      this.trademanager.handleNewTrade(trademsg);
+    });
+  }
+
+  public static getInstance(): PTA {
+    if (!PTA.instance) {
+      PTA.instance = new PTA();
+    }
+
+    return PTA.instance;
+  }
+
+  public setup() {
+    this.registerShortcuts();
+
     // setup trade manager
     this.trademanager.setup();
-
-    // setup trade hook
-    this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
-      this.trademanager.showNewTrade(trademsg);
-    });
 
     // setup native hooks
     winpoe.onForegroundChange((isPoe: boolean) => {
@@ -122,7 +122,7 @@ export class PTA {
       this.trademanager.handleForegroundChange(isPoe);
     });
 
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.PROD) {
       // Update check
       autoUpdater.logger = log;
       autoUpdater.checkForUpdatesAndNotify();
@@ -134,7 +134,7 @@ export class PTA {
   public shutdown() {
     this.unregisterShortcuts();
 
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.PROD) {
       winpoe.ShutdownHooks();
     }
   }
@@ -257,8 +257,8 @@ export class PTA {
         frame: false,
         title: 'PTA-Next Settings',
         webPreferences: {
-          nodeIntegration: true
-        }
+          nodeIntegration: true,
+        },
       });
 
       this.settingsWindow.loadURL(
@@ -279,8 +279,8 @@ export class PTA {
         frame: false,
         title: 'About PTA-Next',
         webPreferences: {
-          nodeIntegration: true
-        }
+          nodeIntegration: true,
+        },
       });
 
       this.aboutWindow.loadURL((process.env.APP_URL as string) + '#/about');
@@ -322,15 +322,15 @@ export class PTA {
       backgroundColor: '#00000000',
       title: item.name ?? item.type,
       webPreferences: {
-        nodeIntegration: true
+        nodeIntegration: true,
       },
-      ...wincfg.options()
+      ...wincfg.options(),
     });
 
     itemWindow.on('close', () => {
       const state = {
         ...wincfg.options(),
-        ...itemWindow.getBounds()
+        ...itemWindow.getBounds(),
       };
 
       cfg.set('windowState.item', state);
@@ -438,32 +438,32 @@ export class PTA {
       prefillnormals: prefillnormals,
       prefillpseudos: prefillpseudos,
       prefillilvl: prefillilvl,
-      prefillbase: prefillbase
+      prefillbase: prefillbase,
     };
 
     // search defaults
     const options = {
       usepdps: {
-        enabled: false
+        enabled: false,
       },
       useedps: {
-        enabled: false
+        enabled: false,
       },
       usear: {
-        enabled: false
+        enabled: false,
       },
       useev: {
-        enabled: false
+        enabled: false,
       },
       usees: {
-        enabled: false
+        enabled: false,
       },
       usesockets: false,
       uselinks: false,
       useilvl: prefillilvl,
       useitembase: prefillbase,
       usecorrupted: item.corrupted ? 'Yes' : 'Any',
-      influences: []
+      influences: [],
     } as any;
 
     if (prefillbase) {

@@ -1,7 +1,7 @@
 import { HasSsrBootParams, HasStoreBootParams } from 'quasar';
 import { VueConstructor } from 'vue';
 import VueRouter from 'vue-router';
-import { StoreInterface } from '../store';
+import { RootState } from '../store';
 import routes from './routes';
 
 /*
@@ -12,7 +12,7 @@ import routes from './routes';
 type RouterBootParams = {
   Vue: VueConstructor;
 } & HasSsrBootParams &
-  HasStoreBootParams<StoreInterface>;
+  HasStoreBootParams<RootState>;
 
 export default function({ Vue }: RouterBootParams) {
   Vue.use(VueRouter);

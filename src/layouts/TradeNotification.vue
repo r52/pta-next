@@ -30,7 +30,7 @@
         <div>
           <img
             :src="`statics/images/${trade.currency}.png`"
-            style="height: 25px; max-width: 25px"
+            style="height: 25px; max-width: 25px;"
             class="q-pt-xs"
           />
         </div>
@@ -122,7 +122,7 @@ export default Vue.extend({
     return {
       trade: null as TradeMsg | null,
       commands: [] as TradeCommand[],
-      time: ''
+      time: '',
     };
   },
 
@@ -174,9 +174,7 @@ export default Vue.extend({
       );
     },
     stopHighlightStash() {
-      setTimeout(() => {
-        ipcRenderer.send('stop-highlight-stash');
-      }, 2000);
+      ipcRenderer.send('stop-highlight-stash');
     },
     sendTradeCommand(command: string) {
       ipcRenderer.send('trade-command', this.trade, command);
@@ -190,14 +188,17 @@ export default Vue.extend({
       if (win) {
         win.close();
       }
-    }
+    },
   },
 
   created() {
     ipcRenderer.on('trade', (event, trade, commands) => {
       this.handleTrade(event, trade, commands);
     });
-  }
+  },
+  beforeDestroy() {
+    ipcRenderer.removeAllListeners('trade');
+  },
 });
 </script>
 

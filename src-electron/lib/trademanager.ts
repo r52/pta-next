@@ -11,23 +11,10 @@ export default class TradeManager {
   private tradeNotifications: BrowserWindow[] = [];
   private stashSetup: BrowserWindow | null = null;
   private stashHighlight: BrowserWindow | null = null;
+  private stashHighlightTimeout: NodeJS.Timeout | null = null;
+  private tradeHistory: TradeMsg[] = [];
 
-  public setup() {
-    const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
-
-    if (showtradebar) {
-      this.showTradeBar();
-    }
-
-    const stashhighlight = cfg.get(
-      Config.tradestashhighlight,
-      Config.default.tradestashhighlight
-    );
-
-    if (stashhighlight) {
-      this.openStashHighlighter();
-    }
-
+  constructor() {
     ipcMain.on('tradeui-enabled', (event, enabled) => {
       const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
 
@@ -38,7 +25,7 @@ export default class TradeManager {
       } else {
         this.closeTradeBar();
 
-        this.tradeNotifications.forEach(notification => {
+        this.tradeNotifications.forEach((notification) => {
           notification.close();
         });
 
@@ -67,10 +54,10 @@ export default class TradeManager {
         tab: 'Trade',
         x: 3,
         y: 5,
-        time: Date.now()
+        time: Date.now(),
       } as TradeMsg;
 
-      this.showNewTrade(tradeobj);
+      this.handleNewTrade(tradeobj);
     });
 
     ipcMain.on('trade-command', (event, trade, command) => {
@@ -95,7 +82,7 @@ export default class TradeManager {
         name: name,
         x: x,
         y: y,
-        quad: quads.includes(name)
+        quad: quads.includes(name),
       };
 
       this.highlightStash(tabinfo);
@@ -104,6 +91,33 @@ export default class TradeManager {
     ipcMain.on('stop-highlight-stash', () => {
       this.stophighlightStash();
     });
+
+    ipcMain.on('delete-history', (event, trade) => {
+      this.tradeHistory.splice(this.tradeHistory.indexOf(trade), 1);
+
+      event.reply('trade-history', this.tradeHistory);
+    });
+
+    ipcMain.on('restore-history', (event, trade) => {
+      this.showNewTrade(trade);
+    });
+  }
+
+  public setup() {
+    const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
+
+    if (showtradebar) {
+      this.showTradeBar();
+    }
+
+    const stashhighlight = cfg.get(
+      Config.tradestashhighlight,
+      Config.default.tradestashhighlight
+    );
+
+    if (stashhighlight) {
+      this.openStashHighlighter();
+    }
   }
 
   public isEnabled() {
@@ -115,19 +129,34 @@ export default class TradeManager {
     if (!ispoe) {
       this.tradeBar?.hide();
 
-      this.tradeNotifications.forEach(notification => {
+      this.tradeNotifications.forEach((notification) => {
         notification.hide();
       });
     } else {
       this.tradeBar?.show();
 
-      this.tradeNotifications.forEach(notification => {
+      this.tradeNotifications.forEach((notification) => {
         notification.show();
       });
     }
   }
 
-  public showNewTrade(trade: TradeMsg) {
+  public handleNewTrade(trade: TradeMsg) {
+    this.tradeHistory.push(trade);
+
+    // limit to 30 for now
+    if (this.tradeHistory.length > 30) {
+      this.tradeHistory.shift();
+    }
+
+    // Send it
+    this.tradeBar?.webContents.send('trade-history', this.tradeHistory);
+
+    // Show it
+    this.showNewTrade(trade);
+  }
+
+  private showNewTrade(trade: TradeMsg) {
     const wincfg = cfg.window({ name: 'trade' });
     const state = wincfg.options() as Rectangle;
 
@@ -158,9 +187,9 @@ export default class TradeManager {
       skipTaskbar: true,
       backgroundColor: '#00000000',
       webPreferences: {
-        nodeIntegration: true
+        nodeIntegration: true,
       },
-      ...state
+      ...state,
     });
 
     tradewindow.loadURL((process.env.APP_URL as string) + '#/trade');
@@ -201,8 +230,8 @@ export default class TradeManager {
           focusable: false,
           skipTaskbar: true,
           webPreferences: {
-            nodeIntegration: true
-          }
+            nodeIntegration: true,
+          },
         });
 
         this.tradeBar.loadURL((process.env.APP_URL as string) + '#/tradebar');
@@ -330,8 +359,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
-        }
+          nodeIntegration: true,
+        },
       });
 
       this.stashSetup.loadURL((process.env.APP_URL as string) + '#/stashsetup');
@@ -367,9 +396,9 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
         },
-        ...wincfg.options()
+        ...wincfg.options(),
       });
 
       this.stashHighlight.loadURL(
@@ -386,6 +415,11 @@ export default class TradeManager {
   }
 
   private highlightStash(tabinfo: TabInfo) {
+    if (this.stashHighlightTimeout != null) {
+      clearTimeout(this.stashHighlightTimeout);
+      this.stashHighlightTimeout = null;
+    }
+
     if (this.stashHighlight) {
       this.stashHighlight.webContents.send('highlight', tabinfo);
       this.stashHighlight.show();
@@ -393,9 +427,13 @@ export default class TradeManager {
   }
 
   private stophighlightStash() {
-    if (this.stashHighlight) {
-      this.stashHighlight.webContents.send('stop-highlight');
-      this.stashHighlight.hide();
+    if (this.stashHighlightTimeout == null) {
+      this.stashHighlightTimeout = setTimeout(() => {
+        if (this.stashHighlight) {
+          this.stashHighlight.webContents.send('stop-highlight');
+          this.stashHighlight.hide();
+        }
+      }, 2000);
     }
   }
 }
