@@ -68,7 +68,7 @@ export default Vue.extend({
 
       this.stopHighlight();
 
-      const cell = tabinfo.x + (tabinfo.y - 1) * (tabinfo.quad ? 48 : 12);
+      const cell = tabinfo.x + (tabinfo.y - 1) * (tabinfo.quad ? 24 : 12);
 
       const e = document.getElementById('cell-' + cell);
       if (e) {
