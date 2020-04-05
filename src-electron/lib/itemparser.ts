@@ -94,19 +94,43 @@ export class ItemParser {
               this.statsById.set(et.id, et);
             }
 
-            // construct option indices
+            // construct option fuse
             if (et.option != null) {
-              et.option.index = Fuse.createIndex(['text'], et.option.options);
+              const index = Fuse.createIndex(['text'], et.option.options);
+              et.option.fuse = new Fuse(
+                et.option.options,
+                {
+                  keys: ['text'],
+                  shouldSort: true,
+                  threshold: 0.6,
+                  location: 0,
+                  distance: 1000,
+                  includeScore: false,
+                },
+                index
+              );
             }
           }
 
-          // construct indices
+          // construct fuse
+          const entries = el as StatFilter[];
+          const index = Fuse.createIndex<StatFilter>(
+            ['text', 'option.options.text'],
+            entries
+          );
           this.stats[tlb] = {
-            entries: el as StatFilter[],
-            index: Fuse.createIndex<StatFilter>(
-              ['text', 'option.options.text'],
-              el
-            )
+            entries: entries,
+            fuse: new Fuse(
+              entries,
+              {
+                keys: ['text', 'option.options.text'],
+                shouldSort: true,
+                threshold: 0.5,
+                location: 0,
+                includeScore: false,
+              },
+              index
+            ),
           };
         }
 
@@ -294,7 +318,7 @@ export class ItemParser {
         this.exchange.set(k, o);
       }
 
-      this.exchange.forEach(val => {
+      this.exchange.forEach((val) => {
         this.currencies.add(val);
       });
 
@@ -446,7 +470,7 @@ export class ItemParser {
                   value: [] as number[],
                   selected: null,
                   min: null,
-                  max: null
+                  max: null,
                 } as unknown) as Filter;
 
                 for (const v of fil.value) {
@@ -496,7 +520,7 @@ export class ItemParser {
       // Try to get rid of all suffixes by forward catching " of"
       const re = /[\w'-]+/g;
 
-      let words = Array.from(type.matchAll(re), m => m[0]);
+      let words = Array.from(type.matchAll(re), (m) => m[0]);
 
       const prefix = words[0];
 
@@ -632,7 +656,7 @@ export class ItemParser {
   private readPropIntRange(prop: string): NumericRange {
     const val = {
       min: 0,
-      max: 0
+      max: 0,
     } as NumericRange;
 
     // If it is a list, process list
@@ -656,7 +680,7 @@ export class ItemParser {
 
     const re = /\d+/g;
 
-    const match = Array.from(prop.matchAll(re), m => m[0]);
+    const match = Array.from(prop.matchAll(re), (m) => m[0]);
 
     if (match) {
       const v1 = match[0];
@@ -693,7 +717,7 @@ export class ItemParser {
       B: 0,
       W: 0,
       A: 0,
-      D: 0
+      D: 0,
     } as Sockets;
 
     const llist = prop.split(' ');
@@ -890,21 +914,11 @@ export class ItemParser {
     }
 
     if (!found) {
-      const options: Fuse.IFuseOptions<StatFilter> = {
-        keys: ['text', 'option.options.text'],
-        shouldSort: true,
-        threshold: 0.5,
-        location: 0,
-        includeScore: true
-      };
+      console.time('fuse');
 
-      const fuse = new Fuse(
-        this.stats[stattype].entries,
-        options,
-        this.stats[stattype].index
-      );
+      const results = this.stats[stattype].fuse.search(stat);
 
-      const results = fuse.search(stat);
+      console.timeEnd('fuse');
 
       // loop thru the first couple of results
       let idx = 0;
@@ -925,7 +939,7 @@ export class ItemParser {
 
           // check each priority
           const priorities = rule['priority'] as string[];
-          const pass = priorities.every(p => {
+          const pass = priorities.every((p) => {
             return keys.includes(p);
           });
 
@@ -998,28 +1012,13 @@ export class ItemParser {
 
             if (matches.length) {
               val = matches.map(Number);
-              val = val.map(x => x * factor);
+              val = val.map((x) => x * factor);
             } else {
               // shouldn't ever get here
               val = [];
             }
           }
         } else {
-          const options: Fuse.IFuseOptions<FilterOption> = {
-            keys: ['text'],
-            shouldSort: true,
-            threshold: 0.6,
-            location: 0,
-            distance: 1000,
-            includeScore: true
-          };
-
-          const fuse = new Fuse(
-            foundEntry.option.options,
-            options,
-            foundEntry.option.index
-          );
-
           let search = valstat.substring(foundEntry.text.indexOf('#'));
           const end = foundEntry.text.substring(
             foundEntry.text.indexOf('#') + 1
@@ -1029,10 +1028,10 @@ export class ItemParser {
             search = search.replace(end, '');
           }
 
-          const results = fuse.search(search);
+          const results = foundEntry.option.fuse.search(search);
 
           // look for exact matches within results
-          results.some(e => {
+          results.some((e) => {
             if (e.item.text.includes(search)) {
               selected = e.item.id;
               return true;
@@ -1050,7 +1049,7 @@ export class ItemParser {
         enabled: false,
         selected: selected,
         min: null,
-        max: null
+        max: null,
       } as Filter;
 
       item.filters = item.filters ?? ({} as { [index: string]: Filter });
@@ -1083,7 +1082,7 @@ export class ItemParser {
     val: number[],
     captured: string[]
   ) {
-    const words = Array.from(line.matchAll(re), m => m[0]);
+    const words = Array.from(line.matchAll(re), (m) => m[0]);
 
     for (const word of words) {
       captured.push(word);

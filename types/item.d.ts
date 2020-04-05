@@ -94,8 +94,8 @@ interface NumericRange {
 }
 
 interface StatType {
-  index: ReadonlyArray<Fuse.FuseIndexRecord>;
   entries: StatFilter[];
+  fuse: Fuse<StatFilter, Fuse.IFuseOptions<StatFilter>>;
 }
 
 interface StatFilter {
@@ -106,8 +106,8 @@ interface StatFilter {
 }
 
 interface StatFilterOptions {
-  index: ReadonlyArray<Fuse.FuseIndexRecord>;
   options: FilterOption[];
+  fuse: Fuse<FilterOption, Fuse.IFuseOptions<FilterOption>>;
 }
 
 interface FilterOption {

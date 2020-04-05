@@ -113,13 +113,15 @@ export class PTA {
 
     // setup native hooks
     winpoe.onForegroundChange((isPoe: boolean) => {
-      if (isPoe) {
-        this.registerShortcuts();
-      } else {
-        this.unregisterShortcuts();
-      }
+      setTimeout(() => {
+        if (isPoe) {
+          this.registerShortcuts();
+        } else {
+          this.unregisterShortcuts();
+        }
 
-      this.trademanager.handleForegroundChange(isPoe);
+        this.trademanager.handleForegroundChange(isPoe);
+      }, 0);
     });
 
     if (process.env.PROD) {
@@ -321,6 +323,7 @@ export class PTA {
       frame: false,
       backgroundColor: '#00000000',
       title: item.name ?? item.type,
+      focusable: false,
       webPreferences: {
         nodeIntegration: true,
       },
@@ -363,20 +366,33 @@ export class PTA {
       return;
     }
 
-    const item = PTA.parser.parse(itemtext);
+    const parseitem = new Promise((resolve, reject) => {
+      console.time('parse');
+      const item = PTA.parser.parse(itemtext);
+      console.timeEnd('parse');
 
-    if (!item) {
-      dialog.showErrorBox(
-        'Item Error',
-        'Error parsing item text. Check log for more details.'
-      );
-    } else {
-      if (type === ItemHotkey.SIMPLE || type === ItemHotkey.ADVANCED) {
-        const { settings, options } = this.fillSearchOptions(item);
-
-        this.createItemUI(item, settings, options, type);
+      if (item) {
+        resolve(item);
+      } else {
+        reject();
       }
-    }
+    });
+
+    parseitem
+      .then((item) => {
+        const titem = item as Item;
+        if (type === ItemHotkey.SIMPLE || type === ItemHotkey.ADVANCED) {
+          const { settings, options } = this.fillSearchOptions(titem);
+
+          this.createItemUI(titem, settings, options, type);
+        }
+      })
+      .catch(() => {
+        dialog.showErrorBox(
+          'Item Error',
+          'Error parsing item text. Check log for more details.'
+        );
+      });
   }
 
   private fillSearchOptions(item: Item) {
