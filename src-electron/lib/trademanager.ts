@@ -57,7 +57,11 @@ export default class TradeManager {
         time: Date.now(),
       } as TradeMsg;
 
-      this.handleNewTrade(tradeobj);
+      if (process.env.DEV) {
+        this.handleNewTrade(tradeobj);
+      } else {
+        this.showNewTrade(tradeobj);
+      }
     });
 
     ipcMain.on('trade-command', (event, trade, command) => {
