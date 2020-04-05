@@ -16,6 +16,16 @@
         :pagination.sync="pagination"
       />
     </div>
+    <div class="row items-center justify-end q-py-xs">
+      <q-btn
+        color="purple"
+        accesskey="e"
+        icon="open_in_new"
+        @click="openInBrowser"
+      >
+        Op<u>e</u>n Results on pathofexile.com
+      </q-btn>
+    </div>
   </q-page>
 </template>
 
@@ -28,14 +38,14 @@ export default Vue.extend({
 
   props: {
     item: Object,
-    results: Object
+    results: Object,
   },
 
   data() {
     return {
       pagination: {
-        rowsPerPage: 10
-      }
+        rowsPerPage: 10,
+      },
     };
   },
 
@@ -61,20 +71,20 @@ export default Vue.extend({
             align: 'left',
             sortable: false,
             name: 'name',
-            field: 'name'
+            field: 'name',
           },
           {
             label: 'Price',
             sortable: false,
             name: 'price',
-            field: 'price'
+            field: 'price',
           },
           {
             label: 'Age',
             sortable: false,
             name: 'age',
-            field: 'age'
-          }
+            field: 'age',
+          },
         ],
         gem: [
           {
@@ -82,32 +92,32 @@ export default Vue.extend({
             align: 'start',
             sortable: false,
             name: 'name',
-            field: 'name'
+            field: 'name',
           },
           {
             label: 'Price',
             sortable: false,
             name: 'price',
-            field: 'price'
+            field: 'price',
           },
           {
             label: 'Q%',
             sortable: false,
             name: 'quality',
-            field: 'quality'
+            field: 'quality',
           },
           {
             label: 'Lvl',
             sortable: false,
             name: 'level',
-            field: 'level'
+            field: 'level',
           },
           {
             label: 'Age',
             sortable: false,
             name: 'age',
-            field: 'age'
-          }
+            field: 'age',
+          },
         ],
         exchange: [
           {
@@ -115,27 +125,27 @@ export default Vue.extend({
             align: 'start',
             sortable: false,
             name: 'name',
-            field: 'name'
+            field: 'name',
           },
           {
             label: 'Price',
             sortable: false,
             name: 'price',
-            field: 'price'
+            field: 'price',
           },
           {
             label: 'Rate',
             sortable: false,
             name: 'rate',
-            field: 'rate'
+            field: 'rate',
           },
           {
             label: 'Age',
             sortable: false,
             name: 'age',
-            field: 'age'
-          }
-        ]
+            field: 'age',
+          },
+        ],
       } as { [index: string]: any[] };
 
       return columns[this.type];
@@ -212,7 +222,7 @@ export default Vue.extend({
       });
 
       return lst;
-    }
+    },
   },
 
   methods: {
@@ -233,7 +243,10 @@ export default Vue.extend({
       if (dif < 86400) return Math.floor(dif / 3600).toString() + ' hours';
 
       return Math.floor(dif / 86400).toString() + ' days';
-    }
-  }
+    },
+    openInBrowser() {
+      this.$q.electron.remote.shell.openExternal(this.results.siteurl);
+    },
+  },
 });
 </script>

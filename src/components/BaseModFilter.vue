@@ -11,13 +11,13 @@
       </q-item>
     </div>
     <div class="col">
-      <mod-num-input type="min" :filter="options[type]" />
+      <mod-num-input type="min" :filter="options[type]" :current="current" />
     </div>
     <div class="col text-center">
       <span>{{ current.toFixed(2) }}</span>
     </div>
     <div class="col">
-      <mod-num-input type="max" :filter="options[type]" />
+      <mod-num-input type="max" :filter="options[type]" :current="current" />
     </div>
   </div>
 </template>
@@ -30,7 +30,7 @@ export default Vue.extend({
   name: 'BaseModFilter',
 
   components: {
-    ModNumInput
+    ModNumInput,
   },
 
   props: {
@@ -38,7 +38,7 @@ export default Vue.extend({
     options: Object,
     settings: Object,
     type: String,
-    current: Number
+    current: Number,
   },
 
   created() {
@@ -47,13 +47,13 @@ export default Vue.extend({
     const diff = range * value;
 
     if (this.settings.prefillmin) {
-      this.options[this.type]['min'] = value - diff;
+      this.options[this.type]['min'] = Math.round(value - diff);
     }
 
     if (this.settings.prefillmax) {
-      this.options[this.type]['max'] = value + diff;
+      this.options[this.type]['max'] = Math.round(value + diff);
     }
-  }
+  },
 });
 </script>
 

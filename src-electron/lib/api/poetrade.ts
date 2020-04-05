@@ -34,6 +34,7 @@ function processPriceResults(
   }
 
   const removedupes = cfg.get(Config.removedupes, Config.default.removedupes);
+  const league = PTA.getInstance().getLeague();
 
   const urls = [];
 
@@ -55,11 +56,12 @@ function processPriceResults(
     result: [],
     options: searchoptions,
     forcetab: forcetab,
-    exchange: exchange
+    exchange: exchange,
+    siteurl: apis.official.trade.site + league + '/' + response['id'],
   };
 
-  axios.all(urls).then(results => {
-    results.forEach(resp => {
+  axios.all(urls).then((results) => {
+    results.forEach((resp) => {
       const data = resp.data;
       const list = data['result'] as [];
 
@@ -69,7 +71,7 @@ function processPriceResults(
     // Delete duplicate accounts
     const accounts = new Set<string>();
     if (removedupes) {
-      rdat.result = rdat.result.filter(entry => {
+      rdat.result = rdat.result.filter((entry) => {
         const acctname = entry['listing']['account']['name'];
         const isUnique = !accounts.has(acctname);
 
@@ -91,11 +93,11 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
   const query = {
     exchange: {
       status: {
-        option: 'online'
+        option: 'online',
       },
       have: [] as string[],
-      want: [] as string[]
-    }
+      want: [] as string[],
+    },
   };
 
   let p_curr = cfg.get(Config.primarycurrency, Config.default.primarycurrency);
@@ -155,8 +157,8 @@ function doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
     urls.push(axios.post(url, query));
   }
 
-  axios.all(urls).then(results => {
-    results.some(resp => {
+  axios.all(urls).then((results) => {
+    results.some((resp) => {
       const data = resp.data;
 
       if ('result' in data && 'id' in data) {
@@ -189,18 +191,18 @@ export function searchItemWithDefaults(
   const query = {
     query: {
       status: {
-        option: 'online'
+        option: 'online',
       },
       stats: [
         {
           type: 'and',
-          filters: []
-        }
-      ]
+          filters: [],
+        },
+      ],
     },
     sort: {
-      price: 'asc'
-    }
+      price: 'asc',
+    },
   } as any;
 
   const sopts = {
@@ -208,9 +210,9 @@ export function searchItemWithDefaults(
     children: [
       {
         label: 'League',
-        children: [{ label: league }]
-      }
-    ]
+        children: [{ label: league }],
+      },
+    ],
   } as any;
 
   let isUniqueBase = false;
@@ -230,11 +232,11 @@ export function searchItemWithDefaults(
         trade_filters: {
           filters: {
             sale_type: {
-              option: 'priced'
-            }
-          }
-        }
-      }
+              option: 'priced',
+            },
+          },
+        },
+      },
     });
 
     sopts.children.push({ label: 'Buyout Only' });
@@ -258,11 +260,11 @@ export function searchItemWithDefaults(
         type_filters: {
           filters: {
             rarity: {
-              option: rarity
-            }
-          }
-        }
-      }
+              option: rarity,
+            },
+          },
+        },
+      },
     });
   }
 
@@ -275,11 +277,11 @@ export function searchItemWithDefaults(
         type_filters: {
           filters: {
             category: {
-              option: category
-            }
-          }
-        }
-      }
+              option: category,
+            },
+          },
+        },
+      },
     });
   }
 
@@ -293,13 +295,13 @@ export function searchItemWithDefaults(
           if ('name' in entry) {
             query.query['name'] = {
               discriminator: entry['disc'],
-              option: entry['name']
+              option: entry['name'],
             };
           }
 
           query.query['type'] = {
             discriminator: entry['disc'],
-            option: entry['type']
+            option: entry['type'],
           };
 
           break;
@@ -323,22 +325,22 @@ export function searchItemWithDefaults(
           misc_filters: {
             filters: {
               gem_level: {
-                min: item.misc.gemlevel
+                min: item.misc.gemlevel,
               },
               quality: {
-                min: item.quality
-              }
-            }
-          }
-        }
+                min: item.quality,
+              },
+            },
+          },
+        },
       });
 
       sopts.children.push({
         label: 'Gem',
         children: [
           { label: 'Level', children: [{ label: item.misc.gemlevel }] },
-          { label: 'Quality', children: [{ label: item.quality + '%' }] }
-        ]
+          { label: 'Quality', children: [{ label: item.quality + '%' }] },
+        ],
       });
     }
 
@@ -349,16 +351,16 @@ export function searchItemWithDefaults(
           socket_filters: {
             filters: {
               sockets: {
-                min: item.sockets.total
-              }
-            }
-          }
-        }
+                min: item.sockets.total,
+              },
+            },
+          },
+        },
       });
 
       sopts.children.push({
         label: 'Sockets',
-        children: [{ label: item.sockets.total }]
+        children: [{ label: item.sockets.total }],
       });
     }
 
@@ -369,16 +371,16 @@ export function searchItemWithDefaults(
           socket_filters: {
             filters: {
               links: {
-                min: item.sockets.links
-              }
-            }
-          }
-        }
+                min: item.sockets.links,
+              },
+            },
+          },
+        },
       });
 
       sopts.children.push({
         label: 'Links',
-        children: [{ label: item.sockets.links }]
+        children: [{ label: item.sockets.links }],
       });
     }
 
@@ -389,16 +391,16 @@ export function searchItemWithDefaults(
           misc_filters: {
             filters: {
               ilvl: {
-                min: item.ilvl
-              }
-            }
-          }
-        }
+                min: item.ilvl,
+              },
+            },
+          },
+        },
       });
 
       sopts.children.push({
         label: 'Item Level',
-        children: [{ label: item.ilvl }]
+        children: [{ label: item.ilvl }],
       });
     }
 
@@ -409,16 +411,16 @@ export function searchItemWithDefaults(
           map_filters: {
             filters: {
               map_tier: {
-                min: item.misc.maptier
-              }
-            }
-          }
-        }
+                min: item.misc.maptier,
+              },
+            },
+          },
+        },
       });
 
       sopts.children.push({
         label: 'Map Tier',
-        children: [{ label: item.misc.maptier }]
+        children: [{ label: item.misc.maptier }],
       });
     }
 
@@ -426,7 +428,7 @@ export function searchItemWithDefaults(
     if (item.misc?.disc) {
       sopts.children.push({
         label: 'Discriminator',
-        children: [{ label: item.misc.disc }]
+        children: [{ label: item.misc.disc }],
       });
     }
 
@@ -443,11 +445,11 @@ export function searchItemWithDefaults(
             misc_filters: {
               filters: {
                 [infkey]: {
-                  option: true
-                }
-              }
-            }
-          }
+                  option: true,
+                },
+              },
+            },
+          },
         });
 
         inflist.push({ label: inf });
@@ -465,11 +467,11 @@ export function searchItemWithDefaults(
           misc_filters: {
             filters: {
               synthesised_item: {
-                option: true
-              }
-            }
-          }
-        }
+                option: true,
+              },
+            },
+          },
+        },
       });
 
       sopts.children.push({ label: 'Synthesis' });
@@ -495,17 +497,17 @@ export function searchItemWithDefaults(
               misc_filters: {
                 filters: {
                   corrupted: {
-                    option: corrupt == 'Yes'
-                  }
-                }
-              }
-            }
+                    option: corrupt == 'Yes',
+                  },
+                },
+              },
+            },
           });
         }
 
         sopts.children.push({
           label: 'Corrupted',
-          children: [{ label: corrupt + ' (override)' }]
+          children: [{ label: corrupt + ' (override)' }],
         });
       } else {
         const corrupt = item.corrupted ?? false;
@@ -515,16 +517,16 @@ export function searchItemWithDefaults(
             misc_filters: {
               filters: {
                 corrupted: {
-                  option: corrupt
-                }
-              }
-            }
-          }
+                  option: corrupt,
+                },
+              },
+            },
+          },
         });
 
         sopts.children.push({
           label: 'Corrupted',
-          children: [{ label: corrupt ? 'Yes' : 'No' }]
+          children: [{ label: corrupt ? 'Yes' : 'No' }],
         });
       }
     }
@@ -586,18 +588,18 @@ export function searchItemWithOptions(
   const query = {
     query: {
       status: {
-        option: 'online'
+        option: 'online',
       },
       stats: [
         {
           type: 'and',
-          filters: []
-        }
-      ]
+          filters: [],
+        },
+      ],
     },
     sort: {
-      price: 'asc'
-    }
+      price: 'asc',
+    },
   } as any;
 
   const sopts = {
@@ -605,9 +607,9 @@ export function searchItemWithOptions(
     children: [
       {
         label: 'League',
-        children: [{ label: league }]
-      }
-    ]
+        children: [{ label: league }],
+      },
+    ],
   } as any;
 
   // Take care of settings
@@ -624,11 +626,11 @@ export function searchItemWithOptions(
         trade_filters: {
           filters: {
             sale_type: {
-              option: 'priced'
-            }
-          }
-        }
-      }
+              option: 'priced',
+            },
+          },
+        },
+      },
     });
 
     sopts.children.push({ label: 'Buyout Only' });
@@ -659,11 +661,11 @@ export function searchItemWithOptions(
       type_filters: {
         filters: {
           rarity: {
-            option: rarity
-          }
-        }
-      }
-    }
+            option: rarity,
+          },
+        },
+      },
+    },
   });
 
   // Force category
@@ -675,39 +677,39 @@ export function searchItemWithOptions(
         type_filters: {
           filters: {
             category: {
-              option: category
-            }
-          }
-        }
-      }
+              option: category,
+            },
+          },
+        },
+      },
     });
   }
 
   // weapon/armour base mods
-  ['pdps', 'edps', 'ar', 'ev', 'es'].forEach(bm => {
+  ['pdps', 'edps', 'ar', 'ev', 'es'].forEach((bm) => {
     if (options['use' + bm]['enabled']) {
       const filter =
         bm === 'pdps' || bm === 'edps' ? 'weapon_filters' : 'armour_filters';
 
       const flt = [] as any;
 
-      ['min', 'max'].forEach(lm => {
-        if (options['use' + bm][lm] > 0) {
+      ['min', 'max'].forEach((lm) => {
+        if (options['use' + bm][lm] != null) {
           query.query = merge(query.query, {
             filters: {
               [filter]: {
                 filters: {
                   [bm]: {
-                    [lm]: options['use' + bm][lm]
-                  }
-                }
-              }
-            }
+                    [lm]: options['use' + bm][lm],
+                  },
+                },
+              },
+            },
           });
 
           flt.push({
             label: lm,
-            children: [{ label: options['use' + bm][lm] }]
+            children: [{ label: options['use' + bm][lm] }],
           });
         }
       });
@@ -741,16 +743,16 @@ export function searchItemWithOptions(
             ? {
                 min: e.min,
                 max: e.max,
-                option: e.selected
+                option: e.selected,
               }
-            : null
+            : null,
       } as any;
 
       query.query['stats'][0]['filters'].push(entry);
 
       const vflt = [] as any;
 
-      ['min', 'max'].forEach(vl => {
+      ['min', 'max'].forEach((vl) => {
         if (vl in e && e[vl]) {
           vflt.push({ label: vl, children: [{ label: e[vl] }] });
         }
@@ -790,16 +792,16 @@ export function searchItemWithOptions(
         socket_filters: {
           filters: {
             sockets: {
-              min: item.sockets.total
-            }
-          }
-        }
-      }
+              min: item.sockets.total,
+            },
+          },
+        },
+      },
     });
 
     sopts.children.push({
       label: 'Sockets',
-      children: [{ label: item.sockets.total }]
+      children: [{ label: item.sockets.total }],
     });
   }
 
@@ -810,16 +812,16 @@ export function searchItemWithOptions(
         socket_filters: {
           filters: {
             links: {
-              min: item.sockets.links
-            }
-          }
-        }
-      }
+              min: item.sockets.links,
+            },
+          },
+        },
+      },
     });
 
     sopts.children.push({
       label: 'Links',
-      children: [{ label: item.sockets.links }]
+      children: [{ label: item.sockets.links }],
     });
   }
 
@@ -830,16 +832,16 @@ export function searchItemWithOptions(
         misc_filters: {
           filters: {
             ilvl: {
-              min: item.ilvl
-            }
-          }
-        }
-      }
+              min: item.ilvl,
+            },
+          },
+        },
+      },
     });
 
     sopts.children.push({
       label: 'Item Level',
-      children: [{ label: item.ilvl }]
+      children: [{ label: item.ilvl }],
     });
   }
 
@@ -848,7 +850,7 @@ export function searchItemWithOptions(
     query.query['type'] = item.type;
     sopts.children.push({
       label: 'Item Base',
-      children: [{ label: item.type }]
+      children: [{ label: item.type }],
     });
   }
 
@@ -866,11 +868,11 @@ export function searchItemWithOptions(
           misc_filters: {
             filters: {
               [infkey]: {
-                option: true
-              }
-            }
-          }
-        }
+                option: true,
+              },
+            },
+          },
+        },
       });
 
       inflist.push({ label: inf });
@@ -886,11 +888,11 @@ export function searchItemWithOptions(
         misc_filters: {
           filters: {
             synthesised_item: {
-              option: true
-            }
-          }
-        }
-      }
+              option: true,
+            },
+          },
+        },
+      },
     });
 
     sopts.children.push({ label: 'Synthesis' });
@@ -906,11 +908,11 @@ export function searchItemWithOptions(
           misc_filters: {
             filters: {
               corrupted: {
-                option: corrupt == 'Yes'
-              }
-            }
-          }
-        }
+                option: corrupt == 'Yes',
+              },
+            },
+          },
+        },
       });
     }
 

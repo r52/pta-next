@@ -445,18 +445,28 @@ export class PTA {
     const options = {
       usepdps: {
         enabled: false,
+        min: null,
+        max: null,
       },
       useedps: {
         enabled: false,
+        min: null,
+        max: null,
       },
       usear: {
         enabled: false,
+        min: null,
+        max: null,
       },
       useev: {
         enabled: false,
+        min: null,
+        max: null,
       },
       usees: {
         enabled: false,
+        min: null,
+        max: null,
       },
       usesockets: false,
       uselinks: false,
