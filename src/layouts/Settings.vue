@@ -113,7 +113,7 @@
                         :options="corrupts"
                         label="Corrupt Override Option"
                         :disable="!settings.pricecheck.corruptoverride"
-                        style="width: 250px"
+                        style="width: 250px;"
                       />
                     </div>
                   </div>
@@ -349,7 +349,7 @@
             </q-table>
 
             <q-dialog v-model="macroDialog">
-              <q-card style="min-width: 350px">
+              <q-card style="min-width: 350px;">
                 <q-card-section>
                   <div class="text-h6">New Macro</div>
                 </q-card-section>
@@ -420,7 +420,7 @@
                     <div class="col">
                       <q-toggle
                         v-model="settings.tradeui.enabled"
-                        label="Enable Trade UI (Client.txt path must be set for this to work!)"
+                        label="Enable Trade UI features (Client.txt path must be set for this to work!)"
                       />
                     </div>
                   </div>
@@ -461,7 +461,7 @@
                         v-model="settings.tradeui.direction"
                         :options="tradeDirections"
                         label="Stack Direction"
-                        style="width: 250px"
+                        style="width: 250px;"
                       />
                     </div>
                   </div>
@@ -614,7 +614,7 @@
             </q-card>
 
             <q-dialog v-model="tradeCmdDialog">
-              <q-card style="min-width: 350px">
+              <q-card style="min-width: 350px;">
                 <q-card-section>
                   <div class="text-h6">New Command</div>
                 </q-card-section>
@@ -673,10 +673,10 @@ export default Vue.extend({
       },
       set(newval: string) {
         let tabs = newval.split(',');
-        tabs = tabs.map(t => t.trim());
+        tabs = tabs.map((t) => t.trim());
         this.settings.tradeui.quad = tabs;
-      }
-    }
+      },
+    },
   },
 
   data() {
@@ -685,7 +685,7 @@ export default Vue.extend({
     leagues = leagues.map((lg: string, idx: number) => {
       return {
         label: lg,
-        value: idx
+        value: idx,
       };
     });
 
@@ -721,7 +721,7 @@ export default Vue.extend({
       { label: 'Orb of Augmentation', value: 'aug' },
       { label: 'Mirror of Kalandra', value: 'mir' },
       { label: 'Perandus Coin', value: 'p' },
-      { label: 'Silver Coin', value: 'silver' }
+      { label: 'Silver Coin', value: 'silver' },
     ];
 
     const macroColumns = [
@@ -729,26 +729,26 @@ export default Vue.extend({
         name: 'name',
         align: 'left',
         label: 'Name',
-        field: 'name'
+        field: 'name',
       },
       {
         name: 'key',
         align: 'left',
         label: 'Key',
-        field: 'key'
+        field: 'key',
       },
       {
         name: 'type',
         align: 'left',
         label: 'Type',
-        field: 'type'
+        field: 'type',
       },
       {
         name: 'command',
         align: 'left',
         label: 'Command',
-        field: 'command'
-      }
+        field: 'command',
+      },
     ];
 
     const macros = cfg.get(Config.macros, Config.default.macros);
@@ -769,20 +769,20 @@ export default Vue.extend({
         name: 'label',
         align: 'left',
         label: 'Label',
-        field: 'label'
+        field: 'label',
       },
       {
         name: 'command',
         align: 'left',
         label: 'Command',
-        field: 'command'
+        field: 'command',
       },
       {
         name: 'close',
         align: 'left',
         label: 'Closes Notification?',
-        field: 'close'
-      }
+        field: 'close',
+      },
     ];
 
     return {
@@ -796,7 +796,7 @@ export default Vue.extend({
         name: '',
         key: '',
         type: '',
-        command: ''
+        command: '',
       },
       macroDialog: false,
       currencies: Object.freeze(currencies),
@@ -807,7 +807,7 @@ export default Vue.extend({
       tradeCmdAdd: {
         label: '',
         command: '',
-        close: false
+        close: false,
       },
       settings: {
         hotkey: {
@@ -827,7 +827,7 @@ export default Vue.extend({
             Config.advancedhotkeyenabled,
             Config.default.advancedhotkeyenabled
           ),
-          cscroll: cfg.get(Config.cscroll, Config.default.cscroll)
+          cscroll: cfg.get(Config.cscroll, Config.default.cscroll),
         },
         pricecheck: {
           league: cfg.get(Config.league, Config.default.league),
@@ -870,13 +870,13 @@ export default Vue.extend({
             Config.default.prefillpseudos
           ),
           prefillilvl: cfg.get(Config.prefillilvl, Config.default.prefillilvl),
-          prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase)
+          prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase),
         },
         client: {
-          logpath: clientfile
+          logpath: clientfile,
         },
         macros: {
-          list: macros
+          list: macros,
         },
         tradeui: {
           enabled: cfg.get(Config.tradeui, Config.default.tradeui),
@@ -898,9 +898,9 @@ export default Vue.extend({
           outgoing: cfg.get(
             Config.tradeuioutgoing,
             Config.default.tradeuioutgoing
-          )
-        }
-      }
+          ),
+        },
+      },
     };
   },
 
@@ -1046,7 +1046,7 @@ export default Vue.extend({
         message: 'Settings saved!',
         position: 'top',
         actions: [{ icon: 'close', color: 'white' }],
-        timeout: 2500
+        timeout: 2500,
       });
     },
     closeApp() {
@@ -1060,8 +1060,8 @@ export default Vue.extend({
       this.$q.electron.remote.shell.openExternal(
         'https://www.electronjs.org/docs/api/accelerator'
       );
-    }
-  }
+    },
+  },
 });
 </script>
 

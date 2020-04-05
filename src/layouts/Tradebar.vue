@@ -166,7 +166,7 @@ export default Vue.extend({
       this.history = history;
     });
 
-    setInterval(() => (this.now = new Date()), 1000);
+    setInterval(() => (this.now = new Date()), 10000);
   },
   beforeDestroy() {
     ipcRenderer.removeAllListeners('trade-history');
