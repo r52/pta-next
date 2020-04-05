@@ -20,11 +20,11 @@
         <template>
           <div
             class="grid"
-            :style="'grid-template-columns:' + ' auto'.repeat(quad ? 48 : 12)"
+            :style="'grid-template-columns:' + ' auto'.repeat(quad ? 24 : 12)"
           >
             <div
               class="grid-item"
-              v-for="i in quad ? 2304 : 144"
+              v-for="i in quad ? 576 : 144"
               :key="i"
               :id="`cell-${i}`"
             ></div>
