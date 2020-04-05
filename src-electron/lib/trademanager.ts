@@ -13,6 +13,7 @@ export default class TradeManager {
   private stashHighlight: BrowserWindow | null = null;
   private stashHighlightTimeout: NodeJS.Timeout | null = null;
   private tradeHistory: TradeMsg[] = [];
+  private tradeHistoryWindow: BrowserWindow | null = null;
 
   constructor() {
     ipcMain.on('tradeui-enabled', (event, enabled) => {
@@ -96,6 +97,10 @@ export default class TradeManager {
       this.stophighlightStash();
     });
 
+    ipcMain.on('open-trade-history', (event) => {
+      this.openTradeHistory();
+    });
+
     ipcMain.on('delete-history', (event, trade) => {
       this.tradeHistory.splice(this.tradeHistory.indexOf(trade), 1);
 
@@ -104,6 +109,16 @@ export default class TradeManager {
 
     ipcMain.on('restore-history', (event, trade) => {
       this.showNewTrade(trade);
+    });
+
+    ipcMain.on('trade-bar-ignore-mouse', (event, enabled) => {
+      if (this.tradeBar) {
+        if (enabled) {
+          this.tradeBar.setIgnoreMouseEvents(true, { forward: true });
+        } else {
+          this.tradeBar.setIgnoreMouseEvents(false);
+        }
+      }
     });
   }
 
@@ -154,7 +169,10 @@ export default class TradeManager {
     }
 
     // Send it
-    this.tradeBar?.webContents.send('trade-history', this.tradeHistory);
+    this.tradeHistoryWindow?.webContents.send(
+      'trade-history',
+      this.tradeHistory
+    );
 
     // Show it
     this.showNewTrade(trade);
@@ -223,9 +241,16 @@ export default class TradeManager {
   public showTradeBar() {
     if (this.isEnabled()) {
       if (!this.tradeBar) {
-        this.tradeBar = cfg.window({ name: 'tradebar' }).create({
+        const wincfg = cfg.window({ name: 'tradebar' });
+        const opts = wincfg.options() as Rectangle;
+
+        if (opts.height > 100) {
+          opts.height = 100;
+        }
+
+        this.tradeBar = new BrowserWindow({
           width: 350,
-          height: 400,
+          height: 100,
           alwaysOnTop: true,
           frame: false,
           transparent: true,
@@ -236,7 +261,10 @@ export default class TradeManager {
           webPreferences: {
             nodeIntegration: true,
           },
+          ...opts,
         });
+
+        wincfg.assign(this.tradeBar);
 
         this.tradeBar.loadURL((process.env.APP_URL as string) + '#/tradebar');
 
@@ -438,6 +466,39 @@ export default class TradeManager {
           this.stashHighlight.hide();
         }
       }, 2000);
+    }
+  }
+
+  private openTradeHistory() {
+    if (!this.tradeHistoryWindow) {
+      this.tradeHistoryWindow = cfg.window({ name: 'history' }).create({
+        width: 1000,
+        height: 600,
+        alwaysOnTop: false,
+        frame: false,
+        resizable: true,
+        skipTaskbar: true,
+        webPreferences: {
+          nodeIntegration: true,
+        },
+      });
+
+      this.tradeHistoryWindow.loadURL(
+        (process.env.APP_URL as string) + '#/tradehistory'
+      );
+
+      this.tradeHistoryWindow.on('closed', () => {
+        this.tradeHistoryWindow = null;
+      });
+
+      this.tradeHistoryWindow.webContents.on('did-finish-load', () => {
+        this.tradeHistoryWindow?.webContents.send(
+          'trade-history',
+          this.tradeHistory
+        );
+      });
+    } else {
+      this.tradeHistoryWindow.show();
     }
   }
 }

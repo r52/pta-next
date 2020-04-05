@@ -3,11 +3,11 @@ import { RouteConfig } from 'vue-router';
 const routes: RouteConfig[] = [
   {
     path: '/about',
-    component: () => import('layouts/About.vue')
+    component: () => import('layouts/About.vue'),
   },
   {
     path: '/settings',
-    component: () => import('layouts/Settings.vue')
+    component: () => import('layouts/Settings.vue'),
   },
   {
     path: '/item',
@@ -15,51 +15,55 @@ const routes: RouteConfig[] = [
     children: [
       {
         path: '',
-        component: () => import('pages/Loading.vue')
+        component: () => import('pages/Loading.vue'),
       },
       {
         path: '/mods',
         name: 'mods',
         props: true,
-        component: () => import('pages/Mods.vue')
+        component: () => import('pages/Mods.vue'),
       },
       {
         path: '/results',
         name: 'results',
         props: true,
-        component: () => import('pages/Results.vue')
+        component: () => import('pages/Results.vue'),
       },
       {
         path: '/prediction',
         name: 'prediction',
         props: true,
-        component: () => import('pages/Prediction.vue')
-      }
-    ]
+        component: () => import('pages/Prediction.vue'),
+      },
+    ],
   },
   {
     path: '/tradebar',
-    component: () => import('layouts/Tradebar.vue')
+    component: () => import('layouts/Tradebar.vue'),
+  },
+  {
+    path: '/tradehistory',
+    component: () => import('layouts/TradeHistory.vue'),
   },
   {
     path: '/trade',
-    component: () => import('layouts/TradeNotification.vue')
+    component: () => import('layouts/TradeNotification.vue'),
   },
   {
     path: '/stashsetup',
-    component: () => import('layouts/StashSetup.vue')
+    component: () => import('layouts/StashSetup.vue'),
   },
   {
     path: '/stashhighlight',
-    component: () => import('layouts/StashHighlight.vue')
-  }
+    component: () => import('layouts/StashHighlight.vue'),
+  },
 ];
 
 // Always leave this as last one
 if (process.env.MODE !== 'ssr') {
   routes.push({
     path: '*',
-    component: () => import('pages/Error404.vue')
+    component: () => import('pages/Error404.vue'),
   });
 }
 

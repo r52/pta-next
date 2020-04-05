@@ -2,7 +2,6 @@
   <q-layout view="hHh Lpr fFf">
     <q-page-container>
       <q-page>
-        <div class="clickthru" style="height: 75vh;"></div>
         <q-bar class="bg-grey-8">
           <div class="q-electron-drag">
             <q-icon name="drag_indicator" size="sm" />
@@ -37,50 +36,14 @@
           >
             <q-tooltip>Setup Stash Highlighting</q-tooltip>
           </q-btn>
-          <q-btn dense flat color="teal" icon="history" size="sm">
-            <q-menu>
-              <q-list bordered dense>
-                <q-item-label header>Trade History</q-item-label>
-                <template v-for="trade in history">
-                  <q-separator color="blue" :key="`trsp${trade.time}`" />
-                  <q-item
-                    dense
-                    :key="`${trade.item}${trade.time}`"
-                    :class="
-                      trade.type == 'incoming' ? `bg-green-10` : `bg-red-10`
-                    "
-                  >
-                    <q-item-section side>
-                      <q-btn
-                        dense
-                        icon="close"
-                        size="sm"
-                        @click="historyCommand('delete-history', trade)"
-                      >
-                        <q-tooltip>Delete</q-tooltip>
-                      </q-btn>
-                      <q-btn
-                        dense
-                        icon="restore"
-                        size="sm"
-                        @click="historyCommand('restore-history', trade)"
-                      >
-                        <q-tooltip>Restore</q-tooltip>
-                      </q-btn>
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>{{ trade.name }}</q-item-label>
-                      <q-item-label caption
-                        >{{ trade.price }} {{ trade.currency }}</q-item-label
-                      >
-                    </q-item-section>
-                    <q-item-section side>
-                      {{ getElapsedTime(now, trade.time) }} ago
-                    </q-item-section>
-                  </q-item>
-                </template>
-              </q-list>
-            </q-menu>
+          <q-btn
+            dense
+            flat
+            color="teal"
+            icon="history"
+            size="sm"
+            @click="sendMsg('open-trade-history')"
+          >
             <q-tooltip>Trade History</q-tooltip>
           </q-btn>
           <q-btn
@@ -98,7 +61,11 @@
             <q-tooltip>Close Tradebar</q-tooltip>
           </q-btn>
         </q-bar>
-        <div class="clickthru" style="height: 25vh;"></div>
+        <div
+          style="height: 100vh;"
+          @mouseover="ignoreMouse(true)"
+          @mouseout="ignoreMouse(false)"
+        ></div>
       </q-page>
     </q-page-container>
   </q-layout>
@@ -122,35 +89,11 @@ export default Vue.extend({
   },
 
   methods: {
-    historyCommand(command: string, trade: TradeMsg) {
-      ipcRenderer.send(command, trade);
-    },
     sendMsg(msg: string) {
       ipcRenderer.send(msg);
     },
     sendCommand(command: string) {
       ipcRenderer.send('trade-command', {}, command);
-    },
-    getElapsedTime: (current: number, time: number) => {
-      let dif = current - time;
-
-      // convert to seconds
-      dif = Math.floor(dif / 1000);
-
-      if (dif < 60) {
-        return dif.toString() + 's';
-      }
-
-      // minutes
-      if (dif < 3600) {
-        return Math.floor(dif / 60).toString() + 'm';
-      }
-
-      if (dif < 86400) {
-        return Math.floor(dif / 3600).toString() + 'h';
-      }
-
-      return Math.floor(dif / 86400).toString() + 'd';
     },
     closeApp() {
       const win = this.$q.electron.remote.getCurrentWindow();
@@ -159,32 +102,9 @@ export default Vue.extend({
         win.close();
       }
     },
-  },
-
-  created() {
-    ipcRenderer.on('trade-history', (event, history) => {
-      this.history = history;
-    });
-
-    setInterval(() => (this.now = new Date()), 10000);
-  },
-  beforeDestroy() {
-    ipcRenderer.removeAllListeners('trade-history');
-  },
-
-  mounted() {
-    const win = this.$q.electron.remote.getCurrentWindow();
-    const els = document.getElementsByClassName('clickthru');
-    if (els) {
-      Array.from(els).forEach((el) => {
-        el.addEventListener('mouseenter', () => {
-          win.setIgnoreMouseEvents(true, { forward: true });
-        });
-        el.addEventListener('mouseleave', () => {
-          win.setIgnoreMouseEvents(false);
-        });
-      });
-    }
+    ignoreMouse(enabled: boolean) {
+      ipcRenderer.send('trade-bar-ignore-mouse', enabled);
+    },
   },
 });
 </script>

@@ -914,11 +914,7 @@ export class ItemParser {
     }
 
     if (!found) {
-      console.time('fuse');
-
       const results = this.stats[stattype].fuse.search(stat);
-
-      console.timeEnd('fuse');
 
       // loop thru the first couple of results
       let idx = 0;

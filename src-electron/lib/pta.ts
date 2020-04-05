@@ -106,31 +106,33 @@ export class PTA {
   }
 
   public setup() {
-    this.registerShortcuts();
+    setTimeout(() => {
+      this.registerShortcuts();
 
-    // setup trade manager
-    this.trademanager.setup();
+      // setup native hooks
+      winpoe.onForegroundChange((isPoe: boolean) => {
+        setTimeout(() => {
+          if (isPoe) {
+            this.registerShortcuts();
+          } else {
+            this.unregisterShortcuts();
+          }
 
-    // setup native hooks
-    winpoe.onForegroundChange((isPoe: boolean) => {
-      setTimeout(() => {
-        if (isPoe) {
-          this.registerShortcuts();
-        } else {
-          this.unregisterShortcuts();
-        }
+          this.trademanager.handleForegroundChange(isPoe);
+        }, 0);
+      });
 
-        this.trademanager.handleForegroundChange(isPoe);
-      }, 0);
-    });
+      if (process.env.PROD) {
+        // Update check
+        autoUpdater.logger = log;
+        autoUpdater.checkForUpdatesAndNotify();
 
-    if (process.env.PROD) {
-      // Update check
-      autoUpdater.logger = log;
-      autoUpdater.checkForUpdatesAndNotify();
+        winpoe.InitializeHooks();
+      }
 
-      winpoe.InitializeHooks();
-    }
+      // setup trade manager
+      this.trademanager.setup();
+    }, 0);
   }
 
   public shutdown() {
@@ -366,33 +368,20 @@ export class PTA {
       return;
     }
 
-    const parseitem = new Promise((resolve, reject) => {
-      console.time('parse');
-      const item = PTA.parser.parse(itemtext);
-      console.timeEnd('parse');
+    const item = PTA.parser.parse(itemtext);
 
-      if (item) {
-        resolve(item);
-      } else {
-        reject();
+    if (!item) {
+      dialog.showErrorBox(
+        'Item Error',
+        'Error parsing item text. Check log for more details.'
+      );
+    } else {
+      if (type === ItemHotkey.SIMPLE || type === ItemHotkey.ADVANCED) {
+        const { settings, options } = this.fillSearchOptions(item);
+
+        this.createItemUI(item, settings, options, type);
       }
-    });
-
-    parseitem
-      .then((item) => {
-        const titem = item as Item;
-        if (type === ItemHotkey.SIMPLE || type === ItemHotkey.ADVANCED) {
-          const { settings, options } = this.fillSearchOptions(titem);
-
-          this.createItemUI(titem, settings, options, type);
-        }
-      })
-      .catch(() => {
-        dialog.showErrorBox(
-          'Item Error',
-          'Error parsing item text. Check log for more details.'
-        );
-      });
+    }
   }
 
   private fillSearchOptions(item: Item) {
