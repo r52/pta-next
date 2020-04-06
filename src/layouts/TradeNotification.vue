@@ -181,6 +181,10 @@ export default Vue.extend({
     },
     sendCustomCommand(command: TradeCommand) {
       ipcRenderer.send('trade-custom-command', this.trade, command);
+
+      if (command.close) {
+        this.closeApp();
+      }
     },
     closeApp() {
       const win = this.$q.electron.remote.getCurrentWindow();
