@@ -114,16 +114,13 @@ export class ItemParser {
 
           // construct fuse
           const entries = el as StatFilter[];
-          const index = Fuse.createIndex<StatFilter>(
-            ['text', 'option.options.text'],
-            entries
-          );
+          const index = Fuse.createIndex<StatFilter>(['text'], entries);
           this.stats[tlb] = {
             entries: entries,
             fuse: new Fuse(
               entries,
               {
-                keys: ['text', 'option.options.text'],
+                keys: ['text'],
                 shouldSort: true,
                 threshold: 0.5,
                 location: 0,
