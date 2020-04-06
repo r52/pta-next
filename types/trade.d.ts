@@ -5,9 +5,9 @@ interface TradeMsg {
   price: number;
   currency: string;
   league: string;
-  tab: string;
-  x: number;
-  y: number;
+  tab?: string;
+  x?: number;
+  y?: number;
   time: number;
 }
 

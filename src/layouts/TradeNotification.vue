@@ -9,7 +9,7 @@
       <q-bar dense class="bg-grey-9">
         <div class="text-orange">{{ trade.name }}</div>
         <div
-          v-if="trade.type == 'incoming'"
+          v-if="trade.type == 'incoming' && trade.tab"
           @mouseover="highlightStash"
           @mouseout="stopHighlightStash"
         >

@@ -105,16 +105,16 @@ export default class ClientMonitor extends EventEmitter {
     const stream = fs.createReadStream(this.logpath, {
       encoding: 'utf8',
       start: prev.size,
-      end: curr.size
+      end: curr.size,
     });
 
     const lines = readline.createInterface({
       input: stream,
       output: process.stdout,
-      terminal: false
+      terminal: false,
     });
 
-    lines.on('line', line => {
+    lines.on('line', (line) => {
       if (line) {
         this.processLogLine(line);
       }
@@ -158,46 +158,29 @@ export default class ClientMonitor extends EventEmitter {
 
       const msg = msgparts[1];
 
-      Object.entries(trademsg).some(entry => {
+      Object.entries(trademsg).some((entry) => {
         const mobj = entry[1];
 
         if (msg.startsWith(mobj.test)) {
           // process
-          this.processTradeMsg(pname, type, msg, mobj.reg);
+          mobj.types.some((t) => {
+            const match = t.reg.exec(msg);
+            const tradeobj = t.process(name, type, match);
+
+            if (tradeobj) {
+              this.emit('new-trade', tradeobj);
+
+              return true;
+            }
+
+            return false;
+          });
+
           return true;
         }
 
         return false;
       });
     }
-  }
-
-  private processTradeMsg(
-    name: string,
-    type: string,
-    msg: string,
-    reg: RegExp
-  ) {
-    const match = reg.exec(msg);
-
-    if (!match || match.length != 8) {
-      // invalid/unrecognized trade msg
-      return;
-    }
-
-    const tradeobj = {
-      name: name,
-      type: type,
-      item: match[1],
-      price: parseFloat(match[2]),
-      currency: match[3],
-      league: match[4],
-      tab: match[5],
-      x: parseInt(match[6]),
-      y: parseInt(match[7]),
-      time: Date.now()
-    } as TradeMsg;
-
-    this.emit('new-trade', tradeobj);
   }
 }
