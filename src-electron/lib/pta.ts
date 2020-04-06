@@ -106,33 +106,31 @@ export class PTA {
   }
 
   public setup() {
-    setTimeout(() => {
-      this.registerShortcuts();
+    this.registerShortcuts();
 
-      // setup native hooks
-      winpoe.onForegroundChange((isPoe: boolean) => {
-        setTimeout(() => {
-          if (isPoe) {
-            this.registerShortcuts();
-          } else {
-            this.unregisterShortcuts();
-          }
+    // setup native hooks
+    winpoe.onForegroundChange((isPoe: boolean) => {
+      setTimeout(() => {
+        if (isPoe) {
+          this.registerShortcuts();
+        } else {
+          this.unregisterShortcuts();
+        }
 
-          this.trademanager.handleForegroundChange(isPoe);
-        }, 0);
-      });
+        this.trademanager.handleForegroundChange(isPoe);
+      }, 0);
+    });
 
-      if (process.env.PROD) {
-        // Update check
-        autoUpdater.logger = log;
-        autoUpdater.checkForUpdatesAndNotify();
+    if (process.env.PROD) {
+      // Update check
+      autoUpdater.logger = log;
+      autoUpdater.checkForUpdatesAndNotify();
 
-        winpoe.InitializeHooks();
-      }
+      winpoe.InitializeHooks();
+    }
 
-      // setup trade manager
-      this.trademanager.setup();
-    }, 0);
+    // setup trade manager
+    this.trademanager.setup();
   }
 
   public shutdown() {

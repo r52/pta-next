@@ -33,7 +33,9 @@ let tray: Tray | null = null;
 global.pta = PTA.getInstance();
 
 app.on('ready', () => {
-  global.pta.setup();
+  setTimeout(() => {
+    global.pta.setup();
+  }, 1000);
 
   tray = new Tray(path.join(__statics, '/icon.png'));
 
@@ -42,27 +44,27 @@ app.on('ready', () => {
       label: 'Open Tradebar',
       click: () => {
         global.pta.openTradeBar();
-      }
+      },
     },
     {
       label: 'Settings',
       click: () => {
         global.pta.createSettingsWindow();
-      }
+      },
     },
     {
-      type: 'separator'
+      type: 'separator',
     },
     {
       label: 'About',
       click: () => {
         global.pta.createAboutWindow();
-      }
+      },
     },
     {
       label: 'Exit',
-      role: 'quit'
-    }
+      role: 'quit',
+    },
   ]);
   tray.setContextMenu(contextMenu);
 });
