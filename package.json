@@ -22,6 +22,7 @@
     "electron-log": "^4.0.7",
     "electron-updater": "^4.2.5",
     "fuse.js": "^5.0.10-beta",
+    "iohook": "^0.6.5",
     "lodash.merge": "^4.6.2",
     "multimap": "^1.1.0",
     "quasar": "^1.9.5",
@@ -56,5 +57,16 @@
   },
   "browserslist": [
     "last 1 electron version"
-  ]
+  ],
+  "iohook": {
+    "targets": [
+      "electron-76"
+    ],
+    "platforms": [
+      "win32"
+    ],
+    "arches": [
+      "x64"
+    ]
+  }
 }

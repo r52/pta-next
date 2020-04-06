@@ -18,6 +18,7 @@ import ClientMonitor from './clientmonitor';
 import apis from '../lib/api/apis';
 import { autoUpdater } from 'electron-updater';
 import TradeManager from './trademanager';
+import iohook from 'iohook';
 
 interface Macro {
   name: string;
@@ -38,6 +39,8 @@ export class PTA {
   private aboutWindow: BrowserWindow | null = null;
   private clientmonitor: ClientMonitor;
   private trademanager: TradeManager;
+
+  private cscrollEnabled = false;
 
   private macroVariables = new Map<string, () => string>([
     [
@@ -95,6 +98,12 @@ export class PTA {
     this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
       this.trademanager.handleNewTrade(trademsg);
     });
+
+    iohook.on('mousewheel', (event) => {
+      if (event.direction == 3 && event.ctrlKey && this.cscrollEnabled) {
+        winpoe.SendStashMove(event.rotation, event.x, event.y);
+      }
+    });
   }
 
   public static getInstance(): PTA {
@@ -121,13 +130,13 @@ export class PTA {
       }, 0);
     });
 
-    if (process.env.PROD) {
-      // Update check
-      autoUpdater.logger = log;
-      autoUpdater.checkForUpdatesAndNotify();
+    // Update check
+    autoUpdater.logger = log;
+    autoUpdater.checkForUpdatesAndNotify();
 
-      winpoe.InitializeHooks();
-    }
+    winpoe.InitializeHooks();
+
+    iohook.start(process.env.NODE_ENV == 'development');
 
     // setup trade manager
     this.trademanager.setup();
@@ -136,9 +145,9 @@ export class PTA {
   public shutdown() {
     this.unregisterShortcuts();
 
-    if (process.env.PROD) {
-      winpoe.ShutdownHooks();
-    }
+    winpoe.ShutdownHooks();
+
+    iohook.stop();
   }
 
   private registerShortcuts() {
@@ -175,7 +184,7 @@ export class PTA {
 
     // cscroll
     const cscroll = cfg.get(Config.cscroll, Config.default.cscroll);
-    winpoe.SetScrollHookEnabled(cscroll);
+    this.cscrollEnabled = cscroll;
 
     // macros
     const macros: Macro[] = cfg.get(Config.macros, Config.default.macros);
@@ -191,7 +200,6 @@ export class PTA {
   }
 
   private unregisterShortcuts() {
-    winpoe.SetScrollHookEnabled(false);
     globalShortcut.unregisterAll();
   }
 

@@ -4,10 +4,6 @@
 namespace
 {
 HWINEVENTHOOK g_ForegroundHook = nullptr;
-HHOOK g_MouseHook = nullptr;
-HHOOK g_KeyboardHook = nullptr;
-bool g_ctrldown = false;
-bool g_ctrlScrollEnabled = false;
 
 Napi::FunctionReference g_ForegroundHookCb;
 } // namespace
@@ -47,50 +43,21 @@ bool IsPoEForeground()
 
     return true;
 }
+
+bool CheckBounds(RECT bounds, int x, int y)
+{
+    return (x > bounds.left && x < bounds.right && y > bounds.top && y < bounds.bottom);
+}
+
+bool CheckMouseInStash(RECT bounds, int x)
+{
+    int winLength = bounds.right - bounds.left;
+    int stashLength = (int)((double)winLength * 0.346875);
+
+    return (x > bounds.left && x < (bounds.left + stashLength));
+}
+
 } // namespace pta
-
-LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-    if (nCode >= HC_ACTION)
-    {
-        KBDLLHOOKSTRUCT *kb = (KBDLLHOOKSTRUCT *)lParam;
-
-        if (kb->vkCode == VK_CONTROL || kb->vkCode == VK_LCONTROL || kb->vkCode == VK_RCONTROL)
-        {
-            g_ctrldown = (wParam == WM_KEYDOWN);
-        }
-    }
-
-    return CallNextHookEx(g_KeyboardHook, nCode, wParam, lParam);
-}
-
-LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-    if (nCode >= HC_ACTION)
-    {
-        if (wParam == WM_MOUSEWHEEL && g_ctrldown && pta::IsPoEForeground() && g_ctrlScrollEnabled)
-        {
-            MSLLHOOKSTRUCT *mhs = (MSLLHOOKSTRUCT *)lParam;
-
-            auto zDelta = GET_WHEEL_DELTA_WPARAM(mhs->mouseData);
-
-            WORD key = (zDelta > 0 ? VK_LEFT : VK_RIGHT);
-
-            // Send input
-            std::vector<INPUT> keystroke;
-
-            keystroke.push_back(pta::CreateInput(key, true));
-            keystroke.push_back(pta::CreateInput(key, false));
-
-            SendInput(keystroke.size(), keystroke.data(), sizeof(keystroke[0]));
-
-            // consume the input
-            return -1;
-        }
-    }
-
-    return CallNextHookEx(g_MouseHook, nCode, wParam, lParam);
-}
 
 VOID CALLBACK
 ForegroundHookCallback(HWINEVENTHOOK hWinEventHook, DWORD dwEvent, HWND hwnd, LONG idObject, LONG idChild, DWORD dwEventThread, DWORD dwmsEventTime)
@@ -117,10 +84,6 @@ void InitializeHooks(const Napi::CallbackInfo &info)
 {
     g_ForegroundHook = SetWinEventHook(
         EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, ForegroundHookCallback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
-
-    g_MouseHook = SetWindowsHookEx(WH_MOUSE_LL, &LowLevelMouseProc, GetModuleHandle(NULL), NULL);
-
-    g_KeyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, &LowLevelKeyboardProc, GetModuleHandle(NULL), NULL);
 }
 
 void ShutdownHooks(const Napi::CallbackInfo &info)
@@ -129,22 +92,6 @@ void ShutdownHooks(const Napi::CallbackInfo &info)
     {
         UnhookWinEvent(g_ForegroundHook);
     }
-
-    if (g_MouseHook)
-    {
-        UnhookWindowsHookEx(g_MouseHook);
-    }
-
-    if (g_KeyboardHook)
-    {
-        UnhookWindowsHookEx(g_KeyboardHook);
-    }
-}
-
-void SetScrollHookEnabled(const Napi::CallbackInfo &info)
-{
-    Napi::Boolean enabled = info[0].As<Napi::Boolean>();
-    g_ctrlScrollEnabled = enabled.Value();
 }
 
 Napi::Boolean IsPoEForeground(const Napi::CallbackInfo &info)
@@ -223,18 +170,45 @@ void SendCopyCommand(const Napi::CallbackInfo &info)
     SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
 }
 
+void SendStashMove(const Napi::CallbackInfo &info)
+{
+    Napi::Env env = info.Env();
+    Napi::Number direction = info[0].As<Napi::Number>();
+    Napi::Number x = info[1].As<Napi::Number>();
+    Napi::Number y = info[2].As<Napi::Number>();
+
+    if (pta::IsPoEForeground())
+    {
+        HWND hwnd = GetForegroundWindow();
+        RECT screen;
+
+        if (GetWindowRect(hwnd, &screen) && pta::CheckBounds(screen, x.Int32Value(), y.Int32Value()) && !pta::CheckMouseInStash(screen, x.Int32Value()))
+        {
+            WORD key = (direction.Int32Value() > 0 ? VK_RIGHT : VK_LEFT);
+
+            // Send input
+            std::vector<INPUT> keystroke;
+
+            keystroke.push_back(pta::CreateInput(key, true));
+            keystroke.push_back(pta::CreateInput(key, false));
+
+            SendInput(keystroke.size(), keystroke.data(), sizeof(keystroke[0]));
+        }
+    }
+}
+
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // raw funcs
     exports.Set(Napi::String::New(env, "IsPoEForeground"), Napi::Function::New(env, IsPoEForeground));
     exports.Set(Napi::String::New(env, "SendCopyCommand"), Napi::Function::New(env, SendCopyCommand));
     exports.Set(Napi::String::New(env, "SendPasteCommand"), Napi::Function::New(env, SendPasteCommand));
+    exports.Set(Napi::String::New(env, "SendStashMove"), Napi::Function::New(env, SendStashMove));
 
     // cbs
     exports.Set(Napi::String::New(env, "onForegroundChange"), Napi::Function::New(env, InstallForegroundHookCb));
 
     // set
-    exports.Set(Napi::String::New(env, "SetScrollHookEnabled"), Napi::Function::New(env, SetScrollHookEnabled));
     exports.Set(Napi::String::New(env, "InitializeHooks"), Napi::Function::New(env, InitializeHooks));
     exports.Set(Napi::String::New(env, "ShutdownHooks"), Napi::Function::New(env, ShutdownHooks));
     return exports;

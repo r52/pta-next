@@ -1,16 +1,12 @@
 declare class WinPoE {
   IsPoEForeground(): boolean;
-
   SendCopyCommand(): void;
-
   SendPasteCommand(): void;
+  SendStashMove(direction: number, x: number, y: number): void;
 
   onForegroundChange(foregroundCb: Function): void;
 
-  SetScrollHookEnabled(enabled: boolean): void;
-
   InitializeHooks(): void;
-
   ShutdownHooks(): void;
 }
 
