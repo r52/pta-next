@@ -4,6 +4,8 @@ import { PTA } from '../lib/pta';
 import cfg from 'electron-cfg';
 import log from 'electron-log';
 
+app.allowRendererProcessReuse = true;
+
 try {
   if (
     process.platform === 'win32' &&
