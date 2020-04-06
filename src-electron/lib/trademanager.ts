@@ -6,6 +6,13 @@ import winpoe from 'winpoe';
 
 const notificationMargin = 20; // pixels
 
+function getTradeVariable(trade: TradeMsg, token: string) {
+  if (token in trade) {
+    return trade[token];
+  }
+  return null;
+}
+
 export default class TradeManager {
   private tradeBar: BrowserWindow | null = null;
   private tradeNotifications: BrowserWindow[] = [];
@@ -328,7 +335,18 @@ export default class TradeManager {
       return;
     }
 
-    this.executeChatCommand('@' + trade.name + ' ' + command.command);
+    const re = /!(\w+)!/g;
+    const proccmd = command.command.replace(re, (match, token) => {
+      const ptok = getTradeVariable(trade, token);
+
+      if (ptok) {
+        return ptok;
+      }
+
+      return token;
+    });
+
+    this.executeChatCommand('@' + trade.name + ' ' + proccmd);
   }
 
   private executeChatCommand(command: string) {

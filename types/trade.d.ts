@@ -1,4 +1,5 @@
 interface TradeMsg {
+  [index: string]: string | number | undefined;
   name: string;
   type: string;
   item: string;
