@@ -165,12 +165,15 @@ export default class ClientMonitor extends EventEmitter {
           // process
           mobj.types.some((t) => {
             const match = t.reg.exec(msg);
-            const tradeobj = t.process(pname, type, match);
 
-            if (tradeobj) {
-              this.emit('new-trade', tradeobj);
+            if (match) {
+              const tradeobj = t.process(pname, type, match);
 
-              return true;
+              if (tradeobj) {
+                this.emit('new-trade', tradeobj);
+
+                return true;
+              }
             }
 
             return false;
