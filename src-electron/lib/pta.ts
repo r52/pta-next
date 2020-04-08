@@ -371,7 +371,6 @@ export class PTA {
       frame: false,
       backgroundColor: '#00000000',
       title: item.name ?? item.type,
-      focusable: false,
       webPreferences: {
         nodeIntegration: true
       },
