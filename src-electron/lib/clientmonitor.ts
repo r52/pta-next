@@ -1,10 +1,11 @@
 import { ipcMain } from 'electron';
 import log from 'electron-log';
+import cfg from 'electron-cfg';
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import readline from 'readline';
+
 import trademsg from './trademsg';
-import cfg from 'electron-cfg';
 import Config from '../lib/config';
 
 // polling rate in milliseconds
@@ -105,16 +106,16 @@ export default class ClientMonitor extends EventEmitter {
     const stream = fs.createReadStream(this.logpath, {
       encoding: 'utf8',
       start: prev.size,
-      end: curr.size,
+      end: curr.size
     });
 
     const lines = readline.createInterface({
       input: stream,
       output: process.stdout,
-      terminal: false,
+      terminal: false
     });
 
-    lines.on('line', (line) => {
+    lines.on('line', line => {
       if (line) {
         this.processLogLine(line);
       }
@@ -158,12 +159,12 @@ export default class ClientMonitor extends EventEmitter {
 
       const msg = msgparts[1];
 
-      Object.entries(trademsg).some((entry) => {
+      Object.entries(trademsg).some(entry => {
         const mobj = entry[1];
 
         if (msg.startsWith(mobj.test)) {
           // process
-          mobj.types.some((t) => {
+          mobj.types.some(t => {
             const match = t.reg.exec(msg);
 
             if (match) {

@@ -24,3 +24,21 @@ interface TabInfo {
   y: number;
   quad: boolean;
 }
+
+interface TradeMessages {
+  [index: string]: TradeMessageProcess;
+}
+
+interface TradeMessageProcess {
+  test: string;
+  types: TradeMessageProcessor[];
+}
+
+interface TradeMessageProcessor {
+  reg: RegExp;
+  process(
+    name: string,
+    type: string,
+    match: RegExpExecArray | null
+  ): TradeMsg | null;
+}

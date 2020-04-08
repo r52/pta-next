@@ -2,8 +2,9 @@
 import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
-import apis from '../lib/api/apis';
 import Fuse from 'fuse.js';
+
+import URLs from './api/urls';
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -43,35 +44,32 @@ class ItemText {
 }
 
 export class ItemParser {
-  private static instance: ItemParser;
+  private modData: Map<string, string>;
+  private uniques: MultiMap;
+  private baseCat: Map<string, string>;
+  private baseMap: Map<string, Record<string, any>>;
+  private excludes: Set<string>;
+  private statsById: Map<string, Record<string, any>>;
+  private weaponLocals: Set<string>;
+  private armourLocals: Set<string>;
+  private enchantRules: Map<string, Record<string, any>>;
+  private pseudoRules: Map<string, Record<string, any>[]>;
+  private discriminators: Map<string, Set<string>>;
+  private priorityRules: Map<string, Record<string, any>>;
 
-  modData: Map<string, string>;
-  uniques: MultiMap;
-  baseCat: Map<string, string>;
-  baseMap: Map<string, Record<string, any>>;
-  excludes: Set<string>;
-  statsById: Map<string, Record<string, any>>;
-  weaponLocals: Set<string>;
-  armourLocals: Set<string>;
-  enchantRules: Map<string, Record<string, any>>;
-  pseudoRules: Map<string, Record<string, any>[]>;
-  discriminators: Map<string, Set<string>>;
-  priorityRules: Map<string, Record<string, any>>;
-  exchange: Map<string, string>;
-  currencies: Set<string>;
-  mapDisc = 'warfortheatlas';
+  private mapDisc = 'warfortheatlas';
 
-  stats: { [index: string]: StatType };
+  private stats: { [index: string]: StatType };
 
   private section = '';
 
-  private constructor() {
+  public constructor(uniques: MultiMap) {
     ///////////////////////////////////////////// Download excludes/stats
     this.excludes = new Set();
     this.statsById = new Map();
     this.stats = {};
 
-    axios.get(apis.pta.exclude).then((response: any) => {
+    axios.get(URLs.pta.exclude).then((response: any) => {
       const data = response.data;
 
       for (const e of data['excludes']) {
@@ -80,7 +78,7 @@ export class ItemParser {
 
       log.info('Excludes loaded');
 
-      axios.get(apis.official.stats).then((response: any) => {
+      axios.get(URLs.official.stats).then((response: any) => {
         const data = response.data;
 
         const stt = data['result'];
@@ -105,7 +103,7 @@ export class ItemParser {
                   threshold: 0.6,
                   location: 0,
                   distance: 1000,
-                  includeScore: false,
+                  includeScore: false
                 },
                 index
               );
@@ -124,10 +122,10 @@ export class ItemParser {
                 shouldSort: true,
                 threshold: 0.5,
                 location: 0,
-                includeScore: false,
+                includeScore: false
               },
               index
-            ),
+            )
           };
         }
 
@@ -135,35 +133,14 @@ export class ItemParser {
       });
     });
 
-    ///////////////////////////////////////////// Download unique items
-    this.uniques = new MultiMap();
-
-    axios.get(apis.official.items).then((response: any) => {
-      const data = response.data;
-      const itm = data['result'];
-
-      for (const type of itm) {
-        const el = type['entries'];
-
-        for (const et of el) {
-          if ('name' in et) {
-            this.uniques.set(et['name'], et);
-          } else if ('type' in et) {
-            this.uniques.set(et['type'], et);
-          } else {
-            log.debug('Item entry has neither name nor type:', et);
-          }
-        }
-      }
-
-      log.info('Unique item data loaded');
-    });
+    ///////////////////////////////////////////// Save unique items
+    this.uniques = uniques;
 
     ///////////////////////////////////////////// Load base categories/RePoE base data
     this.baseCat = new Map();
     this.baseMap = new Map();
 
-    axios.get(apis.pta.basecat).then((response: any) => {
+    axios.get(URLs.pta.basecat).then((response: any) => {
       const data = response.data;
 
       for (const [k, o] of Object.entries(data)) {
@@ -172,7 +149,7 @@ export class ItemParser {
 
       log.info('Base categories loaded');
 
-      axios.get(apis.repoe.base).then((response: any) => {
+      axios.get(URLs.repoe.base).then((response: any) => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
@@ -201,7 +178,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Load RePoE mod data
     this.modData = new Map();
 
-    axios.get(apis.repoe.mods).then((response: any) => {
+    axios.get(URLs.repoe.mods).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -231,7 +208,7 @@ export class ItemParser {
     this.armourLocals = new Set();
     this.weaponLocals = new Set();
 
-    axios.get(apis.pta.armour).then((response: any) => {
+    axios.get(URLs.pta.armour).then((response: any) => {
       const data = response.data;
 
       for (const e of data['data']) {
@@ -241,7 +218,7 @@ export class ItemParser {
       log.info('Armour locals loaded');
     });
 
-    axios.get(apis.pta.weapon).then((response: any) => {
+    axios.get(URLs.pta.weapon).then((response: any) => {
       const data = response.data;
 
       for (const e of data['data']) {
@@ -254,7 +231,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Load enchant rules
     this.enchantRules = new Map();
 
-    axios.get(apis.pta.enchant).then((response: any) => {
+    axios.get(URLs.pta.enchant).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -269,7 +246,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Load pseudo rules
     this.pseudoRules = new Map();
 
-    axios.get(apis.pta.pseudo).then((response: any) => {
+    axios.get(URLs.pta.pseudo).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -284,7 +261,7 @@ export class ItemParser {
     ///////////////////////////////////////////// Mod Discriminators
     this.discriminators = new Map();
 
-    axios.get(apis.pta.disc).then((response: any) => {
+    axios.get(URLs.pta.disc).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -302,30 +279,10 @@ export class ItemParser {
       log.info('Discriminator rules loaded');
     });
 
-    ///////////////////////////////////////////// Currency
-    this.exchange = new Map();
-    this.currencies = new Set();
-
-    axios.get(apis.pta.currency).then((response: any) => {
-      const data = response.data;
-
-      for (const [k, val] of Object.entries(data)) {
-        const o = val as string;
-
-        this.exchange.set(k, o);
-      }
-
-      this.exchange.forEach((val) => {
-        this.currencies.add(val);
-      });
-
-      log.info('Currencies loaded');
-    });
-
     ///////////////////////////////////////////// Priority rules
     this.priorityRules = new Map();
 
-    axios.get(apis.pta.priority).then((response: any) => {
+    axios.get(URLs.pta.priority).then((response: any) => {
       const data = response.data;
 
       for (const [k, val] of Object.entries(data)) {
@@ -334,14 +291,6 @@ export class ItemParser {
 
       log.info('Priority rules loaded');
     });
-  }
-
-  public static getInstance(): ItemParser {
-    if (!ItemParser.instance) {
-      ItemParser.instance = new ItemParser();
-    }
-
-    return ItemParser.instance;
   }
 
   public parse(itemtext: string): Item | null {
@@ -467,7 +416,7 @@ export class ItemParser {
                   value: [] as number[],
                   selected: null,
                   min: null,
-                  max: null,
+                  max: null
                 } as unknown) as Filter;
 
                 for (const v of fil.value) {
@@ -517,7 +466,7 @@ export class ItemParser {
       // Try to get rid of all suffixes by forward catching " of"
       const re = /[\w'-]+/g;
 
-      let words = Array.from(type.matchAll(re), (m) => m[0]);
+      let words = Array.from(type.matchAll(re), m => m[0]);
 
       const prefix = words[0];
 
@@ -653,7 +602,7 @@ export class ItemParser {
   private readPropIntRange(prop: string): NumericRange {
     const val = {
       min: 0,
-      max: 0,
+      max: 0
     } as NumericRange;
 
     // If it is a list, process list
@@ -677,7 +626,7 @@ export class ItemParser {
 
     const re = /\d+/g;
 
-    const match = Array.from(prop.matchAll(re), (m) => m[0]);
+    const match = Array.from(prop.matchAll(re), m => m[0]);
 
     if (match) {
       const v1 = match[0];
@@ -714,7 +663,7 @@ export class ItemParser {
       B: 0,
       W: 0,
       A: 0,
-      D: 0,
+      D: 0
     } as Sockets;
 
     const llist = prop.split(' ');
@@ -932,7 +881,7 @@ export class ItemParser {
 
           // check each priority
           const priorities = rule['priority'] as string[];
-          const pass = priorities.every((p) => {
+          const pass = priorities.every(p => {
             return keys.includes(p);
           });
 
@@ -1005,7 +954,7 @@ export class ItemParser {
 
             if (matches.length) {
               val = matches.map(Number);
-              val = val.map((x) => x * factor);
+              val = val.map(x => x * factor);
             } else {
               // shouldn't ever get here
               val = [];
@@ -1024,7 +973,7 @@ export class ItemParser {
           const results = foundEntry.option.fuse.search(search);
 
           // look for exact matches within results
-          results.some((e) => {
+          results.some(e => {
             if (e.item.text.includes(search)) {
               selected = e.item.id;
               return true;
@@ -1042,7 +991,7 @@ export class ItemParser {
         enabled: false,
         selected: selected,
         min: null,
-        max: null,
+        max: null
       } as Filter;
 
       item.filters = item.filters ?? ({} as { [index: string]: Filter });
@@ -1067,28 +1016,5 @@ export class ItemParser {
     }
 
     return false;
-  }
-
-  private captureNumerics(
-    line: string,
-    re: RegExp,
-    val: number[],
-    captured: string[]
-  ) {
-    const words = Array.from(line.matchAll(re), (m) => m[0]);
-
-    for (const word of words) {
-      captured.push(word);
-
-      let numval: number;
-
-      if (word.includes('.')) {
-        numval = parseFloat(word);
-      } else {
-        numval = parseInt(word);
-      }
-
-      val.push(numval);
-    }
   }
 }

@@ -5,20 +5,26 @@ import {
   dialog,
   globalShortcut,
   ipcMain,
-  shell,
+  shell
 } from 'electron';
-import { ItemParser } from '../lib/itemparser';
 import log from 'electron-log';
 import cfg from 'electron-cfg';
-import Config from '../lib/config';
-import * as poetrade from './api/poetrade';
 import winpoe from 'winpoe';
 import axios from 'axios';
-import ClientMonitor from './clientmonitor';
-import apis from '../lib/api/apis';
-import { autoUpdater } from 'electron-updater';
-import TradeManager from './trademanager';
+import MultiMap from 'multimap';
 import iohook from 'iohook';
+import { autoUpdater } from 'electron-updater';
+
+import { ItemParser } from '../lib/itemparser';
+import Config from '../lib/config';
+
+import ClientMonitor from './clientmonitor';
+import TradeManager from './trademanager';
+
+// apis
+import URLs from './api/urls';
+import { POETradeAPI } from './api/poetrade';
+import { POEPricesAPI } from './api/poeprices';
 
 interface Macro {
   name: string;
@@ -29,16 +35,21 @@ interface Macro {
 
 enum ItemHotkey {
   SIMPLE,
-  ADVANCED,
+  ADVANCED
 }
 
 export class PTA {
   private static instance: PTA;
-  private static parser: ItemParser;
+  private parser!: ItemParser;
+
   private settingsWindow: BrowserWindow | null = null;
   private aboutWindow: BrowserWindow | null = null;
   private clientmonitor: ClientMonitor;
   private trademanager: TradeManager;
+
+  private uniques: MultiMap;
+
+  private searchAPIs: PriceAPI[] = [];
 
   private cscrollEnabled = false;
 
@@ -47,19 +58,17 @@ export class PTA {
       'last_whisper',
       () => {
         return this.clientmonitor.getLastWhisperer();
-      },
-    ],
+      }
+    ]
   ]);
 
   leagues: string[];
 
   private constructor() {
-    PTA.parser = ItemParser.getInstance();
-
     ///////////////////////////////////////////// Download leagues
     this.leagues = [];
 
-    axios.get(apis.official.leagues).then((response: any) => {
+    axios.get(URLs.official.leagues).then((response: any) => {
       const data = response.data;
 
       const lgs = data['result'];
@@ -71,6 +80,37 @@ export class PTA {
       const setlg = this.getLeague();
 
       log.info('League data loaded. Setting league to', setlg);
+    });
+
+    ///////////////////////////////////////////// Download unique items
+    this.uniques = new MultiMap();
+
+    axios.get(URLs.official.items).then((response: any) => {
+      const data = response.data;
+      const itm = data['result'];
+
+      for (const type of itm) {
+        const el = type['entries'];
+
+        for (const et of el) {
+          if ('name' in et) {
+            this.uniques.set(et['name'], et);
+          } else if ('type' in et) {
+            this.uniques.set(et['type'], et);
+          } else {
+            log.debug('Item entry has neither name nor type:', et);
+          }
+        }
+      }
+
+      log.info('Unique item data loaded');
+
+      // Load APIs
+      this.parser = new ItemParser(this.uniques);
+      this.searchAPIs.push(new POETradeAPI(this.uniques));
+      this.searchAPIs.push(new POEPricesAPI(this.uniques));
+
+      // XXX: potentially add more apis
     });
 
     this.clientmonitor = new ClientMonitor();
@@ -99,7 +139,7 @@ export class PTA {
       this.trademanager.handleNewTrade(trademsg);
     });
 
-    iohook.on('mousewheel', (event) => {
+    iohook.on('mousewheel', event => {
       if (event.direction == 3 && event.ctrlKey && this.cscrollEnabled) {
         winpoe.SendStashMove(event.rotation, event.x, event.y);
       }
@@ -267,8 +307,8 @@ export class PTA {
         frame: false,
         title: 'PTA-Next Settings',
         webPreferences: {
-          nodeIntegration: true,
-        },
+          nodeIntegration: true
+        }
       });
 
       this.settingsWindow.loadURL(
@@ -289,8 +329,8 @@ export class PTA {
         frame: false,
         title: 'About PTA-Next',
         webPreferences: {
-          nodeIntegration: true,
-        },
+          nodeIntegration: true
+        }
       });
 
       this.aboutWindow.loadURL((process.env.APP_URL as string) + '#/about');
@@ -333,15 +373,15 @@ export class PTA {
       title: item.name ?? item.type,
       focusable: false,
       webPreferences: {
-        nodeIntegration: true,
+        nodeIntegration: true
       },
-      ...wincfg.options(),
+      ...wincfg.options()
     });
 
     itemWindow.on('close', () => {
       const state = {
         ...wincfg.options(),
-        ...itemWindow.getBounds(),
+        ...itemWindow.getBounds()
       };
 
       cfg.set('windowState.item', state);
@@ -374,7 +414,7 @@ export class PTA {
       return;
     }
 
-    const item = PTA.parser.parse(itemtext);
+    const item = this.parser.parse(itemtext);
 
     if (!item) {
       dialog.showErrorBox(
@@ -449,7 +489,7 @@ export class PTA {
       prefillnormals: prefillnormals,
       prefillpseudos: prefillpseudos,
       prefillilvl: prefillilvl,
-      prefillbase: prefillbase,
+      prefillbase: prefillbase
     };
 
     // search defaults
@@ -457,34 +497,34 @@ export class PTA {
       usepdps: {
         enabled: false,
         min: null,
-        max: null,
+        max: null
       },
       useedps: {
         enabled: false,
         min: null,
-        max: null,
+        max: null
       },
       usear: {
         enabled: false,
         min: null,
-        max: null,
+        max: null
       },
       useev: {
         enabled: false,
         min: null,
-        max: null,
+        max: null
       },
       usees: {
         enabled: false,
         min: null,
-        max: null,
+        max: null
       },
       usesockets: false,
       uselinks: false,
       useilvl: prefillilvl,
       useitembase: prefillbase,
       usecorrupted: item.corrupted ? 'Yes' : 'Any',
-      influences: [],
+      influences: []
     } as any;
 
     if (prefillbase) {
@@ -501,9 +541,7 @@ export class PTA {
   }
 
   private searchItemDefault(event: Electron.IpcMainEvent, item: Item) {
-    poetrade.searchItemWithDefaults(event, item);
-
-    // XXX: potentially add more apis
+    this.searchAPIs.forEach(api => api.searchItemWithDefaults(event, item));
   }
 
   private searchItemOptions(
@@ -512,6 +550,10 @@ export class PTA {
     options: any,
     openbrowser: boolean
   ) {
-    poetrade.searchItemWithOptions(event, item, options, openbrowser);
+    this.searchAPIs.forEach(api => {
+      if (api.searchItemWithOptions) {
+        api.searchItemWithOptions(event, item, options, openbrowser);
+      }
+    });
   }
 }

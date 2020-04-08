@@ -1,8 +1,8 @@
-import { clipboard, ipcMain, Rectangle } from 'electron';
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, clipboard, ipcMain, Rectangle } from 'electron';
 import cfg from 'electron-cfg';
-import Config from '../lib/config';
 import winpoe from 'winpoe';
+
+import Config from '../lib/config';
 
 const notificationMargin = 20; // pixels
 
@@ -33,7 +33,7 @@ export default class TradeManager {
       } else {
         this.closeTradeBar();
 
-        this.tradeNotifications.forEach((notification) => {
+        this.tradeNotifications.forEach(notification => {
           notification.close();
         });
 
@@ -62,7 +62,7 @@ export default class TradeManager {
         tab: 'Trade',
         x: 3,
         y: 5,
-        time: Date.now(),
+        time: Date.now()
       } as TradeMsg;
 
       if (process.env.DEV) {
@@ -94,7 +94,7 @@ export default class TradeManager {
         name: name,
         x: x,
         y: y,
-        quad: quads.includes(name),
+        quad: quads.includes(name)
       };
 
       this.highlightStash(tabinfo);
@@ -104,7 +104,7 @@ export default class TradeManager {
       this.stophighlightStash();
     });
 
-    ipcMain.on('open-trade-history', (event) => {
+    ipcMain.on('open-trade-history', event => {
       this.openTradeHistory();
     });
 
@@ -155,13 +155,13 @@ export default class TradeManager {
     if (!ispoe) {
       this.tradeBar?.hide();
 
-      this.tradeNotifications.forEach((notification) => {
+      this.tradeNotifications.forEach(notification => {
         notification.hide();
       });
     } else {
       this.tradeBar?.show();
 
-      this.tradeNotifications.forEach((notification) => {
+      this.tradeNotifications.forEach(notification => {
         notification.show();
       });
     }
@@ -216,9 +216,9 @@ export default class TradeManager {
       skipTaskbar: true,
       backgroundColor: '#00000000',
       webPreferences: {
-        nodeIntegration: true,
+        nodeIntegration: true
       },
-      ...state,
+      ...state
     });
 
     tradewindow.loadURL((process.env.APP_URL as string) + '#/trade');
@@ -266,9 +266,9 @@ export default class TradeManager {
           focusable: false,
           skipTaskbar: true,
           webPreferences: {
-            nodeIntegration: true,
+            nodeIntegration: true
           },
-          ...opts,
+          ...opts
         });
 
         wincfg.assign(this.tradeBar);
@@ -409,8 +409,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true,
-        },
+          nodeIntegration: true
+        }
       });
 
       this.stashSetup.loadURL((process.env.APP_URL as string) + '#/stashsetup');
@@ -446,9 +446,9 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true,
+          nodeIntegration: true
         },
-        ...wincfg.options(),
+        ...wincfg.options()
       });
 
       this.stashHighlight.loadURL(
@@ -497,8 +497,8 @@ export default class TradeManager {
         resizable: true,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true,
-        },
+          nodeIntegration: true
+        }
       });
 
       this.tradeHistoryWindow.loadURL(

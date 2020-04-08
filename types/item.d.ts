@@ -114,3 +114,13 @@ interface FilterOption {
   id: number;
   text: string;
 }
+
+interface PriceAPI {
+  searchItemWithDefaults(event: Electron.IpcMainEvent, item: Item): void;
+  searchItemWithOptions?(
+    event: Electron.IpcMainEvent,
+    item: Item,
+    options: any,
+    openbrowser: boolean
+  ): void;
+}
