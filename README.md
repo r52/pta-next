@@ -27,7 +27,9 @@ Portable version: Extract the archive and run **PTA-Next.exe**
 ## Features and Usage
 
 - [PoE-TradeMacro](https://github.com/PoE-TradeMacro/POE-TradeMacro) style simple and advanced item searches using **Ctrl+D** and **Ctrl+Alt+D**. These shortcuts can be changed or disabled entirely.
+- Wiki hotkey (`default: enabled`)
 - poeprices.info prediction (`default: enabled`. Can be disabled in settings)
+- Quick paste trade whispers while holding modifier key (`default: disabled`)
 - Ctrl + Mousewheel stash scrolling.
 - Custom macros. Suppports in-game chat commands as well as opening URLs in your browser. See [wiki](https://github.com/r52/pta-next/wiki) for more information.
 - [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI (`default: disabled`). Please ensure that your Client.txt path in set in the settings for this to work.
