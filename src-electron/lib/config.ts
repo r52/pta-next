@@ -54,7 +54,7 @@ export default {
     advancedhotkeyenabled: true,
     wikihotkey: 'CmdOrCtrl+Alt+G',
     wikihotkeyenabled: true,
-    quickpaste: true,
+    quickpaste: false,
     quickpastemod: 'ctrlKey',
     cscroll: true,
 
