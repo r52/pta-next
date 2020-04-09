@@ -3,6 +3,7 @@ declare class WinPoE {
   SendCopyCommand(): void;
   SendPasteCommand(): void;
   SendStashMove(direction: number, x: number, y: number): void;
+  SetPoEForeground(): boolean;
 
   onForegroundChange(foregroundCb: Function): void;
 

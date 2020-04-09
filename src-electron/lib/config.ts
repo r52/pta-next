@@ -6,6 +6,8 @@ export default {
   advancedhotkeyenabled: 'hotkey.advanced_enabled',
   wikihotkey: 'hotkey.wiki',
   wikihotkeyenabled: 'hotkey.wiki_enabled',
+  quickpaste: 'hotkey.quickpaste',
+  quickpastemod: 'hotkey.quickpastemod',
   cscroll: 'hotkey.cscroll',
 
   // price check
@@ -52,6 +54,8 @@ export default {
     advancedhotkeyenabled: true,
     wikihotkey: 'CmdOrCtrl+Alt+G',
     wikihotkeyenabled: true,
+    quickpaste: true,
+    quickpastemod: 'ctrlKey',
     cscroll: true,
 
     // price check

@@ -4,8 +4,10 @@
 namespace
 {
 HWINEVENTHOOK g_ForegroundHook = nullptr;
-
 Napi::FunctionReference g_ForegroundHookCb;
+HWND g_LastPoEHwnd = nullptr;
+
+std::wstring s_poeCls = L"POEWindowClass";
 } // namespace
 
 namespace pta
@@ -24,8 +26,6 @@ INPUT CreateInput(WORD vk, bool isDown)
 
 bool IsPoEForeground()
 {
-    static const std::wstring s_poeCls = L"POEWindowClass";
-
     HWND hwnd = GetForegroundWindow();
 
     if (nullptr == hwnd)
@@ -40,6 +40,8 @@ bool IsPoEForeground()
     {
         return false;
     }
+
+    g_LastPoEHwnd = hwnd;
 
     return true;
 }
@@ -77,20 +79,6 @@ void InstallForegroundHookCb(const Napi::CallbackInfo &info)
     if (cb)
     {
         g_ForegroundHookCb = Napi::Persistent(cb);
-    }
-}
-
-void InitializeHooks(const Napi::CallbackInfo &info)
-{
-    g_ForegroundHook = SetWinEventHook(
-        EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, ForegroundHookCallback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
-}
-
-void ShutdownHooks(const Napi::CallbackInfo &info)
-{
-    if (g_ForegroundHook)
-    {
-        UnhookWinEvent(g_ForegroundHook);
     }
 }
 
@@ -197,6 +185,41 @@ void SendStashMove(const Napi::CallbackInfo &info)
     }
 }
 
+Napi::Boolean SetPoEForeground(const Napi::CallbackInfo &info)
+{
+    Napi::Env env = info.Env();
+
+    if (g_LastPoEHwnd)
+    {
+        BOOL result = SetForegroundWindow(g_LastPoEHwnd);
+
+        return Napi::Boolean::New(env, result != 0);
+    }
+
+    return Napi::Boolean::New(env, false);
+}
+
+void InitializeHooks(const Napi::CallbackInfo &info)
+{
+    g_ForegroundHook = SetWinEventHook(
+        EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, ForegroundHookCallback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+
+    HWND poehwnd = FindWindow(s_poeCls.c_str(), nullptr);
+
+    if (poehwnd)
+    {
+        g_LastPoEHwnd = poehwnd;
+    }
+}
+
+void ShutdownHooks(const Napi::CallbackInfo &info)
+{
+    if (g_ForegroundHook)
+    {
+        UnhookWinEvent(g_ForegroundHook);
+    }
+}
+
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // raw funcs
@@ -204,6 +227,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SendCopyCommand"), Napi::Function::New(env, SendCopyCommand));
     exports.Set(Napi::String::New(env, "SendPasteCommand"), Napi::Function::New(env, SendPasteCommand));
     exports.Set(Napi::String::New(env, "SendStashMove"), Napi::Function::New(env, SendStashMove));
+    exports.Set(Napi::String::New(env, "SetPoEForeground"), Napi::Function::New(env, SetPoEForeground));
 
     // cbs
     exports.Set(Napi::String::New(env, "onForegroundChange"), Napi::Function::New(env, InstallForegroundHookCb));

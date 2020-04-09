@@ -14,6 +14,7 @@ import axios from 'axios';
 import MultiMap from 'multimap';
 import iohook from 'iohook';
 import { autoUpdater } from 'electron-updater';
+import clipboardListener from 'clipboard-event';
 
 import { ItemParser } from '../lib/itemparser';
 import Config from '../lib/config';
@@ -49,10 +50,15 @@ export class PTA {
   private trademanager: TradeManager;
 
   private uniques: MultiMap;
-
   private searchAPIs: PriceAPI[] = [];
 
-  private cscrollEnabled = false;
+  // persistent settings that gets accessed a lot
+  private settings = {
+    cscrollEnabled: false,
+    quickpaste: false,
+    quickpastemod: '',
+    qpmodHeld: false
+  };
 
   private macroVariables = new Map<string, () => string>([
     [
@@ -141,8 +147,36 @@ export class PTA {
     });
 
     iohook.on('mousewheel', event => {
-      if (event.direction == 3 && event.ctrlKey && this.cscrollEnabled) {
+      if (
+        event.direction == 3 &&
+        event.ctrlKey &&
+        this.settings.cscrollEnabled
+      ) {
         winpoe.SendStashMove(event.rotation, event.x, event.y);
+      }
+    });
+
+    iohook.on('keydown', event => {
+      if (this.settings.quickpaste) {
+        this.settings.qpmodHeld = event[this.settings.quickpastemod];
+      }
+    });
+
+    iohook.on('keyup', event => {
+      if (this.settings.quickpaste) {
+        this.settings.qpmodHeld = event[this.settings.quickpastemod];
+      }
+    });
+
+    clipboardListener.on('change', () => {
+      if (this.settings.quickpaste && this.settings.qpmodHeld) {
+        const cbtext = clipboard.readText();
+
+        if (cbtext.startsWith('@') && winpoe.SetPoEForeground()) {
+          setTimeout(() => {
+            winpoe.SendPasteCommand();
+          }, 100);
+        }
       }
     });
   }
@@ -181,6 +215,8 @@ export class PTA {
 
     // setup trade manager
     this.trademanager.setup();
+
+    clipboardListener.startListening();
   }
 
   public shutdown() {
@@ -189,6 +225,8 @@ export class PTA {
     winpoe.ShutdownHooks();
 
     iohook.stop();
+
+    clipboardListener.stopListening();
   }
 
   private registerShortcuts() {
@@ -235,9 +273,19 @@ export class PTA {
       });
     }
 
+    // quick paste
+    const qpaste = cfg.get(Config.quickpaste, Config.default.quickpaste);
+    this.settings.quickpaste = qpaste;
+
+    const qpastemod = cfg.get(
+      Config.quickpastemod,
+      Config.default.quickpastemod
+    );
+    this.settings.quickpastemod = qpastemod;
+
     // cscroll
     const cscroll = cfg.get(Config.cscroll, Config.default.cscroll);
-    this.cscrollEnabled = cscroll;
+    this.settings.cscrollEnabled = cscroll;
 
     // macros
     const macros: Macro[] = cfg.get(Config.macros, Config.default.macros);

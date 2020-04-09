@@ -104,7 +104,7 @@ export default class TradeManager {
       this.stophighlightStash();
     });
 
-    ipcMain.on('open-trade-history', event => {
+    ipcMain.on('open-trade-history', () => {
       this.openTradeHistory();
     });
 

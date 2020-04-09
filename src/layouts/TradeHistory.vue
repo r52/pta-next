@@ -107,35 +107,35 @@ export default Vue.extend({
           name: 'name',
           align: 'left',
           label: 'Player Name',
-          field: 'name',
+          field: 'name'
         },
         {
           name: 'type',
           align: 'left',
           label: 'Type',
-          field: 'type',
+          field: 'type'
         },
         {
           name: 'item',
           align: 'left',
           label: 'Item',
-          field: 'item',
+          field: 'item'
         },
         {
           name: 'price',
           align: 'left',
           label: 'Price',
-          field: 'price',
+          field: 'price'
         },
         {
           name: 'time',
           align: 'left',
           label: 'Time',
-          field: 'time',
-        },
+          field: 'time'
+        }
       ],
       history: [] as TradeMsg[],
-      now: new Date(),
+      now: new Date()
     };
   },
 
@@ -170,7 +170,7 @@ export default Vue.extend({
       if (win) {
         win.close();
       }
-    },
+    }
   },
 
   created() {
@@ -181,7 +181,7 @@ export default Vue.extend({
 
   beforeDestroy() {
     ipcRenderer.removeAllListeners('trade-history');
-  },
+  }
 });
 </script>
 

@@ -93,6 +93,25 @@
                 <div class="row items-center">
                   <div class="col">
                     <q-toggle
+                      v-model="settings.hotkey.quickpaste"
+                      label="Quick paste trade whispers when holding modifier key"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <q-select
+                      v-model="settings.hotkey.quickpastemod"
+                      :options="quickpastemods"
+                      label="Quick Paste Modifier"
+                      :disable="!settings.hotkey.quickpaste"
+                      style="width: 250px;"
+                      map-options
+                    />
+                  </div>
+                </div>
+
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
                       v-model="settings.hotkey.cscroll"
                       label="Ctrl+Mouse Wheel scrolls through stash tabs"
                     />
@@ -808,6 +827,16 @@ export default Vue.extend({
     return {
       tab: 'hotkey',
       leagues: Object.freeze(leagues),
+      quickpastemods: [
+        {
+          label: 'Ctrl',
+          value: 'ctrlKey'
+        },
+        {
+          label: 'Shift',
+          value: 'shiftKey'
+        }
+      ],
       corrupts: ['Any', 'Yes', 'No'],
       macroTypes: ['chat', 'url'],
       macroColumns: macroColumns,
@@ -851,6 +880,11 @@ export default Vue.extend({
           wikihotkeyenabled: cfg.get(
             Config.wikihotkeyenabled,
             Config.default.wikihotkeyenabled
+          ),
+          quickpaste: cfg.get(Config.quickpaste, Config.default.quickpaste),
+          quickpastemod: cfg.get(
+            Config.quickpastemod,
+            Config.default.quickpastemod
           ),
           cscroll: cfg.get(Config.cscroll, Config.default.cscroll)
         },
@@ -1007,6 +1041,8 @@ export default Vue.extend({
       );
       cfg.set(Config.wikihotkey, settings.hotkey.wikihotkey);
       cfg.set(Config.wikihotkeyenabled, settings.hotkey.wikihotkeyenabled);
+      cfg.set(Config.quickpaste, settings.hotkey.quickpaste);
+      cfg.set(Config.quickpastemod, settings.hotkey.quickpastemod);
       cfg.set(Config.cscroll, settings.hotkey.cscroll);
 
       // price check
