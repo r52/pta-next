@@ -36,5 +36,6 @@ export default {
     priority:
       'https://raw.githubusercontent.com/r52/pta-data/master/data/priority_rules.json'
   },
-  poeprices: 'https://www.poeprices.info/api?'
+  poeprices: 'https://www.poeprices.info/api?',
+  wiki: 'https://pathofexile.gamepedia.com/'
 };

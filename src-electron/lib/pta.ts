@@ -35,7 +35,8 @@ interface Macro {
 
 enum ItemHotkey {
   SIMPLE,
-  ADVANCED
+  ADVANCED,
+  WIKI
 }
 
 export class PTA {
@@ -210,6 +211,12 @@ export class PTA {
       Config.default.advancedhotkey
     );
 
+    const wikihotkeyenabled = cfg.get(
+      Config.wikihotkeyenabled,
+      Config.default.wikihotkeyenabled
+    );
+    const wikihotkey = cfg.get(Config.wikihotkey, Config.default.wikihotkey);
+
     if (smphotkeyenabled) {
       globalShortcut.register(simplehotkey, () => {
         this.handleItemHotkey(ItemHotkey.SIMPLE);
@@ -219,6 +226,12 @@ export class PTA {
     if (advhotkeyenabled) {
       globalShortcut.register(advhotkey, () => {
         this.handleItemHotkey(ItemHotkey.ADVANCED);
+      });
+    }
+
+    if (wikihotkeyenabled) {
+      globalShortcut.register(wikihotkey, () => {
+        this.handleItemHotkey(ItemHotkey.WIKI);
       });
     }
 
@@ -421,12 +434,32 @@ export class PTA {
         'Error parsing item text. Check log for more details.'
       );
     } else {
-      if (type === ItemHotkey.SIMPLE || type === ItemHotkey.ADVANCED) {
-        const { settings, options } = this.fillSearchOptions(item);
-
-        this.createItemUI(item, settings, options, type);
+      switch (type) {
+        case ItemHotkey.SIMPLE:
+        case ItemHotkey.ADVANCED: {
+          const { settings, options } = this.fillSearchOptions(item);
+          this.createItemUI(item, settings, options, type);
+          break;
+        }
+        case ItemHotkey.WIKI:
+          this.openWiki(item);
+          break;
       }
     }
+  }
+
+  private openWiki(item: Item) {
+    let itemName = item.type;
+
+    if (item.rarity == 'Rare') {
+      // keep item type
+      itemName = item.type;
+    } else if (item.name) {
+      itemName = item.name;
+    }
+
+    itemName = itemName.replace(' ', '_');
+    shell.openExternal(URLs.wiki + itemName);
   }
 
   private fillSearchOptions(item: Item) {

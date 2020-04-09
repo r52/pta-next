@@ -4,6 +4,8 @@ export default {
   simplehotkeyenabled: 'hotkey.simple_enabled',
   advancedhotkey: 'hotkey.advanced',
   advancedhotkeyenabled: 'hotkey.advanced_enabled',
+  wikihotkey: 'hotkey.wiki',
+  wikihotkeyenabled: 'hotkey.wiki_enabled',
   cscroll: 'hotkey.cscroll',
 
   // price check
@@ -48,6 +50,8 @@ export default {
     simplehotkeyenabled: true,
     advancedhotkey: 'CmdOrCtrl+Alt+D',
     advancedhotkeyenabled: true,
+    wikihotkey: 'CmdOrCtrl+Alt+G',
+    wikihotkeyenabled: true,
     cscroll: true,
 
     // price check
