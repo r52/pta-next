@@ -154,12 +154,11 @@ export default class ClientMonitor extends EventEmitter {
       }
 
       const pname = msgparts[0];
-
       this.lastwhisper = pname;
 
       const msg = msgparts[1];
 
-      Object.entries(trademsg).some(entry => {
+      const processed = Object.entries(trademsg).some(entry => {
         const mobj = entry[1];
 
         if (msg.startsWith(mobj.test)) {
@@ -185,6 +184,28 @@ export default class ClientMonitor extends EventEmitter {
 
         return false;
       });
+
+      if (!processed && type == 'incoming') {
+        this.emit('new-whisper', pname, msg);
+      }
+    } else if (ltxt.startsWith(': ')) {
+      if (ltxt.endsWith(' has joined the area.')) {
+        // joined
+        const match = /^: (.+) has joined the area.$/.exec(ltxt);
+
+        if (match && match.length == 2) {
+          const pname = match[1];
+          this.emit('entered-area', pname);
+        }
+      } else if (ltxt.endsWith(' has left the area.')) {
+        // left
+        const match = /^: (.+) has left the area.$/.exec(ltxt);
+
+        if (match && match.length == 2) {
+          const pname = match[1];
+          this.emit('left-area', pname);
+        }
+      }
     }
   }
 }
