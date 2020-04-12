@@ -493,20 +493,6 @@
 
                   <div class="row items-center">
                     <div class="col">
-                      Trade Notification Stack Direction:
-                    </div>
-                    <div class="col-auto">
-                      <q-select
-                        v-model="settings.tradeui.direction"
-                        :options="tradeDirections"
-                        label="Stack Direction"
-                        style="width: 250px;"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="row items-center">
-                    <div class="col">
                       Character Name (for leaving parties):
                     </div>
                     <div class="col">
@@ -849,7 +835,6 @@ export default Vue.extend({
       },
       macroDialog: false,
       currencies: Object.freeze(currencies),
-      tradeDirections: ['up', 'down'],
       tradeColumns: tradeuicolumns,
       tradeCmdDialog: false,
       tradeCmdAddType: '',
@@ -940,10 +925,6 @@ export default Vue.extend({
         tradeui: {
           enabled: cfg.get(Config.tradeui, Config.default.tradeui),
           tradebar: cfg.get(Config.tradebar, Config.default.tradebar),
-          direction: cfg.get(
-            Config.tradeuidirection,
-            Config.default.tradeuidirection
-          ),
           charname: cfg.get(Config.tradecharname, Config.default.tradecharname),
           highlight: cfg.get(
             Config.tradestashhighlight,
@@ -1094,7 +1075,6 @@ export default Vue.extend({
       // trade ui
       cfg.set(Config.tradeui, settings.tradeui.enabled);
       cfg.set(Config.tradebar, settings.tradeui.tradebar);
-      cfg.set(Config.tradeuidirection, settings.tradeui.direction);
       cfg.set(Config.tradecharname, settings.tradeui.charname);
       cfg.set(Config.tradestashhighlight, settings.tradeui.highlight);
       cfg.set(Config.tradestashquad, settings.tradeui.quad);

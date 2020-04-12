@@ -42,7 +42,6 @@ export default {
   tradecharname: 'tradeui.charname',
   tradestashhighlight: 'tradeui.highlight',
   tradestashquad: 'tradeui.quad',
-  tradeuidirection: 'tradeui.direction',
   tradeuiincoming: 'tradeui.incoming',
   tradeuioutgoing: 'tradeui.outgoing',
 
@@ -94,7 +93,6 @@ export default {
     // trade ui
     tradeui: false,
     tradebar: true,
-    tradeuidirection: 'down',
     tradecharname: '',
     tradestashhighlight: false,
     tradestashquad: [],
