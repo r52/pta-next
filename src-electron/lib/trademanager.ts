@@ -4,18 +4,22 @@ import winpoe from 'winpoe';
 
 import Config from '../lib/config';
 
-const notificationMargin = 20; // pixels
-
 function getTradeVariable(trade: TradeMsg, token: string) {
-  if (token in trade) {
-    return trade[token];
+  switch (token) {
+    case 'item':
+      return trade.item;
+    case 'price':
+      return trade.price;
+    case 'currency':
+      return trade.currency;
   }
+
   return null;
 }
 
 export default class TradeManager {
   private tradeBar: BrowserWindow | null = null;
-  private tradeNotifications: BrowserWindow[] = [];
+  private tradeNotification: BrowserWindow | null = null;
   private stashSetup: BrowserWindow | null = null;
   private stashHighlight: BrowserWindow | null = null;
   private stashHighlightTimeout: NodeJS.Timeout | null = null;
@@ -33,11 +37,11 @@ export default class TradeManager {
       } else {
         this.closeTradeBar();
 
-        this.tradeNotifications.forEach(notification => {
-          notification.close();
-        });
+        if (this.tradeNotification) {
+          this.tradeNotification.close();
+        }
 
-        this.tradeNotifications = [];
+        this.tradeNotification = null;
       }
     });
 
@@ -155,15 +159,17 @@ export default class TradeManager {
     if (!ispoe) {
       this.tradeBar?.hide();
 
-      this.tradeNotifications.forEach(notification => {
-        notification.hide();
-      });
+      this.tradeNotification?.hide();
     } else {
       this.tradeBar?.show();
 
-      this.tradeNotifications.forEach(notification => {
-        notification.show();
-      });
+      this.tradeNotification?.show();
+    }
+  }
+
+  public forwardPlayerEvent(event: string, name: string) {
+    if (this.tradeNotification) {
+      this.tradeNotification.webContents.send(event, name);
     }
   }
 
@@ -186,63 +192,46 @@ export default class TradeManager {
   }
 
   private showNewTrade(trade: TradeMsg) {
-    const wincfg = cfg.window({ name: 'trade' });
-    const state = wincfg.options() as Rectangle;
-
-    // Stack new notifications
-    if (this.tradeNotifications.length > 0) {
-      const direction =
-        cfg.get(Config.tradeuidirection, Config.default.tradeuidirection) ==
-        'up'
-          ? -1
-          : 1;
-
-      const y =
-        state.y +
-        (state.height + notificationMargin) *
-          this.tradeNotifications.length *
-          direction;
-
-      state.y = y;
-    }
-
-    const tradewindow = new BrowserWindow({
-      width: 400,
-      height: 150,
-      alwaysOnTop: true,
-      frame: false,
-      transparent: true,
-      focusable: false,
-      skipTaskbar: true,
-      backgroundColor: '#00000000',
-      webPreferences: {
-        nodeIntegration: true
-      },
-      ...state
-    });
-
-    tradewindow.loadURL((process.env.APP_URL as string) + '#/trade');
-
-    tradewindow.webContents.on('did-finish-load', () => {
-      tradewindow.webContents.send(
-        'trade',
-        trade,
+    const notification = {
+      ...trade,
+      commands:
         trade.type == 'incoming'
           ? cfg.get(Config.tradeuiincoming, Config.default.tradeuiincoming)
-          : cfg.get(Config.tradeuioutgoing, Config.default.tradeuioutgoing)
+          : cfg.get(Config.tradeuioutgoing, Config.default.tradeuioutgoing),
+      curtime: '',
+      newwhisper: false,
+      enteredarea: false
+    } as TradeNotification;
+
+    if (!this.tradeNotification) {
+      this.tradeNotification = cfg.window({ name: 'trade' }).create({
+        width: 400,
+        height: 180,
+        alwaysOnTop: true,
+        frame: false,
+        transparent: true,
+        //focusable: false,
+        skipTaskbar: true,
+        backgroundColor: '#00000000',
+        webPreferences: {
+          nodeIntegration: true
+        }
+      });
+
+      this.tradeNotification.loadURL(
+        (process.env.APP_URL as string) + '#/trade'
       );
-    });
 
-    if (this.tradeNotifications.length == 0) {
-      // Track this window if its the first one
-      wincfg.assign(tradewindow);
+      this.tradeNotification.webContents.once('did-finish-load', () => {
+        this.tradeNotification?.webContents.send('trade', notification);
+      });
+
+      this.tradeNotification.on('closed', () => {
+        this.tradeNotification = null;
+      });
+    } else {
+      this.tradeNotification?.webContents.send('trade', notification);
     }
-
-    this.addTradeNotification(tradewindow);
-
-    tradewindow.on('closed', () => {
-      this.removeTradeNotification(tradewindow);
-    });
   }
 
   public showTradeBar() {
@@ -352,44 +341,6 @@ export default class TradeManager {
   private executeChatCommand(command: string) {
     clipboard.writeText(command);
     winpoe.SendPasteCommand();
-  }
-
-  private addTradeNotification(notification: BrowserWindow) {
-    this.tradeNotifications.push(notification);
-  }
-
-  private removeTradeNotification(notification: BrowserWindow) {
-    const idx = this.tradeNotifications.indexOf(notification);
-
-    if (idx > -1) {
-      this.tradeNotifications.splice(idx, 1);
-
-      setTimeout(() => {
-        this.restackTradeNofitications();
-      }, 0);
-    }
-  }
-
-  private restackTradeNofitications() {
-    const direction =
-      cfg.get(Config.tradeuidirection, Config.default.tradeuidirection) == 'up'
-        ? -1
-        : 1;
-
-    const wincfg = cfg.window({ name: 'trade' });
-    const state = wincfg.options() as Rectangle;
-
-    this.tradeNotifications.forEach((notification, idx) => {
-      const nstate = { ...state };
-      nstate.y =
-        state.y + (state.height + notificationMargin) * idx * direction;
-
-      notification.setPosition(nstate.x, nstate.y, false);
-
-      if (idx == 0) {
-        wincfg.assign(notification);
-      }
-    });
   }
 
   private toggleStashSetup() {

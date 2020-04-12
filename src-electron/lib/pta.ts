@@ -141,9 +141,21 @@ export class PTA {
       this.createSettingsWindow();
     });
 
-    // initialize trade hook
+    // initialize trade hooks
     this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
       this.trademanager.handleNewTrade(trademsg);
+    });
+
+    this.clientmonitor.on('new-whisper', name => {
+      this.trademanager.forwardPlayerEvent('new-whisper', name);
+    });
+
+    this.clientmonitor.on('entered-area', name => {
+      this.trademanager.forwardPlayerEvent('entered-area', name);
+    });
+
+    this.clientmonitor.on('left-area', name => {
+      this.trademanager.forwardPlayerEvent('left-area', name);
     });
 
     iohook.on('mousewheel', event => {
@@ -209,7 +221,9 @@ export class PTA {
     autoUpdater.logger = log;
     autoUpdater.checkForUpdatesAndNotify();
 
-    winpoe.InitializeHooks();
+    if (process.env.PROD) {
+      winpoe.InitializeHooks();
+    }
 
     iohook.start(process.env.NODE_ENV == 'development');
 
@@ -222,7 +236,9 @@ export class PTA {
   public shutdown() {
     this.unregisterShortcuts();
 
-    winpoe.ShutdownHooks();
+    if (process.env.PROD) {
+      winpoe.ShutdownHooks();
+    }
 
     iohook.stop();
 

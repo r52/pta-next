@@ -1,5 +1,4 @@
 interface TradeMsg {
-  [index: string]: string | number | undefined;
   name: string;
   type: string;
   item: string;
@@ -41,4 +40,11 @@ interface TradeMessageProcessor {
     type: string,
     match: RegExpExecArray | null
   ): TradeMsg | null;
+}
+
+interface TradeNotification extends TradeMsg {
+  commands: TradeCommand[];
+  curtime: string;
+  newwhisper: boolean;
+  enteredarea: boolean;
 }
