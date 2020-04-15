@@ -7,12 +7,12 @@
         <q-btn dense flat icon="close" @click="close" />
       </q-bar>
       <q-bar class="bg-grey-7">
-        <q-tabs v-model="tab" shrink dense>
+        <q-tabs v-model="tab" shrink dense align="justify" :breakpoint="0">
           <q-tab
             v-for="trade in trades"
             :key="`${trade.name}${trade.time}`"
             :name="`${trade.name}${trade.time}`"
-            :label="trade.item"
+            :label="trades.length > 1 ? truncateName(trade.item) : trade.item"
             :class="{
               'text-purple': trade.newwhisper,
               'text-green': trade.enteredarea,
@@ -155,6 +155,13 @@ export default Vue.extend({
   },
 
   methods: {
+    truncateName(str: string) {
+      const maxlen = 12;
+      if (str.length > maxlen) {
+        return str.substring(0, maxlen) + '...';
+      }
+      return str;
+    },
     getElapseTime() {
       this.trades.forEach(trade => {
         let dif = Date.now() - trade.time;
