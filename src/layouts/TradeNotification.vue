@@ -18,7 +18,9 @@
               'text-green': trade.enteredarea,
               'text-yellow': !trade.newwhisper && !trade.enteredarea
             }"
-          />
+          >
+            <q-tooltip>{{ trade.item }}</q-tooltip>
+          </q-tab>
         </q-tabs>
       </q-bar>
     </q-header>
