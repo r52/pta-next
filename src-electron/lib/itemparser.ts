@@ -973,7 +973,7 @@ export class ItemParser {
           const results = foundEntry.option.fuse.search(search);
 
           // look for exact matches within results
-          results.some(e => {
+          results.some((e: { item: FilterOption }) => {
             if (e.item.text.includes(search)) {
               selected = e.item.id;
               return true;

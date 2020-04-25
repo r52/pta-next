@@ -95,7 +95,7 @@ interface NumericRange {
 
 interface StatType {
   entries: StatFilter[];
-  fuse: Fuse<StatFilter, Fuse.IFuseOptions<StatFilter>>;
+  fuse: Fuse.default<StatFilter, Fuse.default.IFuseOptions<StatFilter>>;
 }
 
 interface StatFilter {
@@ -107,7 +107,7 @@ interface StatFilter {
 
 interface StatFilterOptions {
   options: FilterOption[];
-  fuse: Fuse<FilterOption, Fuse.IFuseOptions<FilterOption>>;
+  fuse: Fuse.default<FilterOption, Fuse.default.IFuseOptions<FilterOption>>;
 }
 
 interface FilterOption {
