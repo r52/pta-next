@@ -1012,13 +1012,19 @@ export class ItemParser {
 
       // insert this filter
       const filter = {
-        ...foundEntry,
+        id: foundEntry.id,
+        type: foundEntry.type,
+        text: foundEntry.text,
         value: [...val],
         enabled: false,
         selected: selected,
         min: null,
         max: null
       } as Filter;
+
+      if (foundEntry.option) {
+        filter.option = { options: foundEntry.option.options };
+      }
 
       item.filters = item.filters ?? ({} as { [index: string]: Filter });
 
