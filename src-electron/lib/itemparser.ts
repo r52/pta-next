@@ -862,7 +862,9 @@ export class ItemParser {
         return false;
       }
 
-      stat = stat.substring(0, stat.indexOf(': ') + 2);
+      if (stattype === 'enchant') {
+        stat = stat.substring(0, stat.indexOf(': ') + 2);
+      }
     }
 
     if (!found) {
