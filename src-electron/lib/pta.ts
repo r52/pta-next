@@ -289,6 +289,13 @@ export class PTA {
       });
     }
 
+    // Dev test key
+    if (process.env.DEV) {
+      globalShortcut.register('CmdOrCtrl+J', () => {
+        this.handleClipboard(ItemHotkey.ADVANCED);
+      });
+    }
+
     // quick paste
     const qpaste = cfg.get(Config.quickpaste, Config.default.quickpaste);
     this.settings.quickpaste = qpaste;
