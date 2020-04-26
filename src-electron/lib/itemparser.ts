@@ -6,6 +6,8 @@ import Fuse from 'fuse.js';
 
 import URLs from './api/urls';
 
+const FuseMatchThreshold = 0.5;
+
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -120,9 +122,9 @@ export class ItemParser {
               {
                 keys: ['text'],
                 shouldSort: true,
-                threshold: 0.5,
+                threshold: FuseMatchThreshold,
                 location: 0,
-                includeScore: false
+                includeScore: true
               },
               index
             )
@@ -385,6 +387,10 @@ export class ItemParser {
       if (line.startsWith('---')) {
         this.section = '';
         sections++;
+        continue;
+      }
+
+      if (line.startsWith('Note:')) {
         continue;
       }
 
@@ -860,7 +866,12 @@ export class ItemParser {
     }
 
     if (!found) {
-      const results = this.stats[stattype].fuse.search(stat);
+      let results = this.stats[stattype].fuse.search(stat);
+
+      results = results.filter(r => {
+        if (r.score) return r.score <= FuseMatchThreshold;
+        return false;
+      });
 
       // loop thru the first couple of results
       let idx = 0;
@@ -982,6 +993,19 @@ export class ItemParser {
             return false;
           });
         }
+      } else if (
+        stat.includes('#') &&
+        foundEntry.type == 'implicit' &&
+        foundEntry.text.startsWith('Grant')
+      ) {
+        // Special case for corrupted implicits
+        let matches;
+
+        while ((matches = re.exec(valstat)) !== null) {
+          val.push(Number(matches[0]));
+        }
+
+        val = val.map(x => x * factor);
       }
 
       // insert this filter
