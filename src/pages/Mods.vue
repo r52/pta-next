@@ -84,7 +84,7 @@
 
         <!-- misc option checkboxes -->
         <div class="row items-center">
-          <div class="col-auto">
+          <div class="col">
             <q-select
               dense
               options-dense
@@ -96,6 +96,9 @@
               <q-tooltip>Corrupted</q-tooltip>
             </q-select>
           </div>
+        </div>
+        <q-separator />
+        <div class="row items-center justify-end">
           <div class="col-auto">
             <q-toggle
               v-if="item.sockets"
@@ -110,6 +113,9 @@
               :label="`Use Links (${item.sockets.links})`"
             />
           </div>
+        </div>
+        <q-separator />
+        <div class="row items-center justify-end">
           <div class="col-auto">
             <q-toggle label="iLvl (min):" v-model="options.useilvl" />
           </div>
@@ -122,7 +128,7 @@
               v-model.number.lazy="item.ilvl"
               @input="options.useilvl = true"
               @keypress="isNumber($event)"
-              class="q-py-xs"
+              class="q-pa-xs"
               style="width: 60px"
             />
           </div>
@@ -130,9 +136,6 @@
           <div class="col-auto">
             <q-toggle label="Use Item Base" v-model="options.useitembase" />
           </div>
-        </div>
-        <q-separator />
-        <div class="row items-center justify-end">
           <div
             class="col-auto"
             v-if="item.influences && item.influences.length"
