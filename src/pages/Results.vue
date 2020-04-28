@@ -14,7 +14,34 @@
         row-key="name"
         no-data-label="No Results"
         :pagination.sync="pagination"
-      />
+      >
+        <template v-slot:body-cell-price="props">
+          <q-td :props="props">
+            <div v-if="props.value.irate">
+              {{ props.value.irate.amount }}
+              <img
+                :src="`statics/images/${props.value.irate.currency}.png`"
+                style="height: 25px; max-width: 25px; vertical-align: middle;"
+                class="q-py-none"
+              />
+              &lt;= {{ props.value.erate.amount }}
+              <img
+                :src="`statics/images/${props.value.erate.currency}.png`"
+                style="height: 25px; max-width: 25px; vertical-align: middle;"
+                class="q-py-none"
+              />
+            </div>
+            <div v-else>
+              {{ props.value.amount }} {{ props.value.currency }}
+              <img
+                :src="`statics/images/${props.value.currency}.png`"
+                style="height: 25px; max-width: 25px; vertical-align: middle;"
+                class="q-py-none"
+              />
+            </div>
+          </q-td>
+        </template>
+      </q-table>
     </div>
     <div class="row items-center justify-end q-py-xs">
       <q-btn
@@ -38,14 +65,14 @@ export default Vue.extend({
 
   props: {
     item: Object,
-    results: Object,
+    results: Object
   },
 
   data() {
     return {
       pagination: {
-        rowsPerPage: 10,
-      },
+        rowsPerPage: 10
+      }
     };
   },
 
@@ -71,20 +98,20 @@ export default Vue.extend({
             align: 'left',
             sortable: false,
             name: 'name',
-            field: 'name',
+            field: 'name'
           },
           {
             label: 'Price',
             sortable: false,
             name: 'price',
-            field: 'price',
+            field: 'price'
           },
           {
             label: 'Age',
             sortable: false,
             name: 'age',
-            field: 'age',
-          },
+            field: 'age'
+          }
         ],
         gem: [
           {
@@ -92,32 +119,32 @@ export default Vue.extend({
             align: 'start',
             sortable: false,
             name: 'name',
-            field: 'name',
+            field: 'name'
           },
           {
             label: 'Price',
             sortable: false,
             name: 'price',
-            field: 'price',
+            field: 'price'
           },
           {
             label: 'Q%',
             sortable: false,
             name: 'quality',
-            field: 'quality',
+            field: 'quality'
           },
           {
             label: 'Lvl',
             sortable: false,
             name: 'level',
-            field: 'level',
+            field: 'level'
           },
           {
             label: 'Age',
             sortable: false,
             name: 'age',
-            field: 'age',
-          },
+            field: 'age'
+          }
         ],
         exchange: [
           {
@@ -125,27 +152,27 @@ export default Vue.extend({
             align: 'start',
             sortable: false,
             name: 'name',
-            field: 'name',
+            field: 'name'
           },
           {
             label: 'Price',
             sortable: false,
             name: 'price',
-            field: 'price',
+            field: 'price'
           },
           {
             label: 'Rate',
             sortable: false,
             name: 'rate',
-            field: 'rate',
+            field: 'rate'
           },
           {
             label: 'Age',
             sortable: false,
             name: 'age',
-            field: 'age',
-          },
-        ],
+            field: 'age'
+          }
+        ]
       } as { [index: string]: any[] };
 
       return columns[this.type];
@@ -163,21 +190,28 @@ export default Vue.extend({
 
         // price
         if (type == 'exchange') {
-          const irate =
-            entry['listing']['price']['item']['amount'].toString() +
-            ' ' +
-            entry['listing']['price']['item']['currency'];
-          const erate =
-            entry['listing']['price']['exchange']['amount'].toString() +
-            ' ' +
-            entry['listing']['price']['exchange']['currency'];
+          const irate = {
+            amount: entry['listing']['price']['item']['amount'],
+            currency: entry['listing']['price']['item']['currency']
+          };
 
-          obj['price'] = irate + ' <= ' + erate;
+          const erate = {
+            amount: entry['listing']['price']['exchange']['amount'],
+            currency: entry['listing']['price']['exchange']['currency']
+          };
+
+          obj['price'] = {
+            irate: irate,
+            erate: erate
+          };
         } else {
           const amount = entry['listing']['price']['amount'];
           const currency = entry['listing']['price']['currency'];
 
-          obj['price'] = amount.toString() + ' ' + currency;
+          obj['price'] = {
+            amount: amount,
+            currency: currency
+          };
         }
 
         // specials
@@ -222,7 +256,7 @@ export default Vue.extend({
       });
 
       return lst;
-    },
+    }
   },
 
   methods: {
@@ -246,7 +280,7 @@ export default Vue.extend({
     },
     openInBrowser() {
       this.$q.electron.remote.shell.openExternal(this.results.siteurl);
-    },
-  },
+    }
+  }
 });
 </script>
