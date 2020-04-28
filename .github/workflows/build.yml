@@ -22,26 +22,8 @@ jobs:
         id: package-version
 
       - run: yarn
-      - run: yarn build
 
-      - uses: actions/upload-artifact@v2-preview
-        with:
-          name: PTA-Next-Setup
-          path: 'dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}-Setup.exe'
-
-      - uses: actions/upload-artifact@v2-preview
-        with:
-          name: PTA-Next-Portable
-          path: 'dist/electron/Packaged/win-unpacked'
-
-      - name: Upload release
-        if: github.event.action == 'published' || github.event.action == 'prereleased'
-        uses: softprops/action-gh-release@v1
+      - name: Run yarn build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          files: |
-            dist/electron/Packaged/latest.yml
-            dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}-Setup.exe
-            dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}-Setup.exe.blockmap
-            dist/electron/Packaged/PTA-Next-${{ steps.package-version.outputs.version }}.7z
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn build
