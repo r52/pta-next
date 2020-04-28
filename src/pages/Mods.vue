@@ -84,7 +84,7 @@
 
         <!-- misc option checkboxes -->
         <div class="row items-center">
-          <div class="col">
+          <div class="col-auto">
             <q-select
               dense
               options-dense
@@ -92,13 +92,10 @@
               v-model="options.usecorrupted"
               :options="corrupts"
               label="Corrupted"
-            >
-              <q-tooltip>Corrupted</q-tooltip>
-            </q-select>
+              style="width: 100px;"
+            />
           </div>
-        </div>
-        <q-separator />
-        <div class="row items-center justify-end">
+          <q-space />
           <div class="col-auto">
             <q-toggle
               v-if="item.sockets"
