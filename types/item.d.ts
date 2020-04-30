@@ -79,6 +79,8 @@ interface Weapon {
   crit: number;
   pdps?: NumericRange;
   edps?: NumericRange;
+
+  mqpdps?: NumericRange;
 }
 
 interface Armour {
@@ -86,6 +88,10 @@ interface Armour {
   ev?: number;
   es?: number;
   block?: number;
+
+  mqar?: number;
+  mqev?: number;
+  mqes?: number;
 }
 
 interface NumericRange {

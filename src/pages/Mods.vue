@@ -26,7 +26,7 @@
           :options="options"
           :settings="settings"
           type="usepdps"
-          :current="getAvg(item.weapon.pdps) * item.weapon.aps"
+          :current="getAvg(item.weapon.mqpdps) * item.weapon.aps"
         />
         <base-mod-filter
           v-if="item.weapon && item.weapon.edps"
@@ -42,7 +42,7 @@
           :options="options"
           :settings="settings"
           type="usear"
-          :current="item.armour.ar"
+          :current="item.armour.mqar"
         />
         <base-mod-filter
           v-if="item.armour && item.armour.ev"
@@ -50,7 +50,7 @@
           :options="options"
           :settings="settings"
           type="useev"
-          :current="item.armour.ev"
+          :current="item.armour.mqev"
         />
         <base-mod-filter
           v-if="item.armour && item.armour.es"
@@ -58,7 +58,7 @@
           :options="options"
           :settings="settings"
           type="usees"
-          :current="item.armour.es"
+          :current="item.armour.mqes"
         />
 
         <q-separator v-if="item.weapon || item.armour" />

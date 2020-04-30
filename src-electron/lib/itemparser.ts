@@ -12,6 +12,134 @@ function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
+function calculateMaxQuality(item: Item, mod: string, quality: number) {
+  const percentmods = {
+    pdps: [
+      // #% increased Physical Damage
+      'explicit.stat_1509134228',
+      'implicit.stat_1509134228',
+      'fractured.stat_1509134228',
+      'crafted.stat_1509134228'
+    ],
+    ar: [
+      'explicit.stat_1062208444', // #% increased Armour (Local)
+      'implicit.stat_1062208444',
+      'fractured.stat_1062208444',
+      'crafted.stat_1062208444',
+
+      'explicit.stat_3321629045', // #% increased Armour and Energy Shield (Local)
+      'fractured.stat_3321629045',
+      'crafted.stat_3321629045',
+
+      'explicit.stat_2451402625', // #% increased Armour and Evasion (Local)
+      'fractured.stat_2451402625',
+      'crafted.stat_2451402625',
+
+      'explicit.stat_3523867985', // #% increased Armour, Evasion and Energy Shield (Local)
+      'crafted.stat_3523867985'
+    ],
+    ev: [
+      'explicit.stat_124859000', // #% increased Evasion Rating (Local)
+      'implicit.stat_124859000',
+      'fractured.stat_124859000',
+      'crafted.stat_124859000',
+
+      'explicit.stat_2451402625', // #% increased Armour and Evasion (Local)
+      'fractured.stat_2451402625',
+      'crafted.stat_2451402625',
+
+      'explicit.stat_1999113824', // #% increased Evasion and Energy Shield (Local)
+      'fractured.stat_1999113824',
+      'crafted.stat_1999113824',
+
+      'explicit.stat_3523867985', // #% increased Armour, Evasion and Energy Shield (Local)
+      'crafted.stat_3523867985'
+    ],
+    es: [
+      'explicit.stat_4015621042', // #% increased Energy Shield (Local)
+      'implicit.stat_4015621042',
+      'fractured.stat_4015621042',
+      'crafted.stat_4015621042',
+
+      'explicit.stat_3321629045', // #% increased Armour and Energy Shield (Local)
+      'fractured.stat_3321629045',
+      'crafted.stat_3321629045',
+
+      'explicit.stat_1999113824', // #% increased Evasion and Energy Shield (Local)
+      'fractured.stat_1999113824',
+      'crafted.stat_1999113824',
+
+      'explicit.stat_3523867985', // #% increased Armour, Evasion and Energy Shield (Local)
+      'crafted.stat_3523867985'
+    ]
+  } as { [index: string]: string[] };
+
+  if (!(mod in percentmods)) {
+    log.warn('Trying to calculate max quality on invalid mod', mod);
+    return 0;
+  }
+
+  let baseval = 100;
+
+  percentmods[mod].forEach(m => {
+    if (item.filters && m in item.filters) {
+      baseval += item.filters[m].value[0];
+    }
+  });
+
+  baseval += quality;
+
+  const ooratio = baseval / 100.0;
+  let nratio = ooratio;
+
+  if (quality < 20) {
+    // bump up to 20% quality
+    baseval += 20 - quality;
+    nratio = baseval / 100.0;
+  }
+
+  switch (mod) {
+    case 'pdps': {
+      if (item.weapon?.pdps) {
+        // XXX: this calculation isn't entirely consistent with PoE internally
+        // but it's close enough and nobody knows how PoE behaves internally anyways
+        // with regards to rounding
+        const origmin = Math.round(item.weapon.pdps.min / ooratio);
+        const origmax = Math.round(item.weapon.pdps.max / ooratio);
+
+        const mq = {
+          min: Math.round(origmin * nratio),
+          max: Math.round(origmax * nratio)
+        } as NumericRange;
+
+        item.weapon.mqpdps = mq;
+      }
+      break;
+    }
+    case 'ar': {
+      if (item.armour?.ar) {
+        const origval = item.armour.ar / ooratio;
+        item.armour.mqar = Math.round(origval * nratio);
+      }
+      break;
+    }
+    case 'ev': {
+      if (item.armour?.ev) {
+        const origval = item.armour.ev / ooratio;
+        item.armour.mqev = Math.round(origval * nratio);
+      }
+      break;
+    }
+    case 'es': {
+      if (item.armour?.es) {
+        const origval = item.armour.es / ooratio;
+        item.armour.mqes = Math.round(origval * nratio);
+      }
+      break;
+    }
+  }
+}
+
 class ItemText {
   text: string;
   lines: string[];
@@ -446,6 +574,25 @@ export class ItemParser {
             }
           }
         }
+      }
+    }
+
+    // Process quality on base mods
+    if (item.weapon && item.weapon.pdps) {
+      calculateMaxQuality(item, 'pdps', item.quality ?? 0);
+    }
+
+    if (item.armour) {
+      if (item.armour.ar) {
+        calculateMaxQuality(item, 'ar', item.quality ?? 0);
+      }
+
+      if (item.armour.es) {
+        calculateMaxQuality(item, 'es', item.quality ?? 0);
+      }
+
+      if (item.armour.ev) {
+        calculateMaxQuality(item, 'ev', item.quality ?? 0);
       }
     }
 
