@@ -8,7 +8,7 @@ PTA-Next is yet another simple, no frills price checking tool based on [PoE-Trad
 
 It also comes with a [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI.
 
-**PTA-Next is currently still in beta and testing stages. Expect crashes, bugs, and whole lot of things that doesn't work quite right.**
+**PTA-Next is currently still in early development stages. Expect crashes, bugs, and whole lot of things that may not work quite right.**
 
 **NOTE: As with any pricing tools, never trust or rely on its results entirely. If something seems off, confirm with a manual search. It could very well be an issue with the app itself.**
 
