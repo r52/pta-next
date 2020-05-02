@@ -17,10 +17,6 @@ jobs:
         with:
           node-version: '12.x'
 
-      - name: Read package.json
-        uses: tyankatsu0105/read-package-version-actions@v1
-        id: package-version
-
       - run: yarn
 
       - name: Run yarn build
