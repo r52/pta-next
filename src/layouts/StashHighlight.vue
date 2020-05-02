@@ -47,7 +47,7 @@ export default Vue.extend({
       quad: false,
       name: '',
       x: 0,
-      y: 0,
+      y: 0
     };
   },
 
@@ -55,7 +55,7 @@ export default Vue.extend({
     stopHighlight() {
       const els = document.getElementsByClassName('pulse');
       if (els) {
-        Array.from(els).forEach((el) => {
+        Array.from(els).forEach(el => {
           el.classList.remove('pulse');
         });
       }
@@ -74,7 +74,7 @@ export default Vue.extend({
       if (e) {
         e.classList.add('pulse');
       }
-    },
+    }
   },
 
   created() {
@@ -89,14 +89,14 @@ export default Vue.extend({
   beforeDestroy() {
     ipcRenderer.removeAllListeners('highlight');
     ipcRenderer.removeAllListeners('stop-highlight');
-  },
+  }
 });
 </script>
 
 <style>
 @font-face {
   font-family: 'Fontin-SmallCaps';
-  src: url(../statics/fonts/Fontin-SmallCaps.woff) format('woff');
+  src: url(../fonts/Fontin-SmallCaps.woff) format('woff');
 }
 
 html {

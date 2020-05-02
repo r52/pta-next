@@ -289,7 +289,7 @@ export default Vue.extend({
 <style>
 @font-face {
   font-family: 'Fontin-SmallCaps';
-  src: url(../statics/fonts/Fontin-SmallCaps.woff) format('woff');
+  src: url(../fonts/Fontin-SmallCaps.woff) format('woff');
 }
 
 html {

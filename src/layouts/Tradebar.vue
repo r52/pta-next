@@ -84,7 +84,7 @@ export default Vue.extend({
   data() {
     return {
       history: [] as TradeMsg[],
-      now: new Date(),
+      now: new Date()
     };
   },
 
@@ -104,15 +104,15 @@ export default Vue.extend({
     },
     ignoreMouse(enabled: boolean) {
       ipcRenderer.send('trade-bar-ignore-mouse', enabled);
-    },
-  },
+    }
+  }
 });
 </script>
 
 <style>
 @font-face {
   font-family: 'Fontin-SmallCaps';
-  src: url(../statics/fonts/Fontin-SmallCaps.woff) format('woff');
+  src: url(../fonts/Fontin-SmallCaps.woff) format('woff');
 }
 
 html {
