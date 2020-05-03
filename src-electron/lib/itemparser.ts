@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { app, dialog } from 'electron';
 import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
@@ -199,69 +200,89 @@ export class ItemParser {
     this.statsById = new Map();
     this.stats = {};
 
-    axios.get(URLs.pta.exclude).then((response: any) => {
-      const data = response.data;
-
-      for (const e of data['excludes']) {
-        this.excludes.add(e);
-      }
-
-      log.info('Excludes loaded');
-
-      axios.get(URLs.official.stats).then((response: any) => {
+    axios
+      .get(URLs.pta.exclude)
+      .then((response: any) => {
         const data = response.data;
 
-        const stt = data['result'];
-
-        for (const type of stt) {
-          const el = type['entries'];
-          const tlb = (type['label'] as string).toLowerCase();
-
-          for (const et of el as StatFilter[]) {
-            if (!this.excludes.has(et.id)) {
-              this.statsById.set(et.id, et);
-            }
-
-            // construct option fuse
-            if (et.option != null) {
-              const index = Fuse.createIndex(['text'], et.option.options);
-              et.option.fuse = new Fuse(
-                et.option.options,
-                {
-                  keys: ['text'],
-                  shouldSort: true,
-                  threshold: 0.6,
-                  location: 0,
-                  distance: 1000,
-                  includeScore: false
-                },
-                index
-              );
-            }
-          }
-
-          // construct fuse
-          const entries = el as StatFilter[];
-          const index = Fuse.createIndex<StatFilter>(['text'], entries);
-          this.stats[tlb] = {
-            entries: entries,
-            fuse: new Fuse(
-              entries,
-              {
-                keys: ['text'],
-                shouldSort: true,
-                threshold: FuseMatchThreshold,
-                location: 0,
-                includeScore: true
-              },
-              index
-            )
-          };
+        for (const e of data['excludes']) {
+          this.excludes.add(e);
         }
 
-        log.info('Mod stats loaded');
+        log.info('Excludes loaded');
+
+        axios
+          .get(URLs.official.stats)
+          .then((response: any) => {
+            const data = response.data;
+
+            const stt = data['result'];
+
+            for (const type of stt) {
+              const el = type['entries'];
+              const tlb = (type['label'] as string).toLowerCase();
+
+              for (const et of el as StatFilter[]) {
+                if (!this.excludes.has(et.id)) {
+                  this.statsById.set(et.id, et);
+                }
+
+                // construct option fuse
+                if (et.option != null) {
+                  const index = Fuse.createIndex(['text'], et.option.options);
+                  et.option.fuse = new Fuse(
+                    et.option.options,
+                    {
+                      keys: ['text'],
+                      shouldSort: true,
+                      threshold: 0.6,
+                      location: 0,
+                      distance: 1000,
+                      includeScore: false
+                    },
+                    index
+                  );
+                }
+              }
+
+              // construct fuse
+              const entries = el as StatFilter[];
+              const index = Fuse.createIndex<StatFilter>(['text'], entries);
+              this.stats[tlb] = {
+                entries: entries,
+                fuse: new Fuse(
+                  entries,
+                  {
+                    keys: ['text'],
+                    shouldSort: true,
+                    threshold: FuseMatchThreshold,
+                    location: 0,
+                    includeScore: true
+                  },
+                  index
+                )
+              };
+            }
+
+            log.info('Mod stats loaded');
+          })
+          .catch(e => {
+            log.error(e);
+            dialog.showErrorBox(
+              'Fatal Error',
+              'Failed to download Mod data. Check log for more details.'
+            );
+            app.exit(1);
+          });
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Exclude data. Check log for more details.'
+        );
+        app.exit(1);
       });
-    });
 
     ///////////////////////////////////////////// Save unique items
     this.uniques = uniques;
@@ -270,157 +291,247 @@ export class ItemParser {
     this.baseCat = new Map();
     this.baseMap = new Map();
 
-    axios.get(URLs.pta.basecat).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.pta.basecat)
+      .then((response: any) => {
+        const data = response.data;
 
-      for (const [k, o] of Object.entries(data)) {
-        this.baseCat.set(k, o as string);
-      }
+        for (const [k, o] of Object.entries(data)) {
+          this.baseCat.set(k, o as string);
+        }
 
-      log.info('Base categories loaded');
+        log.info('Base categories loaded');
 
-      axios.get(URLs.repoe.base).then((response: any) => {
+        axios
+          .get(URLs.repoe.base)
+          .then((response: any) => {
+            const data = response.data;
+
+            for (const [k, val] of Object.entries(data)) {
+              const o = val as any;
+
+              const typeName = o['name'] as string;
+              const itemClass = o['item_class'] as string;
+              const implicits = o['implicits'].length as number;
+
+              if (this.baseCat.has(itemClass)) {
+                const itemCat = this.baseCat.get(itemClass);
+
+                const cat = {} as any;
+
+                cat['category'] = itemCat;
+                cat['implicits'] = implicits;
+
+                this.baseMap.set(typeName, cat);
+              }
+            }
+
+            log.info('Item base data loaded');
+          })
+          .catch(e => {
+            log.error(e);
+            dialog.showErrorBox(
+              'Fatal Error',
+              'Failed to download Item base data. Check log for more details.'
+            );
+            app.exit(1);
+          });
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Base category data. Check log for more details.'
+        );
+        app.exit(1);
+      });
+
+    ///////////////////////////////////////////// Load RePoE mod data
+    this.modData = new Map();
+
+    axios
+      .get(URLs.repoe.mods)
+      .then((response: any) => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
           const o = val as any;
 
-          const typeName = o['name'] as string;
-          const itemClass = o['item_class'] as string;
-          const implicits = o['implicits'].length as number;
+          const modname = o['name'] as string;
+          const modtype = o['generation_type'] as string;
 
-          if (this.baseCat.has(itemClass)) {
-            const itemCat = this.baseCat.get(itemClass);
-
-            const cat = {} as any;
-
-            cat['category'] = itemCat;
-            cat['implicits'] = implicits;
-
-            this.baseMap.set(typeName, cat);
+          if (!modname) {
+            // Skip the mods with no name
+            continue;
           }
+
+          if (modtype !== 'prefix' && modtype !== 'suffix') {
+            // We only care about magic mods for now here so
+            // skip all other mod types like corrupted/unique mods
+            continue;
+          }
+
+          this.modData.set(modname, modtype);
         }
 
-        log.info('Item base data loaded');
+        log.info('Mod types loaded');
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Mod types data. Check log for more details.'
+        );
+        app.exit(1);
       });
-    });
-
-    ///////////////////////////////////////////// Load RePoE mod data
-    this.modData = new Map();
-
-    axios.get(URLs.repoe.mods).then((response: any) => {
-      const data = response.data;
-
-      for (const [k, val] of Object.entries(data)) {
-        const o = val as any;
-
-        const modname = o['name'] as string;
-        const modtype = o['generation_type'] as string;
-
-        if (!modname) {
-          // Skip the mods with no name
-          continue;
-        }
-
-        if (modtype !== 'prefix' && modtype !== 'suffix') {
-          // We only care about magic mods for now here so
-          // skip all other mod types like corrupted/unique mods
-          continue;
-        }
-
-        this.modData.set(modname, modtype);
-      }
-
-      log.info('Mod types loaded');
-    });
 
     ///////////////////////////////////////////// Load local rules
     this.armourLocals = new Set();
     this.weaponLocals = new Set();
 
-    axios.get(URLs.pta.armour).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.pta.armour)
+      .then((response: any) => {
+        const data = response.data;
 
-      for (const e of data['data']) {
-        this.armourLocals.add(e);
-      }
+        for (const e of data['data']) {
+          this.armourLocals.add(e);
+        }
 
-      log.info('Armour locals loaded');
-    });
+        log.info('Armour locals loaded');
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Armour locals data. Check log for more details.'
+        );
+        app.exit(1);
+      });
 
-    axios.get(URLs.pta.weapon).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.pta.weapon)
+      .then((response: any) => {
+        const data = response.data;
 
-      for (const e of data['data']) {
-        this.weaponLocals.add(e);
-      }
+        for (const e of data['data']) {
+          this.weaponLocals.add(e);
+        }
 
-      log.info('Weapon locals loaded');
-    });
+        log.info('Weapon locals loaded');
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Weapon locals data. Check log for more details.'
+        );
+        app.exit(1);
+      });
 
     ///////////////////////////////////////////// Load enchant rules
     this.enchantRules = new Map();
 
-    axios.get(URLs.pta.enchant).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.pta.enchant)
+      .then((response: any) => {
+        const data = response.data;
 
-      for (const [k, val] of Object.entries(data)) {
-        const o = val as any;
+        for (const [k, val] of Object.entries(data)) {
+          const o = val as any;
 
-        this.enchantRules.set(k, o);
-      }
+          this.enchantRules.set(k, o);
+        }
 
-      log.info('Enchant rules loaded');
-    });
+        log.info('Enchant rules loaded');
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Enchant rules data. Check log for more details.'
+        );
+        app.exit(1);
+      });
 
     ///////////////////////////////////////////// Load pseudo rules
     this.pseudoRules = new Map();
 
-    axios.get(URLs.pta.pseudo).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.pta.pseudo)
+      .then((response: any) => {
+        const data = response.data;
 
-      for (const [k, val] of Object.entries(data)) {
-        const o = val as Array<any>;
+        for (const [k, val] of Object.entries(data)) {
+          const o = val as Array<any>;
 
-        this.pseudoRules.set(k, o);
-      }
+          this.pseudoRules.set(k, o);
+        }
 
-      log.info('Pseudo rules loaded');
-    });
+        log.info('Pseudo rules loaded');
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Pseudo rules data. Check log for more details.'
+        );
+        app.exit(1);
+      });
 
     ///////////////////////////////////////////// Mod Discriminators
     this.discriminators = new Map();
 
-    axios.get(URLs.pta.disc).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.pta.disc)
+      .then((response: any) => {
+        const data = response.data;
 
-      for (const [k, val] of Object.entries(data)) {
-        const o = val as any;
+        for (const [k, val] of Object.entries(data)) {
+          const o = val as any;
 
-        const set = new Set<string>();
+          const set = new Set<string>();
 
-        for (const value of o['unused']) {
-          set.add(value as string);
+          for (const value of o['unused']) {
+            set.add(value as string);
+          }
+
+          this.discriminators.set(k, set);
         }
 
-        this.discriminators.set(k, set);
-      }
-
-      log.info('Discriminator rules loaded');
-    });
+        log.info('Discriminator rules loaded');
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Discriminator rules data. Check log for more details.'
+        );
+        app.exit(1);
+      });
 
     ///////////////////////////////////////////// Priority rules
     this.priorityRules = new Map();
 
-    axios.get(URLs.pta.priority).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.pta.priority)
+      .then((response: any) => {
+        const data = response.data;
 
-      for (const [k, val] of Object.entries(data)) {
-        this.priorityRules.set(k, val as any);
-      }
+        for (const [k, val] of Object.entries(data)) {
+          this.priorityRules.set(k, val as any);
+        }
 
-      log.info('Priority rules loaded');
-    });
+        log.info('Priority rules loaded');
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Priority rules data. Check log for more details.'
+        );
+        app.exit(1);
+      });
   }
 
   public parse(itemtext: string): Item | null {

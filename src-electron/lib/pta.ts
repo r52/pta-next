@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  app,
   BrowserWindow,
   clipboard,
   dialog,
@@ -75,50 +76,70 @@ export class PTA {
     ///////////////////////////////////////////// Download leagues
     this.leagues = [];
 
-    axios.get(URLs.official.leagues).then((response: any) => {
-      const data = response.data;
+    axios
+      .get(URLs.official.leagues)
+      .then((response: any) => {
+        const data = response.data;
 
-      const lgs = data['result'];
+        const lgs = data['result'];
 
-      lgs.forEach((element: { [x: string]: string }) => {
-        this.leagues.push(element['id']);
+        lgs.forEach((element: { [x: string]: string }) => {
+          this.leagues.push(element['id']);
+        });
+
+        const setlg = this.getLeague();
+
+        log.info('League data loaded. Setting league to', setlg);
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download League data. Check log for more details.'
+        );
+        app.exit(1);
       });
-
-      const setlg = this.getLeague();
-
-      log.info('League data loaded. Setting league to', setlg);
-    });
 
     ///////////////////////////////////////////// Download unique items
     this.uniques = new MultiMap();
 
-    axios.get(URLs.official.items).then((response: any) => {
-      const data = response.data;
-      const itm = data['result'];
+    axios
+      .get(URLs.official.items)
+      .then((response: any) => {
+        const data = response.data;
+        const itm = data['result'];
 
-      for (const type of itm) {
-        const el = type['entries'];
+        for (const type of itm) {
+          const el = type['entries'];
 
-        for (const et of el) {
-          if ('name' in et) {
-            this.uniques.set(et['name'], et);
-          } else if ('type' in et) {
-            this.uniques.set(et['type'], et);
-          } else {
-            log.debug('Item entry has neither name nor type:', et);
+          for (const et of el) {
+            if ('name' in et) {
+              this.uniques.set(et['name'], et);
+            } else if ('type' in et) {
+              this.uniques.set(et['type'], et);
+            } else {
+              log.debug('Item entry has neither name nor type:', et);
+            }
           }
         }
-      }
 
-      log.info('Unique item data loaded');
+        log.info('Unique item data loaded');
 
-      // Load APIs
-      this.parser = new ItemParser(this.uniques);
-      this.searchAPIs.push(new POETradeAPI(this.uniques));
-      this.searchAPIs.push(new POEPricesAPI(this.uniques));
+        // Load APIs
+        this.parser = new ItemParser(this.uniques);
+        this.searchAPIs.push(new POETradeAPI(this.uniques));
+        this.searchAPIs.push(new POEPricesAPI(this.uniques));
 
-      // XXX: potentially add more apis
-    });
+        // XXX: potentially add more apis
+      })
+      .catch(e => {
+        log.error(e);
+        dialog.showErrorBox(
+          'Fatal Error',
+          'Failed to download Uniques data. Check log for more details.'
+        );
+        app.exit(1);
+      });
 
     this.clientmonitor = new ClientMonitor();
     this.trademanager = new TradeManager();
