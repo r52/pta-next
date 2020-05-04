@@ -13,6 +13,7 @@
       </q-toolbar>
 
       <q-tabs v-model="tab" class="bg-brown-8">
+        <q-tab name="pta" icon="img:statics/icon.png" label="PTA-Next" />
         <q-tab name="hotkey" icon="space_bar" label="Hotkey" />
         <q-tab name="price" icon="shop" label="Price Check" />
         <q-tab name="macro" icon="gamepad" label="Macros" />
@@ -30,6 +31,31 @@
     <q-page-container>
       <q-page padding>
         <q-tab-panels v-model="tab" animated>
+          <q-tab-panel name="pta">
+            <q-card>
+              <div class="q-pa-xs">
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.pta.checkForUpdates"
+                      label="Check for Updates on startup"
+                    />
+                  </div>
+                </div>
+
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.pta.autoUpdate"
+                      label="Automatically download and install updates (installer version only)"
+                      :disable="!settings.pta.checkForUpdates"
+                    />
+                  </div>
+                </div>
+              </div>
+            </q-card>
+          </q-tab-panel>
+
           <q-tab-panel name="hotkey">
             <q-card>
               <div class="q-pa-xs">
@@ -844,6 +870,13 @@ export default Vue.extend({
         close: false
       },
       settings: {
+        pta: {
+          checkForUpdates: cfg.get(
+            Config.checkForUpdates,
+            Config.default.checkForUpdates
+          ),
+          autoUpdate: cfg.get(Config.autoUpdate, Config.default.autoUpdate)
+        },
         hotkey: {
           simplehotkey: cfg.get(
             Config.simplehotkey,
@@ -1011,6 +1044,10 @@ export default Vue.extend({
     },
     saveSettings() {
       const settings = this.settings;
+
+      // PTA
+      cfg.set(Config.checkForUpdates, settings.pta.checkForUpdates);
+      cfg.set(Config.autoUpdate, settings.pta.autoUpdate);
 
       // hotkeys
       cfg.set(Config.simplehotkey, settings.hotkey.simplehotkey);

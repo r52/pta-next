@@ -1,4 +1,8 @@
 export default {
+  // pta
+  checkForUpdates: 'pta.checkforupdates',
+  autoUpdate: 'pta.autoUpdate',
+
   // hotkey
   simplehotkey: 'hotkey.simple',
   simplehotkeyenabled: 'hotkey.simple_enabled',
@@ -46,6 +50,10 @@ export default {
   tradeuioutgoing: 'tradeui.outgoing',
 
   default: {
+    // pta
+    checkForUpdates: true,
+    autoUpdate: true,
+
     // hotkey
     simplehotkey: 'CmdOrCtrl+D',
     simplehotkeyenabled: true,

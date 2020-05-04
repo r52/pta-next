@@ -240,7 +240,81 @@ export class PTA {
 
     // Update check
     autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
+
+    const checkForUpdates = cfg.get(
+      Config.checkForUpdates,
+      Config.default.checkForUpdates
+    );
+    const autoUpdate = cfg.get(Config.autoUpdate, Config.default.autoUpdate);
+
+    const appPath = app.getAppPath();
+
+    if (checkForUpdates) {
+      if (appPath.includes('AppData')) {
+        // installer version
+
+        if (autoUpdate) {
+          // Auto update on
+          autoUpdater.checkForUpdatesAndNotify();
+        } else {
+          // Auto update off
+          autoUpdater.autoDownload = false;
+
+          autoUpdater.on('update-available', () => {
+            dialog
+              .showMessageBox({
+                type: 'info',
+                title: 'New Version Available',
+                message:
+                  'A new version of PTA-Next is available. Would you like to update now?',
+                buttons: ['Yes', 'No']
+              })
+              .then(result => {
+                if (result.response === 0) {
+                  autoUpdater.downloadUpdate();
+                }
+              });
+          });
+
+          autoUpdater.on('update-downloaded', () => {
+            dialog
+              .showMessageBox({
+                title: 'Installing Updates',
+                message:
+                  'Updates downloaded. PTA-Next will now exit to install update.'
+              })
+              .then(() => {
+                setImmediate(() => autoUpdater.quitAndInstall());
+              });
+          });
+
+          autoUpdater.checkForUpdates();
+        }
+      } else {
+        // portable version
+        autoUpdater.autoDownload = false;
+
+        autoUpdater.on('update-available', () => {
+          dialog
+            .showMessageBox({
+              type: 'info',
+              title: 'New Version Available',
+              message:
+                'A new version of PTA-Next is available. Would you like to go download it?',
+              buttons: ['Yes', 'No']
+            })
+            .then(result => {
+              if (result.response === 0) {
+                shell.openExternal('https://github.com/r52/pta-next/releases');
+              }
+            });
+        });
+
+        if (autoUpdater.isUpdaterActive()) {
+          autoUpdater.checkForUpdates();
+        }
+      }
+    }
 
     if (process.env.PROD) {
       winpoe.InitializeHooks();
