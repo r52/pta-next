@@ -22,7 +22,7 @@
     "electron-cfg": "^1.0.5",
     "electron-log": "^4.0.7",
     "electron-updater": "^4.2.5",
-    "fuse.js": "^5.0.10-beta",
+    "fuse.js": "5.2.3",
     "iohook": "^0.6.5",
     "lodash.merge": "^4.6.2",
     "multimap": "^1.1.0",
