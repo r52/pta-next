@@ -837,7 +837,7 @@ export default Vue.extend({
     ];
 
     return {
-      tab: 'hotkey',
+      tab: 'pta',
       leagues: Object.freeze(leagues),
       quickpastemods: [
         {
