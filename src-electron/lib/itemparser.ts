@@ -145,18 +145,41 @@ class ItemText {
   text: string;
   lines: string[];
   currentline: number;
+  sections: number;
+  currentsection: number;
 
   constructor(itemtext: string) {
     this.text = itemtext;
 
     this.lines = itemtext.split(/\r?\n/g);
     this.currentline = 0;
+    this.sections = 1;
+    this.currentsection = 0;
+
+    // Do some preprocessing
+    if (this.lines[this.lines.length - 1].startsWith('Note:')) {
+      this.lines.pop();
+    }
+
+    if (this.lines[this.lines.length - 1].startsWith('---')) {
+      this.lines.pop();
+    }
+
+    this.lines.forEach(line => {
+      if (line.startsWith('---')) {
+        this.sections++;
+      }
+    });
   }
 
   readLine() {
     if (this.currentline < this.lines.length) {
       const line = this.lines[this.currentline];
       this.currentline++;
+
+      if (line.startsWith('---')) {
+        this.currentsection++;
+      }
 
       return line;
     }
@@ -538,7 +561,6 @@ export class ItemParser {
     itemtext = itemtext.trim();
 
     const item = {} as Item;
-    let sections = 0;
 
     const lines = new ItemText(itemtext);
 
@@ -573,7 +595,6 @@ export class ItemParser {
     if (type && type.startsWith('---')) {
       // nametype has to be item type and not name
       item.type = this.readType(item, nametype as string);
-      sections++;
     } else {
       item.name = this.readName(nametype as string);
       item.type = this.readType(item, type as string);
@@ -622,18 +643,26 @@ export class ItemParser {
     // Read the rest of the crap
 
     while ((line = lines.readLine()) !== false) {
-      // Skip
-      if (line.startsWith('---')) {
-        this.section = '';
-        sections++;
+      // Skip unique flavour text
+      if (
+        item.rarity == 'Unique' &&
+        lines.currentsection == lines.sections - 1
+      ) {
         continue;
       }
 
+      // Skip section text
+      if (line.startsWith('---')) {
+        this.section = '';
+        continue;
+      }
+
+      // Skip notes
       if (line.startsWith('Note:')) {
         continue;
       }
 
-      if (!this.parseProp(item, line) && sections > 1) {
+      if (!this.parseProp(item, line) && lines.currentsection > 1) {
         // parse item stat
         this.parseStat(item, line, lines);
       }
