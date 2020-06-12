@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
-    "@vue/composition-api": "^0.5.0",
+    "@vue/composition-api": "^0.6.0",
     "axios": "^0.19.0",
     "clipboard-event": "^1.0.1",
     "electron-cfg": "^1.0.5",
