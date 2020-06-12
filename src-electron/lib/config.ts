@@ -2,6 +2,7 @@ export default {
   // pta
   checkForUpdates: 'pta.checkforupdates',
   autoUpdate: 'pta.autoUpdate',
+  vulkanCompat: 'pta.vulkanCompat',
 
   // hotkey
   simplehotkey: 'hotkey.simple',
@@ -53,6 +54,7 @@ export default {
     // pta
     checkForUpdates: true,
     autoUpdate: true,
+    vulkanCompat: false,
 
     // hotkey
     simplehotkey: 'CmdOrCtrl+D',

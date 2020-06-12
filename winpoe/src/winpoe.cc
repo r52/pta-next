@@ -1,63 +1,128 @@
 #include <napi.h>
 #include <Windows.h>
 
+#include <thread>
+#include <chrono>
+
 namespace
 {
-HWINEVENTHOOK g_ForegroundHook = nullptr;
-Napi::FunctionReference g_ForegroundHookCb;
-HWND g_LastPoEHwnd = nullptr;
+    HWINEVENTHOOK g_ForegroundHook = nullptr;
+    Napi::FunctionReference g_ForegroundHookCb;
+    HWND g_LastPoEHwnd = nullptr;
+    bool g_VulkanCompat = false;
 
-std::wstring s_poeCls = L"POEWindowClass";
+    std::wstring s_poeCls = L"POEWindowClass";
 } // namespace
 
 namespace pta
 {
-INPUT CreateInput(WORD vk, bool isDown)
-{
-    INPUT input = {};
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = vk;
-    input.ki.wScan = 0;
-    input.ki.dwFlags = (isDown ? 0 : KEYEVENTF_KEYUP);
-    input.ki.time = 0;
-    input.ki.dwExtraInfo = 0;
-    return input;
-}
-
-bool IsPoEForeground()
-{
-    HWND hwnd = GetForegroundWindow();
-
-    if (nullptr == hwnd)
+    INPUT CreateInput(WORD vk, bool isDown)
     {
-        return false;
+        INPUT input = {};
+        input.type = INPUT_KEYBOARD;
+        input.ki.wVk = vk;
+        input.ki.wScan = 0;
+        input.ki.dwFlags = (isDown ? 0 : KEYEVENTF_KEYUP);
+        input.ki.time = 0;
+        input.ki.dwExtraInfo = 0;
+        return input;
     }
 
-    wchar_t cls[512];
-    GetClassName(hwnd, cls, std::size(cls));
-
-    if (s_poeCls != cls)
+    void EmulateWindowedFullscreen(HWND hPoe, bool enabled)
     {
-        return false;
+        if (hPoe)
+        {
+            MONITORINFO screen;
+            screen.cbSize = sizeof(MONITORINFO);
+
+            HMONITOR mon = MonitorFromWindow(hPoe, MONITOR_DEFAULTTONEAREST);
+            BOOL res = GetMonitorInfo(mon, &screen);
+
+            if (res)
+            {
+                bool change = false;
+                UINT flags = SWP_FRAMECHANGED;
+                LONG style = GetWindowLong(hPoe, GWL_STYLE);
+
+                if (enabled)
+                {
+                    if (style & (WS_CAPTION | WS_SIZEBOX))
+                    {
+                        style &= ~(WS_CAPTION | WS_SIZEBOX);
+                        change = true;
+                    }
+                }
+                else
+                {
+                    if (style & ~(WS_CAPTION | WS_SIZEBOX))
+                    {
+                        style |= WS_CAPTION | WS_SIZEBOX;
+                        flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED;
+                        change = true;
+                    }
+                }
+
+                if (change)
+                {
+                    SetWindowLong(hPoe, GWL_STYLE, style);
+
+                    int cx = screen.rcMonitor.right - screen.rcMonitor.left;
+                    int cy = screen.rcMonitor.bottom - screen.rcMonitor.top;
+                    int x = screen.rcMonitor.left;
+                    int y = screen.rcMonitor.top;
+
+                    SetWindowPos(hPoe, HWND_TOP, x, y, cx, cy, flags);
+                }
+            }
+        }
     }
 
-    g_LastPoEHwnd = hwnd;
+    bool IsPoEForeground()
+    {
+        HWND hwnd = GetForegroundWindow();
 
-    return true;
-}
+        if (nullptr == hwnd)
+        {
+            return false;
+        }
 
-bool CheckBounds(RECT bounds, int x, int y)
-{
-    return (x > bounds.left && x < bounds.right && y > bounds.top && y < bounds.bottom);
-}
+        wchar_t cls[512];
+        GetClassName(hwnd, cls, std::size(cls));
 
-bool CheckMouseInStash(RECT bounds, int x)
-{
-    int winLength = bounds.right - bounds.left;
-    int stashLength = (int)((double)winLength * 0.346875);
+        if (s_poeCls != cls)
+        {
+            return false;
+        }
 
-    return (x > bounds.left && x < (bounds.left + stashLength));
-}
+        if (g_LastPoEHwnd != hwnd)
+        {
+            using namespace std::chrono_literals;
+
+            // New poe window
+            std::thread v([=] {
+                std::this_thread::sleep_for(2.5s);
+                pta::EmulateWindowedFullscreen(hwnd, g_VulkanCompat);
+            });
+            v.detach();
+        }
+
+        g_LastPoEHwnd = hwnd;
+
+        return true;
+    }
+
+    bool CheckBounds(RECT bounds, int x, int y)
+    {
+        return (x > bounds.left && x < bounds.right && y > bounds.top && y < bounds.bottom);
+    }
+
+    bool CheckMouseInStash(RECT bounds, int x)
+    {
+        int winLength = bounds.right - bounds.left;
+        int stashLength = (int)((double)winLength * 0.346875);
+
+        return (x > bounds.left && x < (bounds.left + stashLength));
+    }
 
 } // namespace pta
 
@@ -199,8 +264,26 @@ Napi::Boolean SetPoEForeground(const Napi::CallbackInfo &info)
     return Napi::Boolean::New(env, false);
 }
 
+void SetVulkanCompatibility(const Napi::CallbackInfo &info)
+{
+    Napi::Env env = info.Env();
+    Napi::Boolean vulkan = info[0].As<Napi::Boolean>();
+
+    g_VulkanCompat = vulkan;
+
+    if (g_LastPoEHwnd)
+    {
+        pta::EmulateWindowedFullscreen(g_LastPoEHwnd, g_VulkanCompat);
+    }
+}
+
 void InitializeHooks(const Napi::CallbackInfo &info)
 {
+    Napi::Env env = info.Env();
+    Napi::Boolean vulkan = info[0].As<Napi::Boolean>();
+
+    g_VulkanCompat = vulkan;
+
     g_ForegroundHook = SetWinEventHook(
         EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, ForegroundHookCallback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
 
@@ -208,6 +291,12 @@ void InitializeHooks(const Napi::CallbackInfo &info)
 
     if (poehwnd)
     {
+        if (g_LastPoEHwnd != poehwnd)
+        {
+            // New poe window
+            pta::EmulateWindowedFullscreen(poehwnd, g_VulkanCompat);
+        }
+
         g_LastPoEHwnd = poehwnd;
     }
 }
@@ -233,6 +322,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "onForegroundChange"), Napi::Function::New(env, InstallForegroundHookCb));
 
     // set
+    exports.Set(Napi::String::New(env, "SetVulkanCompatibility"), Napi::Function::New(env, SetVulkanCompatibility));
     exports.Set(Napi::String::New(env, "InitializeHooks"), Napi::Function::New(env, InitializeHooks));
     exports.Set(Napi::String::New(env, "ShutdownHooks"), Napi::Function::New(env, ShutdownHooks));
     return exports;

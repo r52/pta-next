@@ -162,6 +162,15 @@ export class PTA {
       this.createSettingsWindow();
     });
 
+    ipcMain.on('vulkan-compat-changed', () => {
+      const vulkanCompat = cfg.get(
+        Config.vulkanCompat,
+        Config.default.vulkanCompat
+      );
+
+      winpoe.SetVulkanCompatibility(vulkanCompat);
+    });
+
     // initialize trade hooks
     this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
       this.trademanager.handleNewTrade(trademsg);
@@ -246,6 +255,10 @@ export class PTA {
       Config.default.checkForUpdates
     );
     const autoUpdate = cfg.get(Config.autoUpdate, Config.default.autoUpdate);
+    const vulkanCompat = cfg.get(
+      Config.vulkanCompat,
+      Config.default.vulkanCompat
+    );
 
     const appPath = app.getAppPath();
 
@@ -317,7 +330,7 @@ export class PTA {
     }
 
     if (process.env.PROD) {
-      winpoe.InitializeHooks();
+      winpoe.InitializeHooks(vulkanCompat);
     }
 
     iohook.start(process.env.NODE_ENV == 'development');

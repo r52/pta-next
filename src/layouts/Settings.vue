@@ -33,6 +33,10 @@
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="pta">
             <q-card>
+              <q-card-section>
+                <div class="text-h6">Updates</div>
+              </q-card-section>
+
               <div class="q-pa-xs">
                 <div class="row items-center">
                   <div class="col">
@@ -50,6 +54,28 @@
                       label="Automatically download and install updates (installer version only)"
                       :disable="!settings.pta.checkForUpdates"
                     />
+                  </div>
+                </div>
+              </div>
+            </q-card>
+
+            <q-card>
+              <div class="q-pa-xs">
+                <q-card-section>
+                  <div class="text-h6">Vulkan Compatibility</div>
+                </q-card-section>
+
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.pta.vulkanCompat"
+                      label="Emulate Windowed Fullscreen on Vulkan"
+                    >
+                      <q-tooltip
+                        >Set PoE to Windowed mode before enabling this
+                        option!</q-tooltip
+                      >
+                    </q-toggle>
                   </div>
                 </div>
               </div>
@@ -875,7 +901,11 @@ export default Vue.extend({
             Config.checkForUpdates,
             Config.default.checkForUpdates
           ),
-          autoUpdate: cfg.get(Config.autoUpdate, Config.default.autoUpdate)
+          autoUpdate: cfg.get(Config.autoUpdate, Config.default.autoUpdate),
+          vulkanCompat: cfg.get(
+            Config.vulkanCompat,
+            Config.default.vulkanCompat
+          )
         },
         hotkey: {
           simplehotkey: cfg.get(
@@ -1048,6 +1078,10 @@ export default Vue.extend({
       // PTA
       cfg.set(Config.checkForUpdates, settings.pta.checkForUpdates);
       cfg.set(Config.autoUpdate, settings.pta.autoUpdate);
+      cfg.set(Config.vulkanCompat, settings.pta.vulkanCompat);
+
+      // notify vulkan compatibility changed
+      ipcRenderer.send('vulkan-compat-changed');
 
       // hotkeys
       cfg.set(Config.simplehotkey, settings.hotkey.simplehotkey);
