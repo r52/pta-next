@@ -13,86 +13,100 @@
 </template>
 
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import Vue from 'vue';
+import { defineComponent, PropType } from '@vue/composition-api';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'ModNumInput',
 
-  data() {
+  props: {
+    filter: {
+      type: (Object as unknown) as PropType<Filter>,
+      required: true
+    },
+    type: {
+      type: String,
+      required: true
+    },
+    disabled: Boolean,
+    current: Number
+  },
+
+  setup(props) {
     let isint = false;
 
-    if (!this.disabled) {
-      let val = this.filter[this.type];
+    if (!props.disabled) {
+      let val = props.filter[props.type];
 
       if (val == null) {
-        if (this.filter.value != null) {
-          if (this.filter.value.length > 1) {
-            val = (this.filter.value[0] + this.filter.value[1]) / 2;
+        if (props.filter.value != null) {
+          if (props.filter.value.length > 1) {
+            val = (props.filter.value[0] + props.filter.value[1]) / 2;
           } else {
-            val = this.filter.value[0];
+            val = props.filter.value[0];
           }
-        } else {
-          val = Math.round(this.current);
+        } else if (props.current) {
+          val = Math.round(props.current);
         }
       }
 
       isint = Number.isInteger(val);
     }
 
-    return {
-      isInt: isint,
-    };
-  },
-
-  props: {
-    filter: Object,
-    type: String,
-    disabled: Boolean,
-    current: Number,
-  },
-
-  methods: {
-    scrollNum(evt: WheelEvent) {
+    function scrollNum(evt: WheelEvent) {
       evt.preventDefault();
 
-      if (!this.disabled) {
+      if (!props.disabled) {
         const dir = evt.deltaY > 0 ? -1 : 1;
 
-        let val = this.filter[this.type];
+        let val = props.filter[props.type];
 
         if (val == null) {
-          if (this.filter.value != null) {
-            if (this.filter.value.length > 1) {
-              val = (this.filter.value[0] + this.filter.value[1]) / 2;
+          if (props.filter.value != null) {
+            if (props.filter.value.length > 1) {
+              val = (props.filter.value[0] + props.filter.value[1]) / 2;
             } else {
-              val = this.filter.value[0];
+              val = props.filter.value[0];
             }
-          } else {
-            val = Math.round(this.current);
+          } else if (props.current) {
+            val = Math.round(props.current);
           }
         }
 
-        const step = this.isInt ? 1 : 0.1;
+        const step = isint ? 1 : 0.1;
         const change = step * dir;
         val = val + change;
-        this.filter[this.type] = Math.round(val * 100) / 100;
-        this.filter.enabled = true;
+        props.filter[props.type] = Math.round(val * 100) / 100;
+        props.filter.enabled = true;
       }
-    },
-    isNumber: function (evt: any) {
-      const charCode = evt.which ? evt.which : evt.keyCode;
-      if (
-        charCode > 31 &&
-        (charCode < 48 || charCode > 57) &&
-        charCode !== 46 &&
-        charCode !== 45
-      ) {
-        evt.preventDefault();
-      } else {
-        return true;
+    }
+
+    function isNumber(evt: KeyboardEvent) {
+      const key = evt.key;
+
+      switch (key) {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '-':
+        case '.':
+          break;
+        default:
+          evt.preventDefault();
+          break;
       }
-    },
-  },
+    }
+
+    return {
+      scrollNum,
+      isNumber
+    };
+  }
 });
 </script>
