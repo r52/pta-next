@@ -331,6 +331,8 @@ export class PTA {
 
     if (process.env.PROD) {
       winpoe.InitializeHooks(vulkanCompat);
+    } else {
+      winpoe.SetVulkanCompatibility(vulkanCompat);
     }
 
     iohook.start(process.env.NODE_ENV == 'development');

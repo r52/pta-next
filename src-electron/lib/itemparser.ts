@@ -242,24 +242,26 @@ export class ItemParser {
             const stt = data['result'];
 
             for (const type of stt) {
-              const el = type['entries'];
-              const tlb = (type['label'] as string).toLowerCase();
+              const entrylist = type['entries'];
+              const typelabel = (type['label'] as string).toLowerCase();
 
-              for (const et of el as StatFilter[]) {
-                if (!this.excludes.has(et.id)) {
-                  this.statsById.set(et.id, et);
+              for (const entry of entrylist as StatFilter[]) {
+                if (!this.excludes.has(entry.id)) {
+                  this.statsById.set(entry.id, entry);
                 }
 
                 // construct option fuse
-                if (et.option != null) {
-                  const index = Fuse.createIndex(['text'], et.option.options);
-                  et.option.fuse = new Fuse(
-                    et.option.options,
+                if (entry.option != null) {
+                  const index = Fuse.createIndex(
+                    ['text'],
+                    entry.option.options
+                  );
+                  entry.option.fuse = new Fuse(
+                    entry.option.options,
                     {
                       keys: ['text'],
                       shouldSort: true,
                       threshold: 0.6,
-                      location: 0,
                       distance: 1000,
                       includeScore: false
                     },
@@ -269,9 +271,9 @@ export class ItemParser {
               }
 
               // construct fuse
-              const entries = el as StatFilter[];
-              const index = Fuse.createIndex<StatFilter>(['text'], entries);
-              this.stats[tlb] = {
+              const entries = entrylist as StatFilter[];
+              const index = Fuse.createIndex(['text'], entries);
+              this.stats[typelabel] = {
                 entries: entries,
                 fuse: new Fuse(
                   entries,
@@ -279,7 +281,6 @@ export class ItemParser {
                     keys: ['text'],
                     shouldSort: true,
                     threshold: FuseMatchThreshold,
-                    location: 0,
                     includeScore: true
                   },
                   index
