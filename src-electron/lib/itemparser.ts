@@ -153,18 +153,12 @@ class ItemText {
 
     this.lines = itemtext.split(/\r?\n/g);
     this.currentline = 0;
-    this.sections = 1;
+    this.sections = 0;
     this.currentsection = 0;
+  }
 
-    // Do some preprocessing
-    if (this.lines[this.lines.length - 1].startsWith('Note:')) {
-      this.lines.pop();
-    }
-
-    if (this.lines[this.lines.length - 1].startsWith('---')) {
-      this.lines.pop();
-    }
-
+  calcSections() {
+    this.sections = 1;
     this.lines.forEach(line => {
       if (line.startsWith('---')) {
         this.sections++;
@@ -194,6 +188,15 @@ class ItemText {
     }
 
     return false;
+  }
+
+  peekLast() {
+    const line = this.lines[this.lines.length - 1];
+    return line;
+  }
+
+  pop() {
+    this.lines.pop();
   }
 }
 
@@ -558,12 +561,64 @@ export class ItemParser {
       });
   }
 
+  private getNumFlavourSections(item: Item): number {
+    let sections = 0;
+
+    if (
+      item.rarity == 'Unique' &&
+      (item.unidentified == null || item.unidentified == false)
+    ) {
+      sections++;
+    }
+
+    if (item.category == 'flask' || item.category == 'map') {
+      sections++;
+    }
+
+    return sections;
+  }
+
   public parse(itemtext: string): Item | null {
     itemtext = itemtext.trim();
 
     const item = {} as Item;
 
     const lines = new ItemText(itemtext);
+
+    // Preprocess out bottom sections here
+    // so flavour text can be processed out
+
+    // Remove notes section
+    if (lines.peekLast().startsWith('Note:')) {
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    // Synthesised
+    if (lines.peekLast().startsWith('Synthesised Item')) {
+      item.misc = item.misc ?? ({} as Misc);
+      item.misc.synthesis = true;
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    // Corrupted
+    if (lines.peekLast().startsWith('Corrupted')) {
+      item.corrupted = true;
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    lines.calcSections();
 
     let line = lines.readLine();
 
@@ -644,10 +699,10 @@ export class ItemParser {
     // Read the rest of the crap
 
     while ((line = lines.readLine()) !== false) {
-      // Skip unique flavour text
+      // Skip flavour text
       if (
-        item.rarity == 'Unique' &&
-        lines.currentsection == lines.sections - 1
+        lines.currentsection >=
+        lines.sections - this.getNumFlavourSections(item)
       ) {
         continue;
       }
@@ -655,11 +710,6 @@ export class ItemParser {
       // Skip section text
       if (line.startsWith('---')) {
         this.section = '';
-        continue;
-      }
-
-      // Skip notes
-      if (line.startsWith('Note:')) {
         continue;
       }
 
@@ -1046,6 +1096,7 @@ export class ItemParser {
     }
 
     if (stat == 'Corrupted') {
+      // Should already have been processed
       item.corrupted = true;
       return true;
     }
