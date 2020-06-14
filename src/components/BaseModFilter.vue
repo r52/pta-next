@@ -26,10 +26,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from '@vue/composition-api';
 import ModNumInput from 'components/ModNumInput.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'BaseModFilter',
 
   components: {
@@ -38,23 +38,35 @@ export default Vue.extend({
 
   props: {
     label: String,
-    options: Object,
-    settings: Object,
-    type: String,
-    current: Number
+    options: {
+      type: (Object as unknown) as PropType<ItemOptions>,
+      required: true
+    },
+    settings: {
+      type: (Object as unknown) as PropType<PTASettings>,
+      required: true
+    },
+    type: {
+      type: String,
+      required: true
+    },
+    current: {
+      type: Number,
+      required: true
+    }
   },
 
-  created() {
-    const range = this.settings.prefillrange / 100.0;
-    const value = this.current;
+  setup(props) {
+    const range = props.settings.prefillrange / 100.0;
+    const value = props.current;
     const diff = range * value;
 
-    if (this.settings.prefillmin) {
-      this.options[this.type]['min'] = Math.round(value - diff);
+    if (props.settings.prefillmin) {
+      props.options[props.type]['min'] = Math.round(value - diff);
     }
 
-    if (this.settings.prefillmax) {
-      this.options[this.type]['max'] = Math.round(value + diff);
+    if (props.settings.prefillmax) {
+      props.options[props.type]['max'] = Math.round(value + diff);
     }
   }
 });

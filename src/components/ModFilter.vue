@@ -47,10 +47,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType, computed } from '@vue/composition-api';
 import ModNumInput from 'components/ModNumInput.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'ModFilter',
 
   components: {
@@ -58,42 +58,52 @@ export default Vue.extend({
   },
 
   props: {
-    filter: Object,
-    settings: Object,
-    type: String
-  },
-
-  computed: {
-    filterval(): number {
-      if (this.filter.value.length > 1) {
-        return (this.filter.value[0] + this.filter.value[1]) / 2;
-      }
-
-      return this.filter.value[0];
+    filter: {
+      type: (Object as unknown) as PropType<Filter>,
+      required: true
+    },
+    settings: {
+      type: (Object as unknown) as PropType<PTASettings>,
+      required: true
+    },
+    type: {
+      type: String,
+      required: true
     }
   },
 
-  created() {
-    if (this.filter.value.length) {
-      const range = this.settings.prefillrange / 100.0;
-      const value = this.filterval;
-      const diff = range * value;
-
-      if (this.settings.prefillmin) {
-        this.filter['min'] = value - diff;
+  setup(props) {
+    const filterval = computed(() => {
+      if (props.filter.value.length > 1) {
+        return (props.filter.value[0] + props.filter.value[1]) / 2;
       }
 
-      if (this.settings.prefillmax) {
-        this.filter['max'] = value + diff;
+      return props.filter.value[0];
+    });
+
+    if (props.filter.value.length) {
+      const range = props.settings.prefillrange / 100.0;
+      const diff = range * filterval.value;
+
+      if (props.settings.prefillmin) {
+        props.filter.min = filterval.value - diff;
+      }
+
+      if (props.settings.prefillmax) {
+        props.filter.max = filterval.value + diff;
       }
     }
 
     if (
-      (this.type == 'normal' && this.settings.prefillnormals) ||
-      (this.type == 'pseudo' && this.settings.prefillpseudos)
+      (props.type == 'normal' && props.settings.prefillnormals) ||
+      (props.type == 'pseudo' && props.settings.prefillpseudos)
     ) {
-      this.filter.enabled = true;
+      props.filter.enabled = true;
     }
+
+    return {
+      filterval
+    };
   }
 });
 </script>

@@ -426,7 +426,7 @@ export class POETradeAPI implements PriceAPI {
   public searchItemWithOptions(
     event: Electron.IpcMainEvent,
     item: Item,
-    options: any,
+    options: ItemOptions,
     openbrowser: boolean
   ) {
     //
@@ -644,7 +644,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Use sockets
-    if (options['usesockets'] && item.sockets) {
+    if (options.usesockets && item.sockets) {
       query.query = merge(query.query, {
         filters: {
           socket_filters: {
@@ -664,7 +664,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Use links
-    if (options['uselinks'] && item.sockets) {
+    if (options.uselinks && item.sockets) {
       query.query = merge(query.query, {
         filters: {
           socket_filters: {
@@ -684,7 +684,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Use iLvl
-    if (options['useilvl'] && item.ilvl) {
+    if (options.useilvl && item.ilvl) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
@@ -704,7 +704,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Use item base
-    if (options['useitembase']) {
+    if (options.useitembase) {
       query.query['type'] = item.type;
       sopts.children.push({
         label: 'Item Base',
@@ -714,11 +714,10 @@ export class POETradeAPI implements PriceAPI {
 
     // Influences
 
-    if ('influences' in options && options['influences'].length) {
+    if (options.influences != null && options.influences.length) {
       const inflist = [] as any;
 
-      for (const i of options['influences']) {
-        const inf = i as string;
+      for (const inf of options.influences) {
         const infkey = inf + '_item';
 
         query.query = merge(query.query, {
@@ -740,7 +739,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Synthesis
-    if ('usesynthesisbase' in options && options['usesynthesisbase']) {
+    if (options.usesynthesisbase != null && options.usesynthesisbase) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
@@ -757,8 +756,8 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Corrupt
-    if ('usecorrupted' in options) {
-      const corrupt = options['usecorrupted'];
+    if (options.usecorrupted != null) {
+      const corrupt = options.usecorrupted;
 
       if (corrupt != 'Any') {
         query.query = merge(query.query, {

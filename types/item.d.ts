@@ -126,7 +126,63 @@ interface PriceAPI {
   searchItemWithOptions?(
     event: Electron.IpcMainEvent,
     item: Item,
-    options: any,
+    options: ItemOptions,
     openbrowser: boolean
   ): void;
+}
+
+interface PTASettings {
+  league: string;
+  displaylimit: number;
+  corruptoverride: boolean;
+  corruptsearch: string;
+  primarycurrency: string;
+  secondarycurrency: string;
+  onlineonly: boolean;
+  buyoutonly: boolean;
+  removedupes: boolean;
+  prefillmin: boolean;
+  prefillmax: boolean;
+  prefillrange: number;
+  prefillnormals: boolean;
+  prefillpseudos: boolean;
+  prefillilvl: boolean;
+  prefillbase: boolean;
+}
+
+interface ItemOptions {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [index: string]: any; // allow indexing
+  usepdps: {
+    enabled: boolean;
+    min: number | null;
+    max: number | null;
+  };
+  useedps: {
+    enabled: boolean;
+    min: number | null;
+    max: number | null;
+  };
+  usear: {
+    enabled: boolean;
+    min: number | null;
+    max: number | null;
+  };
+  useev: {
+    enabled: boolean;
+    min: number | null;
+    max: number | null;
+  };
+  usees: {
+    enabled: boolean;
+    min: number | null;
+    max: number | null;
+  };
+  usesockets: boolean;
+  uselinks: boolean;
+  useilvl: boolean;
+  useitembase: boolean;
+  usecorrupted: string;
+  influences: string[];
+  usesynthesisbase?: boolean;
 }

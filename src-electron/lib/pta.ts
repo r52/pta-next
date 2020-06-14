@@ -552,8 +552,8 @@ export class PTA {
 
   private createItemUI(
     item: Item,
-    settings: any,
-    options: any,
+    settings: PTASettings,
+    options: ItemOptions,
     type: ItemHotkey
   ) {
     const wincfg = cfg.window({ name: 'item' });
@@ -648,42 +648,63 @@ export class PTA {
     const displaylimit = cfg.get(
       Config.displaylimit,
       Config.default.displaylimit
-    );
+    ) as number;
     const corruptoverride = cfg.get(
       Config.corruptoverride,
       Config.default.corruptoverride
-    );
+    ) as boolean;
     const corruptsearch = cfg.get(
       Config.corruptsearch,
       Config.default.corruptsearch
-    );
+    ) as string;
     const pcurr = cfg.get(
       Config.primarycurrency,
       Config.default.primarycurrency
-    );
+    ) as string;
     const scurr = cfg.get(
       Config.secondarycurrency,
       Config.default.secondarycurrency
-    );
-    const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
-    const buyoutonly = cfg.get(Config.buyoutonly, Config.default.buyoutonly);
-    const removedupes = cfg.get(Config.removedupes, Config.default.removedupes);
-    const prefillmin = cfg.get(Config.prefillmin, Config.default.prefillmin);
-    const prefillmax = cfg.get(Config.prefillmax, Config.default.prefillmax);
+    ) as string;
+    const onlineonly = cfg.get(
+      Config.onlineonly,
+      Config.default.onlineonly
+    ) as boolean;
+    const buyoutonly = cfg.get(
+      Config.buyoutonly,
+      Config.default.buyoutonly
+    ) as boolean;
+    const removedupes = cfg.get(
+      Config.removedupes,
+      Config.default.removedupes
+    ) as boolean;
+    const prefillmin = cfg.get(
+      Config.prefillmin,
+      Config.default.prefillmin
+    ) as boolean;
+    const prefillmax = cfg.get(
+      Config.prefillmax,
+      Config.default.prefillmax
+    ) as boolean;
     const prefillrange = cfg.get(
       Config.prefillrange,
       Config.default.prefillrange
-    );
+    ) as number;
     const prefillnormals = cfg.get(
       Config.prefillnormals,
       Config.default.prefillnormals
-    );
+    ) as boolean;
     const prefillpseudos = cfg.get(
       Config.prefillpseudos,
       Config.default.prefillpseudos
-    );
-    const prefillilvl = cfg.get(Config.prefillilvl, Config.default.prefillilvl);
-    const prefillbase = cfg.get(Config.prefillbase, Config.default.prefillbase);
+    ) as boolean;
+    const prefillilvl = cfg.get(
+      Config.prefillilvl,
+      Config.default.prefillilvl
+    ) as boolean;
+    const prefillbase = cfg.get(
+      Config.prefillbase,
+      Config.default.prefillbase
+    ) as boolean;
 
     // app settings
     const settings = {
@@ -703,7 +724,7 @@ export class PTA {
       prefillpseudos: prefillpseudos,
       prefillilvl: prefillilvl,
       prefillbase: prefillbase
-    };
+    } as PTASettings;
 
     // search defaults
     const options = {
@@ -738,7 +759,7 @@ export class PTA {
       useitembase: prefillbase,
       usecorrupted: item.corrupted ? 'Yes' : 'Any',
       influences: []
-    } as any;
+    } as ItemOptions;
 
     if (prefillbase) {
       if (item.influences) {
@@ -746,7 +767,7 @@ export class PTA {
       }
 
       if (item.misc?.synthesis) {
-        options['usesynthesisbase'] = prefillbase;
+        options.usesynthesisbase = prefillbase;
       }
     }
 
@@ -760,7 +781,7 @@ export class PTA {
   private searchItemOptions(
     event: Electron.IpcMainEvent,
     item: Item,
-    options: any,
+    options: ItemOptions,
     openbrowser: boolean
   ) {
     this.searchAPIs.forEach(api => {
