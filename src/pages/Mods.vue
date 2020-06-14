@@ -196,15 +196,15 @@ export default defineComponent({
 
   props: {
     item: {
-      type: (Object as unknown) as PropType<Item>,
+      type: Object as PropType<Item>,
       required: true
     },
     options: {
-      type: (Object as unknown) as PropType<ItemOptions>,
+      type: Object as PropType<ItemOptions>,
       required: true
     },
     settings: {
-      type: (Object as unknown) as PropType<PTASettings>,
+      type: Object as PropType<PTASettings>,
       required: true
     }
   },

@@ -21,7 +21,7 @@ export default defineComponent({
 
   props: {
     filter: {
-      type: (Object as unknown) as PropType<Filter>,
+      type: Object as PropType<Filter>,
       required: true
     },
     type: {

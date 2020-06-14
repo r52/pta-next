@@ -59,11 +59,11 @@ export default defineComponent({
 
   props: {
     filter: {
-      type: (Object as unknown) as PropType<Filter>,
+      type: Object as PropType<Filter>,
       required: true
     },
     settings: {
-      type: (Object as unknown) as PropType<PTASettings>,
+      type: Object as PropType<PTASettings>,
       required: true
     },
     type: {

@@ -39,11 +39,11 @@ export default defineComponent({
   props: {
     label: String,
     options: {
-      type: (Object as unknown) as PropType<ItemOptions>,
+      type: Object as PropType<ItemOptions>,
       required: true
     },
     settings: {
-      type: (Object as unknown) as PropType<PTASettings>,
+      type: Object as PropType<PTASettings>,
       required: true
     },
     type: {

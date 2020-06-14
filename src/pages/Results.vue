@@ -241,7 +241,7 @@ export default defineComponent({
 
   props: {
     item: {
-      type: (Object as unknown) as PropType<Item>,
+      type: Object as PropType<Item>,
       required: true
     },
     results: {
