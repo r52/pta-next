@@ -14,6 +14,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from '@vue/composition-api';
+import { isNumber } from '../functions/util';
 
 export default defineComponent({
   name: 'ModNumInput',
@@ -77,29 +78,6 @@ export default defineComponent({
         val = val + change;
         props.filter[props.type] = Math.round(val * 100) / 100;
         props.filter.enabled = true;
-      }
-    }
-
-    function isNumber(evt: KeyboardEvent) {
-      const key = evt.key;
-
-      switch (key) {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-        case '-':
-        case '.':
-          break;
-        default:
-          evt.preventDefault();
-          break;
       }
     }
 

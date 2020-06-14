@@ -185,19 +185,28 @@
 </template>
 
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import Vue from 'vue';
+import { defineComponent, PropType } from '@vue/composition-api';
+import { isNumber } from '../functions/util';
 import { ipcRenderer } from 'electron';
 import BaseModFilter from 'components/BaseModFilter.vue';
 import ModFilter from 'components/ModFilter.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'Mods',
 
   props: {
-    item: Object,
-    options: Object,
-    settings: Object
+    item: {
+      type: (Object as unknown) as PropType<Item>,
+      required: true
+    },
+    options: {
+      type: (Object as unknown) as PropType<ItemOptions>,
+      required: true
+    },
+    settings: {
+      type: (Object as unknown) as PropType<PTASettings>,
+      required: true
+    }
   },
 
   components: {
@@ -205,32 +214,23 @@ export default Vue.extend({
     ModFilter
   },
 
-  data() {
-    return {
-      corrupts: ['Any', 'Yes', 'No']
-    };
-  },
+  setup(props) {
+    const corrupts = ['Any', 'Yes', 'No'];
 
-  methods: {
-    getAvg: (prop: any) => {
-      return (prop.min + prop.max) / 2;
-    },
-    isNumber: function(evt: any) {
-      const charCode = evt.which ? evt.which : evt.keyCode;
-      if (
-        charCode > 31 &&
-        (charCode < 48 || charCode > 57) &&
-        charCode !== 46 &&
-        charCode !== 45
-      ) {
-        evt.preventDefault();
-      } else {
-        return true;
-      }
-    },
-    search(openbrowser: boolean) {
-      ipcRenderer.send('search', this.item, this.options, openbrowser);
+    function getAvg(range: NumericRange) {
+      return (range.min + range.max) / 2;
     }
+
+    function search(openbrowser: boolean) {
+      ipcRenderer.send('search', props.item, props.options, openbrowser);
+    }
+
+    return {
+      corrupts,
+      getAvg,
+      isNumber,
+      search
+    };
   }
 });
 </script>
