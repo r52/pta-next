@@ -61,11 +61,11 @@ export default defineComponent({
     const value = props.current;
     const diff = range * value;
 
-    if (props.settings.prefillmin) {
+    if (props.settings.prefillmin && !props.options[props.type]['min']) {
       props.options[props.type]['min'] = Math.round(value - diff);
     }
 
-    if (props.settings.prefillmax) {
+    if (props.settings.prefillmax && !props.options[props.type]['max']) {
       props.options[props.type]['max'] = Math.round(value + diff);
     }
   }

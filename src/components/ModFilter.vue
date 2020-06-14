@@ -85,11 +85,11 @@ export default defineComponent({
       const range = props.settings.prefillrange / 100.0;
       const diff = range * filterval.value;
 
-      if (props.settings.prefillmin) {
+      if (props.settings.prefillmin && !props.filter.min) {
         props.filter.min = filterval.value - diff;
       }
 
-      if (props.settings.prefillmax) {
+      if (props.settings.prefillmax && !props.filter.max) {
         props.filter.max = filterval.value + diff;
       }
     }
