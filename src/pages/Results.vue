@@ -75,35 +75,44 @@ function getRelTime(t1: number, t2: number) {
   return Math.floor(dif / 86400).toString() + ' days';
 }
 
-function parseListings(type: string, results: any[]) {
+function parseListings(type: string, results: PoETradeListing[]) {
   const lst: PriceListing[] = [];
   const now = Date.now();
 
-  results.forEach((entry: any) => {
+  results.forEach((entry: PoETradeListing) => {
     const obj = {} as PriceListing;
 
     // name
-    obj.name = entry['listing']['account']['name'];
+    obj.name = entry.listing.account.name;
 
     // price
-    if (type == 'exchange') {
+    if (
+      type == 'exchange' &&
+      entry.listing.price.item != null &&
+      entry.listing.price.exchange != null
+    ) {
       const irate = {
-        amount: entry['listing']['price']['item']['amount'],
-        currency: entry['listing']['price']['item']['currency']
+        amount: entry.listing.price.item.amount,
+        currency: entry.listing.price.item.currency
       } as PriceRate;
 
       const erate = {
-        amount: entry['listing']['price']['exchange']['amount'],
-        currency: entry['listing']['price']['exchange']['currency']
+        amount: entry.listing.price.exchange.amount,
+        currency: entry.listing.price.exchange.currency
       } as PriceRate;
 
       obj.price = {
         irate: irate,
         erate: erate
       };
+
+      // rate
+      const rate = irate.amount / erate.amount;
+      obj.rate =
+        rate.toPrecision(3) + ' ' + irate.currency + '/' + erate.currency;
     } else {
-      const amount = entry['listing']['price']['amount'] as number;
-      const currency = entry['listing']['price']['currency'];
+      const amount = entry.listing.price.amount;
+      const currency = entry.listing.price.currency;
 
       obj.price = {
         amount: amount,
@@ -112,30 +121,20 @@ function parseListings(type: string, results: any[]) {
     }
 
     // specials
-    if (type == 'exchange') {
-      // rate
-      const rate =
-        entry['listing']['price']['item']['amount'] /
-        entry['listing']['price']['exchange']['amount'];
-      const ic = entry['listing']['price']['item']['currency'];
-      const ec = entry['listing']['price']['exchange']['currency'];
-      obj.rate = rate.toPrecision(3) + ' ' + ic + '/' + ec;
-    }
-
     if (type == 'gem') {
       // quality/level
       let q = '0%';
       let lvl = '1';
-      const prop = entry['item']['properties'];
+      const prop = entry.item.properties;
 
       for (const p of prop) {
-        if (p['name'] == 'Quality') {
-          const val = p['values'][0][0];
+        if (p.name == 'Quality') {
+          const val = p.values[0][0] as string;
           q = val.replace(/^\D+/g, '');
         }
 
-        if (p['name'] == 'Level') {
-          lvl = p['values'][0][0];
+        if (p.name == 'Level') {
+          lvl = p.values[0][0] as string;
         }
       }
 
@@ -245,7 +244,7 @@ export default defineComponent({
       required: true
     },
     results: {
-      type: Object,
+      type: Object as PropType<PoETradeResults>,
       required: true
     }
   },

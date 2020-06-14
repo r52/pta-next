@@ -75,7 +75,9 @@ export class POETradeAPI implements PriceAPI {
           children: [{ label: league }]
         }
       ]
-    } as any;
+    } as QTreeModel;
+
+    sopts.children = sopts.children ?? ([] as QTreeModel[]);
 
     let isUniqueBase = false;
     let searchToken = '';
@@ -203,7 +205,10 @@ export class POETradeAPI implements PriceAPI {
         sopts.children.push({
           label: 'Gem',
           children: [
-            { label: 'Level', children: [{ label: item.misc.gemlevel }] },
+            {
+              label: 'Level',
+              children: [{ label: item.misc.gemlevel.toString() }]
+            },
             { label: 'Quality', children: [{ label: item.quality + '%' }] }
           ]
         });
@@ -225,7 +230,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Sockets',
-          children: [{ label: item.sockets.total }]
+          children: [{ label: item.sockets.total.toString() }]
         });
       }
 
@@ -245,7 +250,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Links',
-          children: [{ label: item.sockets.links }]
+          children: [{ label: item.sockets.links.toString() }]
         });
       }
 
@@ -265,7 +270,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Item Level',
-          children: [{ label: item.ilvl }]
+          children: [{ label: item.ilvl.toString() }]
         });
       }
 
@@ -285,7 +290,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Map Tier',
-          children: [{ label: item.misc.maptier }]
+          children: [{ label: item.misc.maptier.toString() }]
         });
       }
 
@@ -470,7 +475,9 @@ export class POETradeAPI implements PriceAPI {
           children: [{ label: league }]
         }
       ]
-    } as any;
+    } as QTreeModel;
+
+    sopts.children = sopts.children ?? ([] as QTreeModel[]);
 
     // Take care of settings
     const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
@@ -549,7 +556,7 @@ export class POETradeAPI implements PriceAPI {
         const filter =
           bm === 'pdps' || bm === 'edps' ? 'weapon_filters' : 'armour_filters';
 
-        const flt = [] as any;
+        const flt = [] as QTreeModel[];
 
         ['min', 'max'].forEach(lm => {
           if (options['use' + bm][lm] != null) {
@@ -573,7 +580,7 @@ export class POETradeAPI implements PriceAPI {
         });
 
         if (flt.length) {
-          sopts.children.push({ label: bm, children: [...flt] });
+          sopts.children?.push({ label: bm, children: [...flt] });
         }
       }
     });
@@ -659,7 +666,7 @@ export class POETradeAPI implements PriceAPI {
 
       sopts.children.push({
         label: 'Sockets',
-        children: [{ label: item.sockets.total }]
+        children: [{ label: item.sockets.total.toString() }]
       });
     }
 
@@ -679,7 +686,7 @@ export class POETradeAPI implements PriceAPI {
 
       sopts.children.push({
         label: 'Links',
-        children: [{ label: item.sockets.links }]
+        children: [{ label: item.sockets.links.toString() }]
       });
     }
 
@@ -699,7 +706,7 @@ export class POETradeAPI implements PriceAPI {
 
       sopts.children.push({
         label: 'Item Level',
-        children: [{ label: item.ilvl }]
+        children: [{ label: item.ilvl.toString() }]
       });
     }
 
@@ -806,7 +813,7 @@ export class POETradeAPI implements PriceAPI {
   private processPriceResults(
     response: any,
     event: Electron.IpcMainEvent,
-    searchoptions: any,
+    searchoptions: QTreeModel[] | null,
     forcetab: boolean,
     exchange = false
   ) {
@@ -852,7 +859,7 @@ export class POETradeAPI implements PriceAPI {
       forcetab: forcetab,
       exchange: exchange,
       siteurl: URLs.official.trade.site + league + '/' + response['id']
-    };
+    } as PoETradeResults;
 
     axios.all(urls).then(results => {
       results.forEach(resp => {
@@ -866,7 +873,7 @@ export class POETradeAPI implements PriceAPI {
       const accounts = new Set<string>();
       if (removedupes) {
         rdat.result = rdat.result.filter(entry => {
-          const acctname = entry['listing']['account']['name'];
+          const acctname = entry.listing.account.name;
           const isUnique = !accounts.has(acctname);
 
           if (isUnique) {
