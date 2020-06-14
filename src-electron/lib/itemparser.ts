@@ -334,7 +334,7 @@ export class ItemParser {
           .then((response: any) => {
             const data = response.data;
 
-            for (const [k, val] of Object.entries(data)) {
+            for (const val of Object.values(data)) {
               const o = val as any;
 
               const typeName = o['name'] as string;
@@ -381,7 +381,7 @@ export class ItemParser {
       .then((response: any) => {
         const data = response.data;
 
-        for (const [k, val] of Object.entries(data)) {
+        for (const val of Object.values(data)) {
           const o = val as any;
 
           const modname = o['name'] as string;
