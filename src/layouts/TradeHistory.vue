@@ -93,7 +93,7 @@
 <script lang="ts">
 import { defineComponent, ref, onBeforeUnmount } from '@vue/composition-api';
 import { getElapsedTime } from '../functions/util';
-import { useCloseApp } from '../functions/context';
+import { useElectronUtil } from '../functions/context';
 import { ipcRenderer } from 'electron';
 import log from 'electron-log';
 
@@ -143,7 +143,7 @@ export default defineComponent({
       ipcRenderer.send(command, trade);
     }
 
-    const { closeApp } = useCloseApp(ctx);
+    const { closeApp } = useElectronUtil(ctx);
 
     ipcRenderer.on('trade-history', (event, nhist: TradeMsg[]) => {
       history.value = nhist;

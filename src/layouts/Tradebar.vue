@@ -73,7 +73,7 @@
 
 <script lang="ts">
 import { defineComponent } from '@vue/composition-api';
-import { useCloseApp } from '../functions/context';
+import { useElectronUtil } from '../functions/context';
 import { ipcRenderer } from 'electron';
 import log from 'electron-log';
 
@@ -95,7 +95,7 @@ export default defineComponent({
       ipcRenderer.send('trade-bar-ignore-mouse', enabled);
     }
 
-    const { closeApp } = useCloseApp(ctx);
+    const { closeApp } = useElectronUtil(ctx);
 
     return {
       sendMsg,

@@ -81,41 +81,37 @@
   </q-layout>
 </template>
 
-<script>
-import EssentialLink from 'components/EssentialLink';
+<script lang="ts">
+import { defineComponent, ref, reactive } from '@vue/composition-api';
+import { useElectronUtil } from '../functions/context';
+import EssentialLink from 'components/EssentialLink.vue';
 
-export default {
+export default defineComponent({
   name: 'About',
 
   components: {
     EssentialLink
   },
 
-  data() {
-    return {
-      leftDrawerOpen: false,
-      essentialLinks: [
-        {
-          title: 'Github',
-          caption: 'github.com/r52/pta-next',
-          icon: 'code',
-          link: 'https://github.com/r52/pta-next'
-        }
-      ]
-    };
-  },
-
-  methods: {
-    closeApp() {
-      const win = this.$q.electron.remote.getCurrentWindow();
-
-      if (win) {
-        win.close();
+  setup(props, ctx) {
+    const leftDrawerOpen = ref(false);
+    const essentialLinks = reactive([
+      {
+        title: 'Github',
+        caption: 'github.com/r52/pta-next',
+        icon: 'code',
+        link: 'https://github.com/r52/pta-next'
       }
-    },
-    openBrowser(link) {
-      this.$q.electron.remote.shell.openExternal(link);
-    }
+    ]);
+
+    const { closeApp, openBrowser } = useElectronUtil(ctx);
+
+    return {
+      leftDrawerOpen,
+      essentialLinks,
+      closeApp,
+      openBrowser
+    };
   }
-};
+});
 </script>

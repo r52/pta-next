@@ -1,6 +1,6 @@
 import { SetupContext } from '@vue/composition-api';
 
-export function useCloseApp(context: SetupContext) {
+export function useElectronUtil(context: SetupContext) {
   const closeApp = () => {
     const win = context.root.$q.electron.remote.getCurrentWindow();
 
@@ -9,7 +9,12 @@ export function useCloseApp(context: SetupContext) {
     }
   };
 
+  const openBrowser = (url: string) => {
+    context.root.$q.electron.remote.shell.openExternal(url);
+  };
+
   return {
-    closeApp
+    closeApp,
+    openBrowser
   };
 }

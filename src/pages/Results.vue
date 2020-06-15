@@ -48,7 +48,7 @@
         color="purple"
         accesskey="e"
         icon="open_in_new"
-        @click="openInBrowser"
+        @click="openBrowser(results.siteurl)"
       >
         Op<u>e</u>n Results on pathofexile.com
       </q-btn>
@@ -59,6 +59,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from '@vue/composition-api';
 import { getElapsedTime } from '../functions/util';
+import { useElectronUtil } from '../functions/context';
 
 function parseListings(type: string, results: PoETradeListing[]) {
   const lst: PriceListing[] = [];
@@ -251,15 +252,13 @@ export default defineComponent({
 
     const listings = parseListings(type, props.results.result);
 
-    function openInBrowser() {
-      ctx.root.$q.electron.remote.shell.openExternal(props.results.siteurl);
-    }
+    const { openBrowser } = useElectronUtil(ctx);
 
     return {
       pagination,
       columns,
       listings,
-      openInBrowser
+      openBrowser
     };
   }
 });
