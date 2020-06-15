@@ -91,96 +91,76 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, ref, onBeforeUnmount } from '@vue/composition-api';
+import { getElapsedTime } from '../functions/util';
+import { useCloseApp } from '../functions/context';
 import { ipcRenderer } from 'electron';
 import log from 'electron-log';
 
 Object.assign(console, log.functions);
 
-export default Vue.extend({
+const columns = [
+  {
+    name: 'name',
+    align: 'left',
+    label: 'Player Name',
+    field: 'name'
+  },
+  {
+    name: 'type',
+    align: 'left',
+    label: 'Type',
+    field: 'type'
+  },
+  {
+    name: 'item',
+    align: 'left',
+    label: 'Item',
+    field: 'item'
+  },
+  {
+    name: 'price',
+    align: 'left',
+    label: 'Price',
+    field: 'price'
+  },
+  {
+    name: 'time',
+    align: 'left',
+    label: 'Time',
+    field: 'time'
+  }
+];
+
+export default defineComponent({
   name: 'TradeHistory',
 
-  data() {
-    return {
-      columns: [
-        {
-          name: 'name',
-          align: 'left',
-          label: 'Player Name',
-          field: 'name'
-        },
-        {
-          name: 'type',
-          align: 'left',
-          label: 'Type',
-          field: 'type'
-        },
-        {
-          name: 'item',
-          align: 'left',
-          label: 'Item',
-          field: 'item'
-        },
-        {
-          name: 'price',
-          align: 'left',
-          label: 'Price',
-          field: 'price'
-        },
-        {
-          name: 'time',
-          align: 'left',
-          label: 'Time',
-          field: 'time'
-        }
-      ],
-      history: [] as TradeMsg[],
-      now: new Date()
-    };
-  },
+  setup(props, ctx) {
+    const history = ref([] as TradeMsg[]);
+    const now = Date.now();
 
-  methods: {
-    historyCommand(command: string, trade: TradeMsg) {
+    function historyCommand(command: string, trade: TradeMsg) {
       ipcRenderer.send(command, trade);
-    },
-    getElapsedTime: (current: number, time: number) => {
-      let dif = current - time;
-
-      // convert to seconds
-      dif = Math.floor(dif / 1000);
-
-      if (dif < 60) {
-        return dif.toString() + ' seconds';
-      }
-
-      // minutes
-      if (dif < 3600) {
-        return Math.floor(dif / 60).toString() + ' minutes';
-      }
-
-      if (dif < 86400) {
-        return Math.floor(dif / 3600).toString() + ' hours';
-      }
-
-      return Math.floor(dif / 86400).toString() + ' days';
-    },
-    closeApp() {
-      const win = this.$q.electron.remote.getCurrentWindow();
-
-      if (win) {
-        win.close();
-      }
     }
-  },
 
-  created() {
-    ipcRenderer.on('trade-history', (event, history) => {
-      this.history = history;
+    const { closeApp } = useCloseApp(ctx);
+
+    ipcRenderer.on('trade-history', (event, nhist: TradeMsg[]) => {
+      history.value = nhist;
     });
-  },
 
-  beforeDestroy() {
-    ipcRenderer.removeAllListeners('trade-history');
+    onBeforeUnmount(() => {
+      ipcRenderer.removeAllListeners('trade-history');
+    });
+
+    return {
+      columns,
+      history,
+      now,
+      historyCommand,
+      closeApp,
+      getElapsedTime
+    };
   }
 });
 </script>

@@ -58,22 +58,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from '@vue/composition-api';
-
-function getRelTime(t1: number, t2: number) {
-  let dif = t1 - t2;
-
-  // convert to seconds
-  dif = Math.floor(dif / 1000);
-
-  if (dif < 60) return dif.toString() + ' seconds';
-
-  // minutes
-  if (dif < 3600) return Math.floor(dif / 60).toString() + ' minutes';
-
-  if (dif < 86400) return Math.floor(dif / 3600).toString() + ' hours';
-
-  return Math.floor(dif / 86400).toString() + ' days';
-}
+import { getElapsedTime } from '../functions/util';
 
 function parseListings(type: string, results: PoETradeListing[]) {
   const lst: PriceListing[] = [];
@@ -143,7 +128,7 @@ function parseListings(type: string, results: PoETradeListing[]) {
     }
 
     // age
-    obj.age = getRelTime(now, Date.parse(entry['listing']['indexed']));
+    obj.age = getElapsedTime(now, Date.parse(entry.listing.indexed));
 
     lst.push(obj);
   });

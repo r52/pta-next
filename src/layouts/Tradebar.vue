@@ -72,39 +72,37 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from '@vue/composition-api';
+import { useCloseApp } from '../functions/context';
 import { ipcRenderer } from 'electron';
 import log from 'electron-log';
 
 Object.assign(console, log.functions);
 
-export default Vue.extend({
+export default defineComponent({
   name: 'Tradebar',
 
-  data() {
-    return {
-      history: [] as TradeMsg[],
-      now: new Date()
-    };
-  },
-
-  methods: {
-    sendMsg(msg: string) {
+  setup(props, ctx) {
+    function sendMsg(msg: string) {
       ipcRenderer.send(msg);
-    },
-    sendCommand(command: string) {
-      ipcRenderer.send('trade-command', {}, command);
-    },
-    closeApp() {
-      const win = this.$q.electron.remote.getCurrentWindow();
+    }
 
-      if (win) {
-        win.close();
-      }
-    },
-    ignoreMouse(enabled: boolean) {
+    function sendCommand(command: string) {
+      ipcRenderer.send('trade-command', {}, command);
+    }
+
+    function ignoreMouse(enabled: boolean) {
       ipcRenderer.send('trade-bar-ignore-mouse', enabled);
     }
+
+    const { closeApp } = useCloseApp(ctx);
+
+    return {
+      sendMsg,
+      sendCommand,
+      closeApp,
+      ignoreMouse
+    };
   }
 });
 </script>
