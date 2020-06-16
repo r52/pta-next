@@ -4,7 +4,7 @@
       <q-bar dense class="q-electron-drag bg-grey-8">
         <div>Trades</div>
         <q-space />
-        <q-btn dense flat icon="close" @click="close" />
+        <q-btn dense flat icon="close" @click="closeTabOrWindow" />
       </q-bar>
       <q-bar class="bg-grey-7">
         <q-tabs v-model="tab" shrink dense align="justify" :breakpoint="0">
@@ -140,33 +140,32 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, ref, onBeforeUnmount } from '@vue/composition-api';
 import { ipcRenderer } from 'electron';
 import log from 'electron-log';
 
 Object.assign(console, log.functions);
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TradeNotification',
 
-  data() {
-    return {
-      tab: '',
-      trades: [] as TradeNotification[]
-    };
-  },
+  setup(props, ctx) {
+    const tab = ref('');
+    const trades = ref([] as TradeNotification[]);
 
-  methods: {
-    truncateName(str: string) {
+    function truncateName(str: string) {
       const maxlen = 12;
       if (str.length > maxlen) {
         return str.substring(0, maxlen) + '...';
       }
       return str;
-    },
-    getElapseTime() {
-      this.trades.forEach(trade => {
-        let dif = Date.now() - trade.time;
+    }
+
+    // Update time
+    function updateElapseTime() {
+      const now = Date.now();
+      trades.value.forEach(trade => {
+        let dif = now - trade.time;
 
         // convert to seconds
         dif = Math.floor(dif / 1000);
@@ -189,16 +188,26 @@ export default Vue.extend({
 
         trade.curtime = Math.floor(dif / 86400).toString() + 'd';
       });
-    },
-    handleTrade(event: Electron.IpcRendererEvent, trade: TradeNotification) {
-      this.trades.push(trade);
+    }
 
-      if (!this.tab) {
-        this.tab = trade.name + trade.time;
+    setInterval(() => {
+      updateElapseTime();
+    }, 1000);
+
+    // Handle trade events
+    function handleTrade(
+      event: Electron.IpcRendererEvent,
+      trade: TradeNotification
+    ) {
+      trades.value.push(trade);
+
+      if (!tab.value) {
+        tab.value = trade.name + trade.time;
       }
-    },
-    handleTradeEvent(event: string, name: string) {
-      this.trades.some(trade => {
+    }
+
+    function handleTradeEvent(event: string, name: string) {
+      trades.value.some(trade => {
         if (trade.name == name) {
           switch (event) {
             case 'new-whisper':
@@ -216,72 +225,86 @@ export default Vue.extend({
         }
         return false;
       });
-    },
-    highlightStash(trade: TradeNotification) {
-      ipcRenderer.send('highlight-stash', trade.tab, trade.x, trade.y);
-    },
-    stopHighlightStash() {
-      ipcRenderer.send('stop-highlight-stash');
-    },
-    sendTradeCommand(trade: TradeNotification, command: string) {
-      ipcRenderer.send('trade-command', trade, command);
-    },
-    sendCustomCommand(trade: TradeNotification, command: TradeCommand) {
-      ipcRenderer.send('trade-custom-command', trade, command);
+    }
 
-      if (command.close) {
-        this.close();
-      }
-    },
-    close() {
-      if (this.trades.length <= 1) {
-        const win = this.$q.electron.remote.getCurrentWindow();
+    ipcRenderer.on('trade', (event, trade) => {
+      handleTrade(event, trade);
+    });
+
+    ipcRenderer.on('new-whisper', (event, name) => {
+      handleTradeEvent('new-whisper', name);
+    });
+
+    ipcRenderer.on('entered-area', (event, name) => {
+      handleTradeEvent('entered-area', name);
+    });
+
+    ipcRenderer.on('left-area', (event, name) => {
+      handleTradeEvent('left-area', name);
+    });
+
+    function closeTabOrWindow() {
+      if (trades.value.length <= 1) {
+        const win = ctx.root.$q.electron.remote.getCurrentWindow();
 
         if (win) {
           win.close();
         }
-      } else if (this.tab) {
-        let idx = this.trades.findIndex(trade => {
-          return this.tab == trade.name + trade.time;
+      } else if (tab.value) {
+        let idx = trades.value.findIndex(trade => {
+          return tab.value == trade.name + trade.time;
         });
 
-        this.trades.splice(idx, 1);
+        trades.value.splice(idx, 1);
 
         if (idx < 0) idx = 0;
-        if (idx > this.trades.length - 1) idx = this.trades.length - 1;
+        if (idx > trades.value.length - 1) idx = trades.value.length - 1;
 
-        const last = this.trades[idx];
-        this.tab = last.name + last.time;
+        const last = trades.value[idx];
+        tab.value = last.name + last.time;
       }
     }
-  },
 
-  created() {
-    ipcRenderer.on('trade', (event, trade) => {
-      this.handleTrade(event, trade);
+    function highlightStash(trade: TradeNotification) {
+      ipcRenderer.send('highlight-stash', trade.tab, trade.x, trade.y);
+    }
+
+    function stopHighlightStash() {
+      ipcRenderer.send('stop-highlight-stash');
+    }
+
+    function sendTradeCommand(trade: TradeNotification, command: string) {
+      ipcRenderer.send('trade-command', trade, command);
+    }
+
+    function sendCustomCommand(
+      trade: TradeNotification,
+      command: TradeCommand
+    ) {
+      ipcRenderer.send('trade-custom-command', trade, command);
+
+      if (command.close) {
+        closeTabOrWindow();
+      }
+    }
+
+    onBeforeUnmount(() => {
+      ipcRenderer.removeAllListeners('trade');
+      ipcRenderer.removeAllListeners('new-whisper');
+      ipcRenderer.removeAllListeners('entered-area');
+      ipcRenderer.removeAllListeners('left-area');
     });
 
-    ipcRenderer.on('new-whisper', (event, name) => {
-      this.handleTradeEvent('new-whisper', name);
-    });
-
-    ipcRenderer.on('entered-area', (event, name) => {
-      this.handleTradeEvent('entered-area', name);
-    });
-
-    ipcRenderer.on('left-area', (event, name) => {
-      this.handleTradeEvent('left-area', name);
-    });
-
-    setInterval(() => {
-      this.getElapseTime();
-    }, 1000);
-  },
-  beforeDestroy() {
-    ipcRenderer.removeAllListeners('trade');
-    ipcRenderer.removeAllListeners('new-whisper');
-    ipcRenderer.removeAllListeners('entered-area');
-    ipcRenderer.removeAllListeners('left-area');
+    return {
+      tab,
+      trades,
+      truncateName,
+      closeTabOrWindow,
+      highlightStash,
+      stopHighlightStash,
+      sendTradeCommand,
+      sendCustomCommand
+    };
   }
 });
 </script>
