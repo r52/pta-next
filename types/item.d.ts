@@ -150,34 +150,20 @@ interface PTASettings {
   prefillbase: boolean;
 }
 
+interface MinMaxToggle {
+  enabled: boolean;
+  min: number | null;
+  max: number | null;
+}
+
 interface ItemOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [index: string]: any; // allow indexing
-  usepdps: {
-    enabled: boolean;
-    min: number | null;
-    max: number | null;
-  };
-  useedps: {
-    enabled: boolean;
-    min: number | null;
-    max: number | null;
-  };
-  usear: {
-    enabled: boolean;
-    min: number | null;
-    max: number | null;
-  };
-  useev: {
-    enabled: boolean;
-    min: number | null;
-    max: number | null;
-  };
-  usees: {
-    enabled: boolean;
-    min: number | null;
-    max: number | null;
-  };
+  usepdps: MinMaxToggle;
+  useedps: MinMaxToggle;
+  usear: MinMaxToggle;
+  useev: MinMaxToggle;
+  usees: MinMaxToggle;
   usesockets: boolean;
   uselinks: boolean;
   useilvl: boolean;
