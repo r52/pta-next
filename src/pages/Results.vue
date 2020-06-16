@@ -219,7 +219,15 @@ const columnTable = {
       field: 'age'
     }
   ]
-} as { [index: string]: any[] };
+} as {
+  [index: string]: {
+    label: string;
+    sortable: boolean;
+    name: string;
+    field: string;
+    align?: string;
+  }[];
+};
 
 export default defineComponent({
   name: 'Results',
