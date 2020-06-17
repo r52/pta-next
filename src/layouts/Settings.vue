@@ -33,6 +33,10 @@
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="pta">
             <q-card>
+              <q-card-section>
+                <div class="text-h6">Updates</div>
+              </q-card-section>
+
               <div class="q-pa-xs">
                 <div class="row items-center">
                   <div class="col">
@@ -54,13 +58,42 @@
                 </div>
               </div>
             </q-card>
+
+            <q-card>
+              <div class="q-pa-xs">
+                <q-card-section>
+                  <div class="text-h6">Vulkan Compatibility</div>
+                </q-card-section>
+
+                <div class="row items-center">
+                  <div class="col">
+                    <q-toggle
+                      v-model="settings.pta.vulkanCompat"
+                      label="Emulate Windowed Fullscreen on Vulkan"
+                    >
+                      <q-tooltip
+                        >Set PoE to Windowed mode before enabling this
+                        option!</q-tooltip
+                      >
+                    </q-toggle>
+                  </div>
+                </div>
+              </div>
+            </q-card>
           </q-tab-panel>
 
           <q-tab-panel name="hotkey">
             <q-card>
               <div class="q-pa-xs">
                 <div class="row items-center justify-end">
-                  <a href="#" @click="openKeyRef()" class="text-orange"
+                  <a
+                    href="#"
+                    @click="
+                      openBrowser(
+                        'https://www.electronjs.org/docs/api/accelerator'
+                      )
+                    "
+                    class="text-orange"
                     >Keycode Reference</a
                   >
                 </div>
@@ -325,7 +358,12 @@
 
           <q-tab-panel name="macro">
             <div class="row justify-end q-py-xs">
-              <a href="#" @click="openKeyRef()" class="text-orange justify-end"
+              <a
+                href="#"
+                @click="
+                  openBrowser('https://www.electronjs.org/docs/api/accelerator')
+                "
+                class="text-orange justify-end"
                 >Keycode Reference</a
               >
             </div>
@@ -709,101 +747,17 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable quotes */
-import Vue from 'vue';
+import { defineComponent, ref, computed, reactive } from '@vue/composition-api';
+import { useElectronUtil } from '../functions/context';
 import { ipcRenderer } from 'electron';
 import cfg from 'electron-cfg';
 import Config from '../../src-electron/lib/config';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'Settings',
 
-  computed: {
-    quadtabs: {
-      get(): string {
-        return this.settings.tradeui.quad.join(',');
-      },
-      set(newval: string) {
-        let tabs = newval.split(',');
-        tabs = tabs.map(t => t.trim());
-        this.settings.tradeui.quad = tabs;
-      }
-    }
-  },
-
-  data() {
-    let leagues = this.$q.electron.remote.getGlobal('pta').leagues;
-
-    leagues = leagues.map((lg: string, idx: number) => {
-      return {
-        label: lg,
-        value: idx
-      };
-    });
-
-    const currencies = [
-      { label: 'Orb of Alteration', value: 'alt' },
-      { label: 'Orb of Fusing', value: 'fuse' },
-      { label: 'Orb of Alchemy', value: 'alch' },
-      { label: 'Chaos Orb', value: 'chaos' },
-      { label: "Gemcutter's Prism", value: 'gcp' },
-      { label: 'Exalted Orb', value: 'exa' },
-      { label: 'Chromatic Orb', value: 'chrom' },
-      { label: "Jeweller's Orb", value: 'jew' },
-      { label: "Engineer's Orb", value: 'engineers-orb' },
-      { label: 'Orb of Chance', value: 'chance' },
-      { label: "Cartographer's Chisel", value: 'chisel' },
-      { label: 'Orb of Scouring', value: 'scour' },
-      { label: 'Blessed Orb', value: 'blessed' },
-      { label: 'Orb of Regret', value: 'regret' },
-      { label: 'Regal Orb', value: 'regal' },
-      { label: 'Divine Orb', value: 'divine' },
-      { label: 'Vaal Orb', value: 'vaal' },
-      { label: 'Orb of Annulment', value: 'orb-of-annulment' },
-      { label: 'Orb of Binding', value: 'orb-of-binding' },
-      { label: 'Ancient Orb', value: 'ancient-orb' },
-      { label: 'Orb of Horizons', value: 'orb-of-horizons' },
-      { label: "Harbinger's Orb", value: 'harbingers-orb' },
-      { label: 'Scroll of Wisdom', value: 'wis' },
-      { label: 'Portal Scroll', value: 'port' },
-      { label: "Armourer's Scrap", value: 'scr' },
-      { label: "Blacksmith's Whetstone", value: 'whe' },
-      { label: "Glassblower's Bauble", value: 'ba' },
-      { label: 'Orb of Transmutation', value: 'tra' },
-      { label: 'Orb of Augmentation', value: 'aug' },
-      { label: 'Mirror of Kalandra', value: 'mir' },
-      { label: 'Perandus Coin', value: 'p' },
-      { label: 'Silver Coin', value: 'silver' }
-    ];
-
-    const macroColumns = [
-      {
-        name: 'name',
-        align: 'left',
-        label: 'Name',
-        field: 'name'
-      },
-      {
-        name: 'key',
-        align: 'left',
-        label: 'Key',
-        field: 'key'
-      },
-      {
-        name: 'type',
-        align: 'left',
-        label: 'Type',
-        field: 'type'
-      },
-      {
-        name: 'command',
-        align: 'left',
-        label: 'Command',
-        field: 'command'
-      }
-    ];
-
-    const macros = cfg.get(Config.macros, Config.default.macros);
-
+  setup(props, ctx) {
+    // Settings
     const clientpath = cfg.get(
       Config.clientlogpath,
       Config.default.clientlogpath
@@ -815,239 +769,112 @@ export default Vue.extend({
       clientfile = { name: clientpath, path: clientpath } as File;
     }
 
-    const tradeuicolumns = [
-      {
-        name: 'label',
-        align: 'left',
-        label: 'Label',
-        field: 'label'
+    const settings = reactive({
+      pta: {
+        checkForUpdates: cfg.get(
+          Config.checkForUpdates,
+          Config.default.checkForUpdates
+        ),
+        autoUpdate: cfg.get(Config.autoUpdate, Config.default.autoUpdate),
+        vulkanCompat: cfg.get(Config.vulkanCompat, Config.default.vulkanCompat)
       },
-      {
-        name: 'command',
-        align: 'left',
-        label: 'Command',
-        field: 'command'
+      hotkey: {
+        simplehotkey: cfg.get(Config.simplehotkey, Config.default.simplehotkey),
+        simplehotkeyenabled: cfg.get(
+          Config.simplehotkeyenabled,
+          Config.default.simplehotkeyenabled
+        ),
+        advancedhotkey: cfg.get(
+          Config.advancedhotkey,
+          Config.default.advancedhotkey
+        ),
+        advancedhotkeyenabled: cfg.get(
+          Config.advancedhotkeyenabled,
+          Config.default.advancedhotkeyenabled
+        ),
+        wikihotkey: cfg.get(Config.wikihotkey, Config.default.wikihotkey),
+        wikihotkeyenabled: cfg.get(
+          Config.wikihotkeyenabled,
+          Config.default.wikihotkeyenabled
+        ),
+        quickpaste: cfg.get(Config.quickpaste, Config.default.quickpaste),
+        quickpastemod: cfg.get(
+          Config.quickpastemod,
+          Config.default.quickpastemod
+        ),
+        cscroll: cfg.get(Config.cscroll, Config.default.cscroll)
       },
-      {
-        name: 'close',
-        align: 'left',
-        label: 'Closes Notification?',
-        field: 'close'
-      }
-    ];
-
-    return {
-      tab: 'hotkey',
-      leagues: Object.freeze(leagues),
-      quickpastemods: [
-        {
-          label: 'Ctrl',
-          value: 'ctrlKey'
-        },
-        {
-          label: 'Shift',
-          value: 'shiftKey'
-        }
-      ],
-      corrupts: ['Any', 'Yes', 'No'],
-      macroTypes: ['chat', 'url'],
-      macroColumns: macroColumns,
-      macroFilter: '',
-      macroAdd: {
-        name: '',
-        key: '',
-        type: '',
-        command: ''
+      pricecheck: {
+        league: cfg.get(Config.league, Config.default.league),
+        displaylimit: cfg.get(Config.displaylimit, Config.default.displaylimit),
+        corruptoverride: cfg.get(
+          Config.corruptoverride,
+          Config.default.corruptoverride
+        ),
+        corruptsearch: cfg.get(
+          Config.corruptsearch,
+          Config.default.corruptsearch
+        ),
+        primarycurrency: cfg.get(
+          Config.primarycurrency,
+          Config.default.primarycurrency
+        ),
+        secondarycurrency: cfg.get(
+          Config.secondarycurrency,
+          Config.default.secondarycurrency
+        ),
+        onlineonly: cfg.get(Config.onlineonly, Config.default.onlineonly),
+        buyoutonly: cfg.get(Config.buyoutonly, Config.default.buyoutonly),
+        removedupes: cfg.get(Config.removedupes, Config.default.removedupes),
+        poeprices: cfg.get(Config.poeprices, Config.default.poeprices),
+        prefillmin: cfg.get(Config.prefillmin, Config.default.prefillmin),
+        prefillmax: cfg.get(Config.prefillmax, Config.default.prefillmax),
+        prefillrange: cfg.get(Config.prefillrange, Config.default.prefillrange),
+        prefillnormals: cfg.get(
+          Config.prefillnormals,
+          Config.default.prefillnormals
+        ),
+        prefillpseudos: cfg.get(
+          Config.prefillpseudos,
+          Config.default.prefillpseudos
+        ),
+        prefillilvl: cfg.get(Config.prefillilvl, Config.default.prefillilvl),
+        prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase)
       },
-      macroDialog: false,
-      currencies: Object.freeze(currencies),
-      tradeColumns: tradeuicolumns,
-      tradeCmdDialog: false,
-      tradeCmdAddType: '',
-      tradeCmdAdd: {
-        label: '',
-        command: '',
-        close: false
+      client: {
+        logpath: clientfile
       },
-      settings: {
-        pta: {
-          checkForUpdates: cfg.get(
-            Config.checkForUpdates,
-            Config.default.checkForUpdates
-          ),
-          autoUpdate: cfg.get(Config.autoUpdate, Config.default.autoUpdate)
-        },
-        hotkey: {
-          simplehotkey: cfg.get(
-            Config.simplehotkey,
-            Config.default.simplehotkey
-          ),
-          simplehotkeyenabled: cfg.get(
-            Config.simplehotkeyenabled,
-            Config.default.simplehotkeyenabled
-          ),
-          advancedhotkey: cfg.get(
-            Config.advancedhotkey,
-            Config.default.advancedhotkey
-          ),
-          advancedhotkeyenabled: cfg.get(
-            Config.advancedhotkeyenabled,
-            Config.default.advancedhotkeyenabled
-          ),
-          wikihotkey: cfg.get(Config.wikihotkey, Config.default.wikihotkey),
-          wikihotkeyenabled: cfg.get(
-            Config.wikihotkeyenabled,
-            Config.default.wikihotkeyenabled
-          ),
-          quickpaste: cfg.get(Config.quickpaste, Config.default.quickpaste),
-          quickpastemod: cfg.get(
-            Config.quickpastemod,
-            Config.default.quickpastemod
-          ),
-          cscroll: cfg.get(Config.cscroll, Config.default.cscroll)
-        },
-        pricecheck: {
-          league: cfg.get(Config.league, Config.default.league),
-          displaylimit: cfg.get(
-            Config.displaylimit,
-            Config.default.displaylimit
-          ),
-          corruptoverride: cfg.get(
-            Config.corruptoverride,
-            Config.default.corruptoverride
-          ),
-          corruptsearch: cfg.get(
-            Config.corruptsearch,
-            Config.default.corruptsearch
-          ),
-          primarycurrency: cfg.get(
-            Config.primarycurrency,
-            Config.default.primarycurrency
-          ),
-          secondarycurrency: cfg.get(
-            Config.secondarycurrency,
-            Config.default.secondarycurrency
-          ),
-          onlineonly: cfg.get(Config.onlineonly, Config.default.onlineonly),
-          buyoutonly: cfg.get(Config.buyoutonly, Config.default.buyoutonly),
-          removedupes: cfg.get(Config.removedupes, Config.default.removedupes),
-          poeprices: cfg.get(Config.poeprices, Config.default.poeprices),
-          prefillmin: cfg.get(Config.prefillmin, Config.default.prefillmin),
-          prefillmax: cfg.get(Config.prefillmax, Config.default.prefillmax),
-          prefillrange: cfg.get(
-            Config.prefillrange,
-            Config.default.prefillrange
-          ),
-          prefillnormals: cfg.get(
-            Config.prefillnormals,
-            Config.default.prefillnormals
-          ),
-          prefillpseudos: cfg.get(
-            Config.prefillpseudos,
-            Config.default.prefillpseudos
-          ),
-          prefillilvl: cfg.get(Config.prefillilvl, Config.default.prefillilvl),
-          prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase)
-        },
-        client: {
-          logpath: clientfile
-        },
-        macros: {
-          list: macros
-        },
-        tradeui: {
-          enabled: cfg.get(Config.tradeui, Config.default.tradeui),
-          tradebar: cfg.get(Config.tradebar, Config.default.tradebar),
-          charname: cfg.get(Config.tradecharname, Config.default.tradecharname),
-          highlight: cfg.get(
-            Config.tradestashhighlight,
-            Config.default.tradestashhighlight
-          ),
-          quad: cfg.get(Config.tradestashquad, Config.default.tradestashquad),
-          incoming: cfg.get(
-            Config.tradeuiincoming,
-            Config.default.tradeuiincoming
-          ),
-          outgoing: cfg.get(
-            Config.tradeuioutgoing,
-            Config.default.tradeuioutgoing
-          )
-        }
+      macros: {
+        list: cfg.get(Config.macros, Config.default.macros)
+      },
+      tradeui: {
+        enabled: cfg.get(Config.tradeui, Config.default.tradeui),
+        tradebar: cfg.get(Config.tradebar, Config.default.tradebar),
+        charname: cfg.get(Config.tradecharname, Config.default.tradecharname),
+        highlight: cfg.get(
+          Config.tradestashhighlight,
+          Config.default.tradestashhighlight
+        ),
+        quad: cfg.get(Config.tradestashquad, Config.default.tradestashquad),
+        incoming: cfg.get(
+          Config.tradeuiincoming,
+          Config.default.tradeuiincoming
+        ),
+        outgoing: cfg.get(
+          Config.tradeuioutgoing,
+          Config.default.tradeuioutgoing
+        )
       }
-    };
-  },
+    });
 
-  methods: {
-    openMacroDialog() {
-      this.macroAdd.name = '';
-      this.macroAdd.key = '';
-      this.macroAdd.type = '';
-      this.macroAdd.command = '';
-
-      this.macroDialog = true;
-    },
-    addMacro() {
-      if (
-        this.macroAdd.name &&
-        this.macroAdd.key &&
-        this.macroAdd.type &&
-        this.macroAdd.command
-      ) {
-        this.settings.macros.list.push({ ...this.macroAdd });
-      }
-
-      this.macroAdd.name = '';
-      this.macroAdd.key = '';
-      this.macroAdd.type = '';
-      this.macroAdd.command = '';
-    },
-    deleteMacro(key: string) {
-      this.settings.macros.list = this.settings.macros.list.filter((e: any) => {
-        return e.name != key;
-      });
-    },
-    openTradeCmdDialog(type: string) {
-      this.tradeCmdAddType = type;
-      this.tradeCmdAdd.label = '';
-      this.tradeCmdAdd.command = '';
-      this.tradeCmdAdd.close = false;
-
-      this.tradeCmdDialog = true;
-    },
-    addTradeCmd(type: string) {
-      if (this.tradeCmdAdd.label && this.tradeCmdAdd.command) {
-        if (type == 'incoming') {
-          this.settings.tradeui.incoming.push({ ...this.tradeCmdAdd });
-        } else {
-          this.settings.tradeui.outgoing.push({ ...this.tradeCmdAdd });
-        }
-      }
-
-      this.tradeCmdAdd.label = '';
-      this.tradeCmdAdd.command = '';
-      this.tradeCmdAdd.close = false;
-    },
-    deleteTradeCmd(label: string, type: string) {
-      if (type == 'incoming') {
-        this.settings.tradeui.incoming = this.settings.tradeui.incoming.filter(
-          (e: any) => {
-            return e.label != label;
-          }
-        );
-      } else {
-        this.settings.tradeui.outgoing = this.settings.tradeui.outgoing.filter(
-          (e: any) => {
-            return e.label != label;
-          }
-        );
-      }
-    },
-    saveSettings() {
-      const settings = this.settings;
-
+    function saveSettings() {
       // PTA
       cfg.set(Config.checkForUpdates, settings.pta.checkForUpdates);
       cfg.set(Config.autoUpdate, settings.pta.autoUpdate);
+      cfg.set(Config.vulkanCompat, settings.pta.vulkanCompat);
+
+      // notify vulkan compatibility changed
+      ipcRenderer.send('vulkan-compat-changed');
 
       // hotkeys
       cfg.set(Config.simplehotkey, settings.hotkey.simplehotkey);
@@ -1121,26 +948,256 @@ export default Vue.extend({
       ipcRenderer.send('tradeui-enabled', settings.tradeui.enabled);
       ipcRenderer.send('set-stash-highlight', settings.tradeui.highlight);
 
-      this.$q.notify({
+      ctx.root.$q.notify({
         color: 'green',
         message: 'Settings saved!',
         position: 'top',
         actions: [{ icon: 'close', color: 'white' }],
         timeout: 2500
       });
-    },
-    closeApp() {
-      const win = this.$q.electron.remote.getCurrentWindow();
-
-      if (win) {
-        win.close();
-      }
-    },
-    openKeyRef() {
-      this.$q.electron.remote.shell.openExternal(
-        'https://www.electronjs.org/docs/api/accelerator'
-      );
     }
+
+    // quad tab compute
+    const quadtabs = computed({
+      get: () => {
+        return settings.tradeui.quad.join(',');
+      },
+      set: (newval: string) => {
+        let tabs = newval.split(',');
+        tabs = tabs.map(t => t.trim());
+        settings.tradeui.quad = tabs;
+      }
+    });
+
+    const tab = ref('pta');
+
+    // static data
+    const lgs = ctx.root.$q.electron.remote.getGlobal('pta').leagues;
+
+    const leagues = lgs.map((lg: string, idx: number) => {
+      return {
+        label: lg,
+        value: idx
+      };
+    });
+
+    const corrupts = ['Any', 'Yes', 'No'];
+    const macroTypes = ['chat', 'url'];
+
+    const currencies = Object.freeze([
+      { label: 'Orb of Alteration', value: 'alt' },
+      { label: 'Orb of Fusing', value: 'fuse' },
+      { label: 'Orb of Alchemy', value: 'alch' },
+      { label: 'Chaos Orb', value: 'chaos' },
+      { label: "Gemcutter's Prism", value: 'gcp' },
+      { label: 'Exalted Orb', value: 'exa' },
+      { label: 'Chromatic Orb', value: 'chrom' },
+      { label: "Jeweller's Orb", value: 'jew' },
+      { label: "Engineer's Orb", value: 'engineers-orb' },
+      { label: 'Orb of Chance', value: 'chance' },
+      { label: "Cartographer's Chisel", value: 'chisel' },
+      { label: 'Orb of Scouring', value: 'scour' },
+      { label: 'Blessed Orb', value: 'blessed' },
+      { label: 'Orb of Regret', value: 'regret' },
+      { label: 'Regal Orb', value: 'regal' },
+      { label: 'Divine Orb', value: 'divine' },
+      { label: 'Vaal Orb', value: 'vaal' },
+      { label: 'Orb of Annulment', value: 'orb-of-annulment' },
+      { label: 'Orb of Binding', value: 'orb-of-binding' },
+      { label: 'Ancient Orb', value: 'ancient-orb' },
+      { label: 'Orb of Horizons', value: 'orb-of-horizons' },
+      { label: "Harbinger's Orb", value: 'harbingers-orb' },
+      { label: 'Scroll of Wisdom', value: 'wis' },
+      { label: 'Portal Scroll', value: 'port' },
+      { label: "Armourer's Scrap", value: 'scr' },
+      { label: "Blacksmith's Whetstone", value: 'whe' },
+      { label: "Glassblower's Bauble", value: 'ba' },
+      { label: 'Orb of Transmutation', value: 'tra' },
+      { label: 'Orb of Augmentation', value: 'aug' },
+      { label: 'Mirror of Kalandra', value: 'mir' },
+      { label: 'Perandus Coin', value: 'p' },
+      { label: 'Silver Coin', value: 'silver' }
+    ]);
+
+    const macroColumns = [
+      {
+        name: 'name',
+        align: 'left',
+        label: 'Name',
+        field: 'name'
+      },
+      {
+        name: 'key',
+        align: 'left',
+        label: 'Key',
+        field: 'key'
+      },
+      {
+        name: 'type',
+        align: 'left',
+        label: 'Type',
+        field: 'type'
+      },
+      {
+        name: 'command',
+        align: 'left',
+        label: 'Command',
+        field: 'command'
+      }
+    ];
+
+    const tradeuicolumns = [
+      {
+        name: 'label',
+        align: 'left',
+        label: 'Label',
+        field: 'label'
+      },
+      {
+        name: 'command',
+        align: 'left',
+        label: 'Command',
+        field: 'command'
+      },
+      {
+        name: 'close',
+        align: 'left',
+        label: 'Closes Notification?',
+        field: 'close'
+      }
+    ];
+
+    const quickpastemods = [
+      {
+        label: 'Ctrl',
+        value: 'ctrlKey'
+      },
+      {
+        label: 'Shift',
+        value: 'shiftKey'
+      }
+    ];
+
+    // Macros
+    const macroFilter = ref('');
+    const macroDialog = ref(false);
+    const macroAdd = reactive({
+      name: '',
+      key: '',
+      type: '',
+      command: ''
+    });
+
+    function openMacroDialog() {
+      macroAdd.name = '';
+      macroAdd.key = '';
+      macroAdd.type = '';
+      macroAdd.command = '';
+
+      macroDialog.value = true;
+    }
+
+    function addMacro() {
+      if (macroAdd.name && macroAdd.key && macroAdd.type && macroAdd.command) {
+        settings.macros.list.push({ ...macroAdd });
+      }
+
+      macroAdd.name = '';
+      macroAdd.key = '';
+      macroAdd.type = '';
+      macroAdd.command = '';
+    }
+
+    function deleteMacro(key: string) {
+      settings.macros.list = settings.macros.list.filter((e: any) => {
+        return e.name != key;
+      });
+    }
+
+    // Trade commands
+    const tradeCmdDialog = ref(false);
+    const tradeCmdAddType = ref('');
+    const tradeCmdAdd = reactive({
+      label: '',
+      command: '',
+      close: false
+    });
+
+    function openTradeCmdDialog(type: string) {
+      tradeCmdAddType.value = type;
+      tradeCmdAdd.label = '';
+      tradeCmdAdd.command = '';
+      tradeCmdAdd.close = false;
+
+      tradeCmdDialog.value = true;
+    }
+
+    function addTradeCmd(type: string) {
+      if (tradeCmdAdd.label && tradeCmdAdd.command) {
+        if (type == 'incoming') {
+          settings.tradeui.incoming.push({ ...tradeCmdAdd });
+        } else {
+          settings.tradeui.outgoing.push({ ...tradeCmdAdd });
+        }
+      }
+
+      tradeCmdAdd.label = '';
+      tradeCmdAdd.command = '';
+      tradeCmdAdd.close = false;
+    }
+
+    function deleteTradeCmd(label: string, type: string) {
+      if (type == 'incoming') {
+        settings.tradeui.incoming = settings.tradeui.incoming.filter(
+          (e: any) => {
+            return e.label != label;
+          }
+        );
+      } else {
+        settings.tradeui.outgoing = settings.tradeui.outgoing.filter(
+          (e: any) => {
+            return e.label != label;
+          }
+        );
+      }
+    }
+
+    // utility functions
+    const { closeApp, openBrowser } = useElectronUtil(ctx);
+
+    return {
+      settings,
+      saveSettings,
+
+      quadtabs,
+
+      tab,
+
+      leagues,
+      corrupts,
+      macroTypes,
+      currencies,
+      macroColumns,
+      tradeuicolumns,
+      quickpastemods,
+
+      macroFilter,
+      macroDialog,
+      macroAdd,
+      openMacroDialog,
+      addMacro,
+      deleteMacro,
+
+      tradeCmdDialog,
+      tradeCmdAddType,
+      tradeCmdAdd,
+      openTradeCmdDialog,
+      addTradeCmd,
+      deleteTradeCmd,
+
+      closeApp,
+      openBrowser
+    };
   }
 });
 </script>

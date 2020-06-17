@@ -5,13 +5,18 @@ import { shell, dialog } from 'electron';
 import cfg from 'electron-cfg';
 import MultiMap from 'multimap';
 import log from 'electron-log';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import merge from 'lodash.merge';
 
 import Config from '../../config';
 import { PTA } from '../../pta';
 
 import URLs from '../urls';
+
+interface PoEFetchResults {
+  result: string[];
+  id: string;
+}
 
 export class POETradeAPI implements PriceAPI {
   private exchange: Map<string, string>;
@@ -75,7 +80,9 @@ export class POETradeAPI implements PriceAPI {
           children: [{ label: league }]
         }
       ]
-    } as any;
+    } as QTreeModel;
+
+    sopts.children = sopts.children ?? ([] as QTreeModel[]);
 
     let isUniqueBase = false;
     let searchToken = '';
@@ -203,7 +210,10 @@ export class POETradeAPI implements PriceAPI {
         sopts.children.push({
           label: 'Gem',
           children: [
-            { label: 'Level', children: [{ label: item.misc.gemlevel }] },
+            {
+              label: 'Level',
+              children: [{ label: item.misc.gemlevel.toString() }]
+            },
             { label: 'Quality', children: [{ label: item.quality + '%' }] }
           ]
         });
@@ -225,7 +235,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Sockets',
-          children: [{ label: item.sockets.total }]
+          children: [{ label: item.sockets.total.toString() }]
         });
       }
 
@@ -245,7 +255,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Links',
-          children: [{ label: item.sockets.links }]
+          children: [{ label: item.sockets.links.toString() }]
         });
       }
 
@@ -265,7 +275,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Item Level',
-          children: [{ label: item.ilvl }]
+          children: [{ label: item.ilvl.toString() }]
         });
       }
 
@@ -285,7 +295,7 @@ export class POETradeAPI implements PriceAPI {
 
         sopts.children.push({
           label: 'Map Tier',
-          children: [{ label: item.misc.maptier }]
+          children: [{ label: item.misc.maptier.toString() }]
         });
       }
 
@@ -299,7 +309,7 @@ export class POETradeAPI implements PriceAPI {
 
       // Force Influences
       if (item.category != 'card' && item.influences) {
-        const inflist = [] as any[];
+        const inflist = [] as QTreeModel[];
 
         for (const i of item.influences) {
           const inf = i;
@@ -402,7 +412,7 @@ export class POETradeAPI implements PriceAPI {
 
       const url = URLs.official.trade.search + league;
 
-      axios.post(url, query).then((response: any) => {
+      axios.post<PoEFetchResults>(url, query).then(response => {
         const resp = response.data;
 
         if (!('result' in resp) || !('id' in resp)) {
@@ -426,7 +436,7 @@ export class POETradeAPI implements PriceAPI {
   public searchItemWithOptions(
     event: Electron.IpcMainEvent,
     item: Item,
-    options: any,
+    options: ItemOptions,
     openbrowser: boolean
   ) {
     //
@@ -470,7 +480,9 @@ export class POETradeAPI implements PriceAPI {
           children: [{ label: league }]
         }
       ]
-    } as any;
+    } as QTreeModel;
+
+    sopts.children = sopts.children ?? ([] as QTreeModel[]);
 
     // Take care of settings
     const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
@@ -549,7 +561,7 @@ export class POETradeAPI implements PriceAPI {
         const filter =
           bm === 'pdps' || bm === 'edps' ? 'weapon_filters' : 'armour_filters';
 
-        const flt = [] as any;
+        const flt = [] as QTreeModel[];
 
         ['min', 'max'].forEach(lm => {
           if (options['use' + bm][lm] != null) {
@@ -573,7 +585,7 @@ export class POETradeAPI implements PriceAPI {
         });
 
         if (flt.length) {
-          sopts.children.push({ label: bm, children: [...flt] });
+          sopts.children?.push({ label: bm, children: [...flt] });
         }
       }
     });
@@ -589,7 +601,7 @@ export class POETradeAPI implements PriceAPI {
       mods = merge(mods, item.pseudos);
     }
 
-    const mflt = [] as any[];
+    const mflt = [] as QTreeModel[];
 
     for (const [k, e] of Object.entries<Filter>(mods)) {
       if (e.enabled == true) {
@@ -608,7 +620,7 @@ export class POETradeAPI implements PriceAPI {
 
         query.query['stats'][0]['filters'].push(entry);
 
-        const vflt = [] as any;
+        const vflt = [] as QTreeModel[];
 
         ['min', 'max'].forEach(vl => {
           if (vl in e && e[vl]) {
@@ -644,7 +656,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Use sockets
-    if (options['usesockets'] && item.sockets) {
+    if (options.usesockets && item.sockets) {
       query.query = merge(query.query, {
         filters: {
           socket_filters: {
@@ -659,12 +671,12 @@ export class POETradeAPI implements PriceAPI {
 
       sopts.children.push({
         label: 'Sockets',
-        children: [{ label: item.sockets.total }]
+        children: [{ label: item.sockets.total.toString() }]
       });
     }
 
     // Use links
-    if (options['uselinks'] && item.sockets) {
+    if (options.uselinks && item.sockets) {
       query.query = merge(query.query, {
         filters: {
           socket_filters: {
@@ -679,12 +691,12 @@ export class POETradeAPI implements PriceAPI {
 
       sopts.children.push({
         label: 'Links',
-        children: [{ label: item.sockets.links }]
+        children: [{ label: item.sockets.links.toString() }]
       });
     }
 
     // Use iLvl
-    if (options['useilvl'] && item.ilvl) {
+    if (options.useilvl && item.ilvl) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
@@ -699,12 +711,12 @@ export class POETradeAPI implements PriceAPI {
 
       sopts.children.push({
         label: 'Item Level',
-        children: [{ label: item.ilvl }]
+        children: [{ label: item.ilvl.toString() }]
       });
     }
 
     // Use item base
-    if (options['useitembase']) {
+    if (options.useitembase) {
       query.query['type'] = item.type;
       sopts.children.push({
         label: 'Item Base',
@@ -714,11 +726,10 @@ export class POETradeAPI implements PriceAPI {
 
     // Influences
 
-    if ('influences' in options && options['influences'].length) {
-      const inflist = [] as any;
+    if (options.influences != null && options.influences.length) {
+      const inflist = [] as QTreeModel[];
 
-      for (const i of options['influences']) {
-        const inf = i as string;
+      for (const inf of options.influences) {
         const infkey = inf + '_item';
 
         query.query = merge(query.query, {
@@ -740,7 +751,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Synthesis
-    if ('usesynthesisbase' in options && options['usesynthesisbase']) {
+    if (options.usesynthesisbase != null && options.usesynthesisbase) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
@@ -757,8 +768,8 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Corrupt
-    if ('usecorrupted' in options) {
-      const corrupt = options['usecorrupted'];
+    if (options.usecorrupted != null) {
+      const corrupt = options.usecorrupted;
 
       if (corrupt != 'Any') {
         query.query = merge(query.query, {
@@ -784,7 +795,7 @@ export class POETradeAPI implements PriceAPI {
 
     const url = URLs.official.trade.search + league;
 
-    axios.post(url, query).then((response: any) => {
+    axios.post<PoEFetchResults>(url, query).then(response => {
       const resp = response.data;
 
       if (!('result' in resp) || !('id' in resp)) {
@@ -805,14 +816,14 @@ export class POETradeAPI implements PriceAPI {
   }
 
   private processPriceResults(
-    response: any,
+    response: PoEFetchResults,
     event: Electron.IpcMainEvent,
-    searchoptions: any,
+    searchoptions: QTreeModel[] | null,
     forcetab: boolean,
     exchange = false
   ) {
     //
-    const rlist = response['result'] as string[];
+    const rlist = response.result;
 
     let displaylimit = cfg.get(
       Config.displaylimit,
@@ -853,33 +864,35 @@ export class POETradeAPI implements PriceAPI {
       forcetab: forcetab,
       exchange: exchange,
       siteurl: URLs.official.trade.site + league + '/' + response['id']
-    };
+    } as PoETradeResults;
 
-    axios.all(urls).then(results => {
-      results.forEach(resp => {
-        const data = resp.data;
-        const list = data['result'] as [];
+    axios
+      .all<AxiosResponse<{ result: PoETradeListing[] }>>(urls)
+      .then(results => {
+        results.forEach(resp => {
+          const data = resp.data;
+          const list = data.result;
 
-        rdat.result.push(...list);
-      });
-
-      // Delete duplicate accounts
-      const accounts = new Set<string>();
-      if (removedupes) {
-        rdat.result = rdat.result.filter(entry => {
-          const acctname = entry['listing']['account']['name'];
-          const isUnique = !accounts.has(acctname);
-
-          if (isUnique) {
-            accounts.add(acctname);
-          }
-
-          return isUnique;
+          rdat.result.push(...list);
         });
-      }
 
-      event.reply('results', rdat);
-    });
+        // Delete duplicate accounts
+        const accounts = new Set<string>();
+        if (removedupes) {
+          rdat.result = rdat.result.filter(entry => {
+            const acctname = entry.listing.account.name;
+            const isUnique = !accounts.has(acctname);
+
+            if (isUnique) {
+              accounts.add(acctname);
+            }
+
+            return isUnique;
+          });
+        }
+
+        event.reply('results', rdat);
+      });
   }
 
   private doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
@@ -953,7 +966,7 @@ export class POETradeAPI implements PriceAPI {
       urls.push(axios.post(url, query));
     }
 
-    axios.all(urls).then(results => {
+    axios.all<AxiosResponse<PoEFetchResults>>(urls).then(results => {
       results.some(resp => {
         const data = resp.data;
 

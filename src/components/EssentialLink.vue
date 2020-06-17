@@ -11,8 +11,11 @@
   </q-item>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from '@vue/composition-api';
+import { useElectronUtil } from '../functions/context';
+
+export default defineComponent({
   name: 'EssentialLink',
   props: {
     title: {
@@ -36,10 +39,11 @@ export default {
     }
   },
 
-  methods: {
-    openBrowser(link) {
-      this.$q.electron.remote.shell.openExternal(link);
-    }
+  setup(props, ctx) {
+    const { openBrowser } = useElectronUtil(ctx);
+    return {
+      openBrowser
+    };
   }
-};
+});
 </script>

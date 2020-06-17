@@ -93,130 +93,126 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Vue from 'vue';
+import {
+  defineComponent,
+  ref,
+  onBeforeUnmount,
+  computed
+} from '@vue/composition-api';
+import { useElectronUtil } from '../functions/context';
 import { ipcRenderer } from 'electron';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'Item',
 
-  data() {
-    return {
-      tab: null,
-      item: null as Item | null,
-      prediction: null,
-      results: null,
-      settings: null,
-      options: null
-    };
-  },
+  setup(props, ctx) {
+    const tab = ref(null as string | null);
+    const item = ref(null as Item | null);
+    const prediction = ref(null as PoEPricesPrediction | null);
+    const results = ref(null as PoETradeResults | null);
+    const settings = ref(null as PTASettings | null);
+    const options = ref(null as ItemOptions | null);
 
-  computed: {
-    itemClass(): string {
+    const itemClass = computed(() => {
       let cls = '';
 
-      const item = this.item as any;
-
-      if (item) {
-        cls = item.rarity as string;
+      if (item.value) {
+        cls = item.value.rarity;
 
         if (
-          item.category == 'gem' ||
-          item.category == 'prophecy' ||
-          item.category == 'card' ||
-          item.category == 'currency'
+          item.value.category == 'gem' ||
+          item.value.category == 'prophecy' ||
+          item.value.category == 'card' ||
+          item.value.category == 'currency'
         ) {
-          cls = item.category as string;
+          cls = item.value.category;
         }
       }
 
       return cls;
-    }
-  },
+    });
 
-  methods: {
-    closeApp() {
-      const win = this.$q.electron.remote.getCurrentWindow();
+    const { closeApp } = useElectronUtil(ctx);
 
-      if (win) {
-        win.close();
-      }
-    },
-    handleItem(
+    function handleItem(
       event: Electron.IpcRendererEvent,
-      item: Item,
-      settings: any,
-      options: any,
+      itm: Item,
+      set: PTASettings,
+      opts: ItemOptions,
       type: number
     ) {
-      this.item = item;
-      this.settings = settings;
-      this.options = options;
+      item.value = itm;
+      settings.value = set;
+      options.value = opts;
 
       // If type == ADVANCED and has mods, switch tab
       if (
-        item &&
-        item.filters &&
-        Object.keys(item.filters).length > 0 &&
-        item.category != 'map' &&
+        item.value &&
+        item.value.filters &&
+        Object.keys(item.value.filters).length > 0 &&
+        item.value.category != 'map' &&
         type == 1
       ) {
-        this.$router.replace({
+        ctx.root.$router.replace({
           name: 'mods',
           params: {
-            item: item as any,
-            settings: settings,
-            options: options
-          }
-        });
-      }
-    },
-    handleResults(event: Electron.IpcRendererEvent, results: any) {
-      this.results = results;
-
-      if (results['forcetab']) {
-        this.$router.replace({
-          name: 'results',
-          params: {
-            item: this.item as any,
-            results: results
-          }
-        });
-      }
-    },
-    handlePrediction(event: Electron.IpcRendererEvent, prediction: any) {
-      this.prediction = prediction;
-
-      if (this.tab == null) {
-        this.$router.replace({
-          name: 'prediction',
-          params: {
-            prediction: prediction
+            item: item.value as any,
+            settings: settings.value as any,
+            options: options.value as any
           }
         });
       }
     }
-  },
 
-  created() {
-    ipcRenderer.on('item', (event, item, settings, options, type) => {
-      this.handleItem(event, item, settings, options, type);
+    ipcRenderer.on('item', (event, itm, set, opts, type) => {
+      handleItem(event, itm, set, opts, type);
 
       // If type == SIMPLE, queue a simple search
-      if (type == 0 || !('filters' in item)) {
-        ipcRenderer.send('search-defaults', item);
+      if (type == 0 || !('filters' in itm)) {
+        ipcRenderer.send('search-defaults', itm);
       }
     });
 
-    ipcRenderer.on('results', (event, results) => {
-      this.handleResults(event, results);
+    function handleResults(
+      event: Electron.IpcRendererEvent,
+      res: PoETradeResults
+    ) {
+      results.value = res;
+
+      if (results.value.forcetab) {
+        ctx.root.$router.replace({
+          name: 'results',
+          params: {
+            item: item.value as any,
+            results: results.value as any
+          }
+        });
+      }
+    }
+
+    ipcRenderer.on('results', (event, res) => {
+      handleResults(event, res);
     });
 
-    ipcRenderer.on('prediction', (event, prediction) => {
-      this.handlePrediction(event, prediction);
+    function handlePrediction(event: Electron.IpcRendererEvent, pred: any) {
+      prediction.value = pred;
+
+      if (tab.value == null) {
+        ctx.root.$router.replace({
+          name: 'prediction',
+          params: {
+            prediction: prediction.value as any
+          }
+        });
+      }
+    }
+
+    ipcRenderer.on('prediction', (event, pred) => {
+      handlePrediction(event, pred);
     });
 
     ipcRenderer.on('error', (event, error) => {
-      this.$q.notify({
+      ctx.root.$q.notify({
         color: 'red',
         message: error,
         position: 'top',
@@ -225,25 +221,37 @@ export default Vue.extend({
       });
     });
 
-    ipcRenderer.on('forcetab', (event, tab) => {
-      if (tab == 'mods') {
-        this.$router.replace({
+    ipcRenderer.on('forcetab', (event, tb) => {
+      if (tb == 'mods') {
+        ctx.root.$router.replace({
           name: 'mods',
           params: {
-            item: this.item as any,
-            settings: this.settings as any,
-            options: this.options as any
+            item: item.value as any,
+            settings: settings.value as any,
+            options: options.value as any
           }
         });
       }
     });
-  },
-  beforeDestroy() {
-    ipcRenderer.removeAllListeners('item');
-    ipcRenderer.removeAllListeners('results');
-    ipcRenderer.removeAllListeners('prediction');
-    ipcRenderer.removeAllListeners('error');
-    ipcRenderer.removeAllListeners('forcetab');
+
+    onBeforeUnmount(() => {
+      ipcRenderer.removeAllListeners('item');
+      ipcRenderer.removeAllListeners('results');
+      ipcRenderer.removeAllListeners('prediction');
+      ipcRenderer.removeAllListeners('error');
+      ipcRenderer.removeAllListeners('forcetab');
+    });
+
+    return {
+      tab,
+      item,
+      prediction,
+      results,
+      settings,
+      options,
+      itemClass,
+      closeApp
+    };
   }
 });
 </script>

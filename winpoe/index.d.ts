@@ -7,7 +7,8 @@ declare class WinPoE {
 
   onForegroundChange(foregroundCb: Function): void;
 
-  InitializeHooks(): void;
+  SetVulkanCompatibility(enable: boolean): void;
+  InitializeHooks(vulkanCompat: boolean): void;
   ShutdownHooks(): void;
 }
 

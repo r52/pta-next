@@ -36,37 +36,34 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, ref, onBeforeUnmount } from '@vue/composition-api';
 import { ipcRenderer } from 'electron';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'StashHighlight',
 
-  data() {
-    return {
-      quad: false,
-      name: '',
-      x: 0,
-      y: 0
-    };
-  },
+  setup() {
+    const quad = ref(false);
+    const name = ref('');
+    const x = ref(0);
+    const y = ref(0);
 
-  methods: {
-    stopHighlight() {
+    function stopHighlight() {
       const els = document.getElementsByClassName('pulse');
       if (els) {
         Array.from(els).forEach(el => {
           el.classList.remove('pulse');
         });
       }
-    },
-    handleHighlight(tabinfo: TabInfo) {
-      this.quad = tabinfo.quad;
-      this.name = tabinfo.name;
-      this.x = tabinfo.x;
-      this.y = tabinfo.y;
+    }
 
-      this.stopHighlight();
+    function handleHighlight(tabinfo: TabInfo) {
+      quad.value = tabinfo.quad;
+      name.value = tabinfo.name;
+      x.value = tabinfo.x;
+      y.value = tabinfo.y;
+
+      stopHighlight();
 
       const cell = tabinfo.x + (tabinfo.y - 1) * (tabinfo.quad ? 24 : 12);
 
@@ -75,20 +72,28 @@ export default Vue.extend({
         e.classList.add('pulse');
       }
     }
-  },
 
-  created() {
     ipcRenderer.on('highlight', (event, tabinfo) => {
-      this.handleHighlight(tabinfo);
+      handleHighlight(tabinfo);
     });
 
     ipcRenderer.on('stop-highlight', () => {
-      this.stopHighlight();
+      stopHighlight();
     });
-  },
-  beforeDestroy() {
-    ipcRenderer.removeAllListeners('highlight');
-    ipcRenderer.removeAllListeners('stop-highlight');
+
+    onBeforeUnmount(() => {
+      ipcRenderer.removeAllListeners('highlight');
+      ipcRenderer.removeAllListeners('stop-highlight');
+    });
+
+    return {
+      quad,
+      name,
+      x,
+      y,
+      stopHighlight,
+      handleHighlight
+    };
   }
 });
 </script>

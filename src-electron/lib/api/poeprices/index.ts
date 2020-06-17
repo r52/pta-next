@@ -49,7 +49,7 @@ export class POEPricesAPI implements PriceAPI {
 
       const url = URLs.poeprices + 'l=' + league + '&i=' + itemData;
 
-      axios.get(url).then((response: any) => {
+      axios.get<PoEPricesPrediction>(url).then(response => {
         const data = response.data;
 
         if (data == null) {
@@ -59,7 +59,7 @@ export class POEPricesAPI implements PriceAPI {
           return;
         }
 
-        if (data['error'] != 0) {
+        if (data.error != 0) {
           log.warn('poeprices.info: Error querying poeprices.info');
           log.warn('poeprices.info: Site responded with', data);
           event.reply('error', 'Error querying poeprices.info');

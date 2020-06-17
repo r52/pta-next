@@ -145,18 +145,35 @@ class ItemText {
   text: string;
   lines: string[];
   currentline: number;
+  sections: number;
+  currentsection: number;
 
   constructor(itemtext: string) {
     this.text = itemtext;
 
     this.lines = itemtext.split(/\r?\n/g);
     this.currentline = 0;
+    this.sections = 0;
+    this.currentsection = 0;
+  }
+
+  calcSections() {
+    this.sections = 1;
+    this.lines.forEach(line => {
+      if (line.startsWith('---')) {
+        this.sections++;
+      }
+    });
   }
 
   readLine() {
     if (this.currentline < this.lines.length) {
       const line = this.lines[this.currentline];
       this.currentline++;
+
+      if (line.startsWith('---')) {
+        this.currentsection++;
+      }
 
       return line;
     }
@@ -171,6 +188,15 @@ class ItemText {
     }
 
     return false;
+  }
+
+  peekLast() {
+    const line = this.lines[this.lines.length - 1];
+    return line;
+  }
+
+  pop() {
+    this.lines.pop();
   }
 }
 
@@ -219,24 +245,26 @@ export class ItemParser {
             const stt = data['result'];
 
             for (const type of stt) {
-              const el = type['entries'];
-              const tlb = (type['label'] as string).toLowerCase();
+              const entrylist = type['entries'];
+              const typelabel = (type['label'] as string).toLowerCase();
 
-              for (const et of el as StatFilter[]) {
-                if (!this.excludes.has(et.id)) {
-                  this.statsById.set(et.id, et);
+              for (const entry of entrylist as StatFilter[]) {
+                if (!this.excludes.has(entry.id)) {
+                  this.statsById.set(entry.id, entry);
                 }
 
                 // construct option fuse
-                if (et.option != null) {
-                  const index = Fuse.createIndex(['text'], et.option.options);
-                  et.option.fuse = new Fuse(
-                    et.option.options,
+                if (entry.option != null) {
+                  const index = Fuse.createIndex(
+                    ['text'],
+                    entry.option.options
+                  );
+                  entry.option.fuse = new Fuse(
+                    entry.option.options,
                     {
                       keys: ['text'],
                       shouldSort: true,
                       threshold: 0.6,
-                      location: 0,
                       distance: 1000,
                       includeScore: false
                     },
@@ -246,9 +274,9 @@ export class ItemParser {
               }
 
               // construct fuse
-              const entries = el as StatFilter[];
-              const index = Fuse.createIndex<StatFilter>(['text'], entries);
-              this.stats[tlb] = {
+              const entries = entrylist as StatFilter[];
+              const index = Fuse.createIndex(['text'], entries);
+              this.stats[typelabel] = {
                 entries: entries,
                 fuse: new Fuse(
                   entries,
@@ -256,7 +284,6 @@ export class ItemParser {
                     keys: ['text'],
                     shouldSort: true,
                     threshold: FuseMatchThreshold,
-                    location: 0,
                     includeScore: true
                   },
                   index
@@ -307,7 +334,7 @@ export class ItemParser {
           .then((response: any) => {
             const data = response.data;
 
-            for (const [k, val] of Object.entries(data)) {
+            for (const val of Object.values(data)) {
               const o = val as any;
 
               const typeName = o['name'] as string;
@@ -354,7 +381,7 @@ export class ItemParser {
       .then((response: any) => {
         const data = response.data;
 
-        for (const [k, val] of Object.entries(data)) {
+        for (const val of Object.values(data)) {
           const o = val as any;
 
           const modname = o['name'] as string;
@@ -534,13 +561,64 @@ export class ItemParser {
       });
   }
 
+  private getNumFlavourSections(item: Item): number {
+    let sections = 0;
+
+    if (
+      item.rarity == 'Unique' &&
+      (item.unidentified == null || item.unidentified == false)
+    ) {
+      sections++;
+    }
+
+    if (item.category == 'flask' || item.category == 'map') {
+      sections++;
+    }
+
+    return sections;
+  }
+
   public parse(itemtext: string): Item | null {
     itemtext = itemtext.trim();
 
     const item = {} as Item;
-    let sections = 0;
 
     const lines = new ItemText(itemtext);
+
+    // Preprocess out bottom sections here
+    // so flavour text can be processed out
+
+    // Remove notes section
+    if (lines.peekLast().startsWith('Note:')) {
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    // Synthesised
+    if (lines.peekLast().startsWith('Synthesised Item')) {
+      item.misc = item.misc ?? ({} as Misc);
+      item.misc.synthesis = true;
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    // Corrupted
+    if (lines.peekLast().startsWith('Corrupted')) {
+      item.corrupted = true;
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    lines.calcSections();
 
     let line = lines.readLine();
 
@@ -573,7 +651,6 @@ export class ItemParser {
     if (type && type.startsWith('---')) {
       // nametype has to be item type and not name
       item.type = this.readType(item, nametype as string);
-      sections++;
     } else {
       item.name = this.readName(nametype as string);
       item.type = this.readType(item, type as string);
@@ -622,18 +699,21 @@ export class ItemParser {
     // Read the rest of the crap
 
     while ((line = lines.readLine()) !== false) {
-      // Skip
+      // Skip flavour text
+      if (
+        lines.currentsection >=
+        lines.sections - this.getNumFlavourSections(item)
+      ) {
+        continue;
+      }
+
+      // Skip section text
       if (line.startsWith('---')) {
         this.section = '';
-        sections++;
         continue;
       }
 
-      if (line.startsWith('Note:')) {
-        continue;
-      }
-
-      if (!this.parseProp(item, line) && sections > 1) {
+      if (!this.parseProp(item, line) && lines.currentsection > 1) {
         // parse item stat
         this.parseStat(item, line, lines);
       }
@@ -1016,6 +1096,7 @@ export class ItemParser {
     }
 
     if (stat == 'Corrupted') {
+      // Should already have been processed
       item.corrupted = true;
       return true;
     }
