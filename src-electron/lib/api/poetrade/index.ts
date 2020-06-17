@@ -5,13 +5,18 @@ import { shell, dialog } from 'electron';
 import cfg from 'electron-cfg';
 import MultiMap from 'multimap';
 import log from 'electron-log';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import merge from 'lodash.merge';
 
 import Config from '../../config';
 import { PTA } from '../../pta';
 
 import URLs from '../urls';
+
+interface PoEFetchResults {
+  result: string[];
+  id: string;
+}
 
 export class POETradeAPI implements PriceAPI {
   private exchange: Map<string, string>;
@@ -304,7 +309,7 @@ export class POETradeAPI implements PriceAPI {
 
       // Force Influences
       if (item.category != 'card' && item.influences) {
-        const inflist = [] as any[];
+        const inflist = [] as QTreeModel[];
 
         for (const i of item.influences) {
           const inf = i;
@@ -407,7 +412,7 @@ export class POETradeAPI implements PriceAPI {
 
       const url = URLs.official.trade.search + league;
 
-      axios.post(url, query).then((response: any) => {
+      axios.post<PoEFetchResults>(url, query).then(response => {
         const resp = response.data;
 
         if (!('result' in resp) || !('id' in resp)) {
@@ -596,7 +601,7 @@ export class POETradeAPI implements PriceAPI {
       mods = merge(mods, item.pseudos);
     }
 
-    const mflt = [] as any[];
+    const mflt = [] as QTreeModel[];
 
     for (const [k, e] of Object.entries<Filter>(mods)) {
       if (e.enabled == true) {
@@ -615,7 +620,7 @@ export class POETradeAPI implements PriceAPI {
 
         query.query['stats'][0]['filters'].push(entry);
 
-        const vflt = [] as any;
+        const vflt = [] as QTreeModel[];
 
         ['min', 'max'].forEach(vl => {
           if (vl in e && e[vl]) {
@@ -722,7 +727,7 @@ export class POETradeAPI implements PriceAPI {
     // Influences
 
     if (options.influences != null && options.influences.length) {
-      const inflist = [] as any;
+      const inflist = [] as QTreeModel[];
 
       for (const inf of options.influences) {
         const infkey = inf + '_item';
@@ -790,7 +795,7 @@ export class POETradeAPI implements PriceAPI {
 
     const url = URLs.official.trade.search + league;
 
-    axios.post(url, query).then((response: any) => {
+    axios.post<PoEFetchResults>(url, query).then(response => {
       const resp = response.data;
 
       if (!('result' in resp) || !('id' in resp)) {
@@ -811,14 +816,14 @@ export class POETradeAPI implements PriceAPI {
   }
 
   private processPriceResults(
-    response: any,
+    response: PoEFetchResults,
     event: Electron.IpcMainEvent,
     searchoptions: QTreeModel[] | null,
     forcetab: boolean,
     exchange = false
   ) {
     //
-    const rlist = response['result'] as string[];
+    const rlist = response.result;
 
     let displaylimit = cfg.get(
       Config.displaylimit,
@@ -861,31 +866,33 @@ export class POETradeAPI implements PriceAPI {
       siteurl: URLs.official.trade.site + league + '/' + response['id']
     } as PoETradeResults;
 
-    axios.all(urls).then(results => {
-      results.forEach(resp => {
-        const data = resp.data;
-        const list = data['result'] as [];
+    axios
+      .all<AxiosResponse<{ result: PoETradeListing[] }>>(urls)
+      .then(results => {
+        results.forEach(resp => {
+          const data = resp.data;
+          const list = data.result;
 
-        rdat.result.push(...list);
-      });
-
-      // Delete duplicate accounts
-      const accounts = new Set<string>();
-      if (removedupes) {
-        rdat.result = rdat.result.filter(entry => {
-          const acctname = entry.listing.account.name;
-          const isUnique = !accounts.has(acctname);
-
-          if (isUnique) {
-            accounts.add(acctname);
-          }
-
-          return isUnique;
+          rdat.result.push(...list);
         });
-      }
 
-      event.reply('results', rdat);
-    });
+        // Delete duplicate accounts
+        const accounts = new Set<string>();
+        if (removedupes) {
+          rdat.result = rdat.result.filter(entry => {
+            const acctname = entry.listing.account.name;
+            const isUnique = !accounts.has(acctname);
+
+            if (isUnique) {
+              accounts.add(acctname);
+            }
+
+            return isUnique;
+          });
+        }
+
+        event.reply('results', rdat);
+      });
   }
 
   private doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
@@ -959,7 +966,7 @@ export class POETradeAPI implements PriceAPI {
       urls.push(axios.post(url, query));
     }
 
-    axios.all(urls).then(results => {
+    axios.all<AxiosResponse<PoEFetchResults>>(urls).then(results => {
       results.some(resp => {
         const data = resp.data;
 
