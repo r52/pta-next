@@ -68,3 +68,13 @@ interface PoETradeListing {
     }[];
   };
 }
+
+// Incomplete schema of results from https://www.poeprices.info
+interface PoEPricesPrediction {
+  error: number;
+  min: number;
+  max: number;
+  currency: string;
+  pred_confidence_score: number;
+  pred_explanation: (string | number)[][];
+}

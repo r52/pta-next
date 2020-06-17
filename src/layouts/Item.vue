@@ -108,7 +108,7 @@ export default defineComponent({
   setup(props, ctx) {
     const tab = ref(null as string | null);
     const item = ref(null as Item | null);
-    const prediction = ref(null as any | null);
+    const prediction = ref(null as PoEPricesPrediction | null);
     const results = ref(null as PoETradeResults | null);
     const settings = ref(null as PTASettings | null);
     const options = ref(null as ItemOptions | null);
@@ -201,7 +201,7 @@ export default defineComponent({
         ctx.root.$router.replace({
           name: 'prediction',
           params: {
-            prediction: prediction.value
+            prediction: prediction.value as any
           }
         });
       }

@@ -24,50 +24,59 @@
   </q-page>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, computed, PropType } from '@vue/composition-api';
+
+export default defineComponent({
   name: 'Prediction',
 
   props: {
-    prediction: Object
-  },
-
-  computed: {
-    listings() {
-      const lst = [];
-      this.prediction.pred_explanation.forEach(entry => {
-        const obj = {};
-        obj['name'] = entry[0];
-        obj['contrib'] = (entry[1] * 100.0).toPrecision(4);
-        lst.push(obj);
-      });
-      return lst;
+    prediction: {
+      type: Object as PropType<PoEPricesPrediction>,
+      required: true
     }
   },
 
-  data() {
-    return {
-      columns: [
-        {
-          label: 'Mod',
-          align: 'left',
-          sortable: false,
-          name: 'name',
-          field: 'name'
-        },
-        {
-          label: 'Contribution (%)',
-          sortable: false,
-          name: 'contrib',
-          field: 'contrib'
-        }
-      ],
-      pagination: {
-        rowsPerPage: 10
+  setup(props) {
+    const pagination = {
+      rowsPerPage: 10
+    };
+
+    const columns = [
+      {
+        label: 'Mod',
+        align: 'left',
+        sortable: false,
+        name: 'name',
+        field: 'name'
+      },
+      {
+        label: 'Contribution (%)',
+        sortable: false,
+        name: 'contrib',
+        field: 'contrib'
       }
+    ];
+
+    const listings = computed(() => {
+      const lst = [] as { name: string; contrib: string }[];
+      props.prediction.pred_explanation.forEach(entry => {
+        const obj = {
+          name: entry[0] as string,
+          contrib: ((entry[1] as number) * 100.0).toPrecision(4)
+        };
+        lst.push(obj);
+      });
+      return lst;
+    });
+
+    return {
+      pagination,
+      columns,
+      listings
     };
   }
-};
+});
 </script>
 
 <style scoped>
