@@ -282,7 +282,7 @@ export default class TradeManager {
     trade: TradeMsg,
     command: string
   ) {
-    if (!winpoe.IsPoEForeground()) {
+    if (!winpoe.isPoEForeground()) {
       return;
     }
 
@@ -320,7 +320,7 @@ export default class TradeManager {
     trade: TradeMsg,
     command: TradeCommand
   ) {
-    if (!winpoe.IsPoEForeground()) {
+    if (!winpoe.isPoEForeground()) {
       return;
     }
 
@@ -340,7 +340,7 @@ export default class TradeManager {
 
   private executeChatCommand(command: string) {
     clipboard.writeText(command);
-    winpoe.SendPasteCommand();
+    winpoe.sendPaste();
   }
 
   private toggleStashSetup() {

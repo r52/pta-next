@@ -15,7 +15,6 @@ import axios from 'axios';
 import MultiMap from 'multimap';
 import iohook from 'iohook';
 import { autoUpdater } from 'electron-updater';
-import clipboardListener from 'clipboard-event';
 
 import { ItemParser } from '../lib/itemparser';
 import Config from '../lib/config';
@@ -168,7 +167,7 @@ export class PTA {
         Config.default.vulkanCompat
       );
 
-      winpoe.SetVulkanCompatibility(vulkanCompat);
+      winpoe.setVulkanMode(vulkanCompat);
     });
 
     // initialize trade hooks
@@ -194,7 +193,7 @@ export class PTA {
         event.ctrlKey &&
         this.settings.cscrollEnabled
       ) {
-        winpoe.SendStashMove(event.rotation, event.x, event.y);
+        winpoe.scrollStash(event.rotation, event.x, event.y);
       }
     });
 
@@ -210,13 +209,13 @@ export class PTA {
       }
     });
 
-    clipboardListener.on('change', () => {
+    winpoe.on('clipboard', () => {
       if (this.settings.quickpaste && this.settings.qpmodHeld) {
         const cbtext = clipboard.readText();
 
-        if (cbtext.startsWith('@') && winpoe.SetPoEForeground()) {
+        if (cbtext.startsWith('@') && winpoe.setPoEForeground()) {
           setTimeout(() => {
-            winpoe.SendPasteCommand();
+            winpoe.sendPaste();
           }, 100);
         }
       }
@@ -235,16 +234,14 @@ export class PTA {
     this.registerShortcuts();
 
     // setup native hooks
-    winpoe.onForegroundChange((isPoe: boolean) => {
-      setTimeout(() => {
-        if (isPoe) {
-          this.registerShortcuts();
-        } else {
-          this.unregisterShortcuts();
-        }
+    winpoe.on('foreground', (isPoe: boolean) => {
+      if (isPoe) {
+        this.registerShortcuts();
+      } else {
+        this.unregisterShortcuts();
+      }
 
-        this.trademanager.handleForegroundChange(isPoe);
-      }, 0);
+      this.trademanager.handleForegroundChange(isPoe);
     });
 
     // Update check
@@ -329,30 +326,18 @@ export class PTA {
       }
     }
 
-    if (process.env.PROD) {
-      winpoe.InitializeHooks(vulkanCompat);
-    } else {
-      winpoe.SetVulkanCompatibility(vulkanCompat);
-    }
-
+    winpoe.start(vulkanCompat);
     iohook.start(process.env.NODE_ENV == 'development');
 
     // setup trade manager
     this.trademanager.setup();
-
-    clipboardListener.startListening();
   }
 
   public shutdown() {
     this.unregisterShortcuts();
 
-    if (process.env.PROD) {
-      winpoe.ShutdownHooks();
-    }
-
+    winpoe.stop();
     iohook.stop();
-
-    clipboardListener.stopListening();
   }
 
   private registerShortcuts() {
@@ -438,7 +423,7 @@ export class PTA {
   }
 
   private handleMacro(type: string, command: string) {
-    if (!winpoe.IsPoEForeground()) {
+    if (!winpoe.isPoEForeground()) {
       return;
     }
 
@@ -474,7 +459,7 @@ export class PTA {
     }
 
     clipboard.writeText(command);
-    winpoe.SendPasteCommand();
+    winpoe.sendPaste();
   }
 
   public getLeague() {
@@ -540,10 +525,10 @@ export class PTA {
   }
 
   private handleItemHotkey(type: ItemHotkey) {
-    const poefg = winpoe.IsPoEForeground();
+    const poefg = winpoe.isPoEForeground();
 
     if (poefg) {
-      winpoe.SendCopyCommand();
+      winpoe.sendCopy();
       setTimeout(() => {
         this.handleClipboard(type);
       }, 50);
