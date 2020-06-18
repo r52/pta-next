@@ -7,9 +7,12 @@
 namespace
 {
     HWINEVENTHOOK g_ForegroundHook = nullptr;
-    Napi::FunctionReference g_ForegroundHookCb;
+
     HWND g_LastPoEHwnd = nullptr;
+    HWND g_clipboardMonitor = nullptr;
     bool g_VulkanCompat = false;
+
+    Napi::ThreadSafeFunction g_Callback;
 
     std::wstring s_poeCls = L"POEWindowClass";
 } // namespace
@@ -129,22 +132,14 @@ namespace pta
 VOID CALLBACK
 ForegroundHookCallback(HWINEVENTHOOK hWinEventHook, DWORD dwEvent, HWND hwnd, LONG idObject, LONG idChild, DWORD dwEventThread, DWORD dwmsEventTime)
 {
-    if (g_ForegroundHookCb)
-    {
-        bool poefg = pta::IsPoEForeground();
-        g_ForegroundHookCb.Call({Napi::Boolean::New(g_ForegroundHookCb.Env(), poefg)});
-    }
-}
+    auto callback = [](Napi::Env env, Napi::Function jsCallback, bool *value) {
+        jsCallback.Call({Napi::String::New(env, "foreground"), Napi::Boolean::New(env, *value)});
 
-void InstallForegroundHookCb(const Napi::CallbackInfo &info)
-{
-    Napi::Env env = info.Env();
-    Napi::Function cb = info[0].As<Napi::Function>();
+        delete value;
+    };
 
-    if (cb)
-    {
-        g_ForegroundHookCb = Napi::Persistent(cb);
-    }
+    bool *poefg = new bool(pta::IsPoEForeground());
+    g_Callback.BlockingCall(poefg, callback);
 }
 
 Napi::Boolean IsPoEForeground(const Napi::CallbackInfo &info)
@@ -277,15 +272,108 @@ void SetVulkanCompatibility(const Napi::CallbackInfo &info)
     }
 }
 
+LRESULT CALLBACK ClipboardMonitorProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    auto callback = [](Napi::Env env, Napi::Function jsCallback) {
+        jsCallback.Call({Napi::String::New(env, "clipboard")});
+    };
+
+    switch (message)
+    {
+    case WM_CLIPBOARDUPDATE:
+        g_Callback.BlockingCall(callback);
+        break;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    case WM_CLOSE:
+        DestroyWindow(hWnd);
+        break;
+    }
+
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+void InitClipboardMonitor()
+{
+    HINSTANCE hInst = NULL;
+    GetModuleHandleEx(0, NULL, &hInst);
+
+    LPCWSTR className = L"PTANextClipboardMonitor";
+
+    WNDCLASSEX wx = {};
+    wx.cbSize = sizeof(WNDCLASSEX);
+    wx.lpfnWndProc = ClipboardMonitorProc;
+    wx.hInstance = hInst;
+    wx.lpszClassName = className;
+
+    if (!RegisterClassEx(&wx))
+    {
+        return;
+    }
+
+    g_clipboardMonitor = CreateWindowEx(0, className, (LPCWSTR) "Clipboard Monitor", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+
+    if (!g_clipboardMonitor)
+    {
+        return;
+    }
+
+    BOOL res = AddClipboardFormatListener(g_clipboardMonitor);
+
+    if (!res)
+    {
+        DestroyWindow(g_clipboardMonitor);
+        g_clipboardMonitor = nullptr;
+        return;
+    }
+
+    g_Callback.Acquire();
+
+    MSG msg;
+
+    while (GetMessage(&msg, nullptr, 0, 0))
+    {
+        if (msg.message == WM_QUIT)
+            break;
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    g_Callback.Release();
+}
+
+void ShutdownClipboardMonitor()
+{
+    if (g_clipboardMonitor)
+    {
+        RemoveClipboardFormatListener(g_clipboardMonitor);
+        DestroyWindow(g_clipboardMonitor);
+        g_clipboardMonitor = nullptr;
+    }
+}
+
 void InitializeHooks(const Napi::CallbackInfo &info)
+{
+    g_ForegroundHook = SetWinEventHook(
+        EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, ForegroundHookCallback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+}
+
+void ShutdownHooks(const Napi::CallbackInfo &info)
+{
+    if (g_ForegroundHook)
+    {
+        UnhookWinEvent(g_ForegroundHook);
+    }
+}
+
+void Start(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     Napi::Boolean vulkan = info[0].As<Napi::Boolean>();
 
     g_VulkanCompat = vulkan;
-
-    g_ForegroundHook = SetWinEventHook(
-        EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, ForegroundHookCallback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
 
     HWND poehwnd = FindWindow(s_poeCls.c_str(), nullptr);
 
@@ -299,14 +387,23 @@ void InitializeHooks(const Napi::CallbackInfo &info)
 
         g_LastPoEHwnd = poehwnd;
     }
+
+    std::thread clipthread(InitClipboardMonitor);
+    clipthread.detach();
 }
 
-void ShutdownHooks(const Napi::CallbackInfo &info)
+void Stop(const Napi::CallbackInfo &info)
 {
-    if (g_ForegroundHook)
-    {
-        UnhookWinEvent(g_ForegroundHook);
-    }
+    ShutdownClipboardMonitor();
+}
+
+void InstallHandlerCallback(const Napi::CallbackInfo &info)
+{
+    Napi::Env env = info.Env();
+
+    g_Callback = Napi::ThreadSafeFunction::New(env, info[0].As<Napi::Function>(), "Event Handler", 0, 1, [](Napi::Env) {
+        ShutdownClipboardMonitor();
+    });
 }
 
 Napi::Object init(Napi::Env env, Napi::Object exports)
@@ -319,12 +416,14 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SetPoEForeground"), Napi::Function::New(env, SetPoEForeground));
 
     // cbs
-    exports.Set(Napi::String::New(env, "onForegroundChange"), Napi::Function::New(env, InstallForegroundHookCb));
+    exports.Set(Napi::String::New(env, "InstallHandlerCallback"), Napi::Function::New(env, InstallHandlerCallback));
 
     // set
     exports.Set(Napi::String::New(env, "SetVulkanCompatibility"), Napi::Function::New(env, SetVulkanCompatibility));
     exports.Set(Napi::String::New(env, "InitializeHooks"), Napi::Function::New(env, InitializeHooks));
     exports.Set(Napi::String::New(env, "ShutdownHooks"), Napi::Function::New(env, ShutdownHooks));
+    exports.Set(Napi::String::New(env, "Start"), Napi::Function::New(env, Start));
+    exports.Set(Napi::String::New(env, "Stop"), Napi::Function::New(env, Stop));
     return exports;
 };
 
