@@ -31,7 +31,7 @@ namespace pta
         return input;
     }
 
-    void EmulateWindowedFullscreen(HWND hPoe, bool enabled)
+    void EmulateWindowedFullscreen(HWND hPoe)
     {
         if (hPoe)
         {
@@ -43,30 +43,13 @@ namespace pta
 
             if (res)
             {
-                bool change = false;
                 UINT flags = SWP_FRAMECHANGED;
                 LONG style = GetWindowLong(hPoe, GWL_STYLE);
 
-                if (enabled)
+                if (style & (WS_CAPTION | WS_SIZEBOX))
                 {
-                    if (style & (WS_CAPTION | WS_SIZEBOX))
-                    {
-                        style &= ~(WS_CAPTION | WS_SIZEBOX);
-                        change = true;
-                    }
-                }
-                else
-                {
-                    if (style & ~(WS_CAPTION | WS_SIZEBOX))
-                    {
-                        style |= WS_CAPTION | WS_SIZEBOX;
-                        flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED;
-                        change = true;
-                    }
-                }
+                    style &= ~(WS_CAPTION | WS_SIZEBOX);
 
-                if (change)
-                {
                     SetWindowLong(hPoe, GWL_STYLE, style);
 
                     int cx = screen.rcMonitor.right - screen.rcMonitor.left;
@@ -97,14 +80,14 @@ namespace pta
             return false;
         }
 
-        if (g_LastPoEHwnd != hwnd)
+        if (g_LastPoEHwnd != hwnd && g_VulkanCompat)
         {
             using namespace std::chrono_literals;
 
             // New poe window
             std::thread v([=] {
                 std::this_thread::sleep_for(2.5s);
-                pta::EmulateWindowedFullscreen(hwnd, g_VulkanCompat);
+                pta::EmulateWindowedFullscreen(hwnd);
             });
             v.detach();
         }
@@ -266,9 +249,9 @@ void SetVulkanCompatibility(const Napi::CallbackInfo &info)
 
     g_VulkanCompat = vulkan;
 
-    if (g_LastPoEHwnd)
+    if (g_LastPoEHwnd && g_VulkanCompat)
     {
-        pta::EmulateWindowedFullscreen(g_LastPoEHwnd, g_VulkanCompat);
+        pta::EmulateWindowedFullscreen(g_LastPoEHwnd);
     }
 }
 
@@ -379,10 +362,10 @@ void Start(const Napi::CallbackInfo &info)
 
     if (poehwnd)
     {
-        if (g_LastPoEHwnd != poehwnd)
+        if (g_LastPoEHwnd != poehwnd && g_VulkanCompat)
         {
             // New poe window
-            pta::EmulateWindowedFullscreen(poehwnd, g_VulkanCompat);
+            pta::EmulateWindowedFullscreen(poehwnd);
         }
 
         g_LastPoEHwnd = poehwnd;
