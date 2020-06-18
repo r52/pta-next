@@ -24,6 +24,12 @@ Portable version: Extract the archive and run **PTA-Next.exe**
 
 **If your PC is not running Windows 10 with the latest feature updates or you are getting a VC runtime error, you MUST download and install the [Microsoft Visual C++ Redistributable](https://aka.ms/vs/16/release/VC_redist.x64.exe)!**
 
+## Known Issues
+
+- Overlay features (i.e. Trade Bar, Trade Notifications, Stash Highlighting) doesn't work when using Windowed Fullscreen with Vulkan
+  - Most desktop-based third-party tools are currently broken when using Vulkan Windowed Fullscreen in PoE because the current implementation of the Vulkan Windowed Fullscreen in PoE does not render within the desktop context.
+  - To workaround this, you can choose to emulate Windowed Fullscreen while using Vulkan by enabling the option in the settings (ensure that PoE is set to Windowed mode before enabling this option). Note that those with weaker computers may see performance issues while using this option because it is not "true" Windowed Fullscreen.
+
 ## Features
 
 **All features can be enabled or disabled, and all shortcuts and macros can be reconfigured in the settings!**
@@ -42,12 +48,16 @@ Portable version: Extract the archive and run **PTA-Next.exe**
 - Ctrl + Mousewheel stash scrolling
   - `Enabled` by default
 - Custom macros
-  - Supports in-game chat commands as well as opening URLs in your browser
+  - Supports in-game chat commands as well as opening URLs in your browser.
   - See [wiki](https://github.com/r52/pta-next/wiki) for examples.
 - [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI
   - `Disabled` by default
   - See [wiki](https://github.com/r52/pta-next/wiki#trade-ui) for examples.
   - **Please ensure that your Client.txt path in set in the settings for this to work!**
+- Vulkan Windowed Fullscreen Emulation
+  - `Disabled` by default
+  - Emulates Windowed Fullscreen mode when using Vulkan to restore functionality to third-party tools.
+  - Set your PoE to Windowed mode before enabling this setting!
 
 QoL Shortcuts:
 
