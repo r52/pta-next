@@ -8,18 +8,16 @@ class WinPoE extends EventEmitter {
     poeaddon.InstallHandlerCallback(this._handler.bind(this));
   }
 
-  start(vulkanMode) {
+  start(vulkanMode, debug = false) {
     poeaddon.Start(vulkanMode);
 
-    if (process.env.PROD) {
+    if (!debug) {
       poeaddon.InitializeHooks();
     }
   }
 
   stop() {
-    if (process.env.PROD) {
-      poeaddon.ShutdownHooks();
-    }
+    poeaddon.ShutdownHooks();
 
     poeaddon.Stop();
   }

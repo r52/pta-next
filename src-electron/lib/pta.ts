@@ -326,7 +326,7 @@ export class PTA {
       }
     }
 
-    winpoe.start(vulkanCompat);
+    winpoe.start(vulkanCompat, process.env.NODE_ENV == 'development');
     iohook.start(process.env.NODE_ENV == 'development');
 
     // setup trade manager

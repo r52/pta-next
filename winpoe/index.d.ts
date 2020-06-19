@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 
 declare class WinPoE extends EventEmitter {
-  start(vulkanMode: boolean): void;
+  start(vulkanMode: boolean, debug: boolean): void;
   stop(): void;
   setVulkanMode(enabled: boolean): void;
   isPoEForeground(): boolean;
