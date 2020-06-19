@@ -8,6 +8,8 @@ interface Item {
   ilvl?: number;
   unidentified?: boolean;
   corrupted?: boolean;
+  fractured?: boolean;
+  synthesised?: boolean;
   influences?: string[];
 
   filters?: {
@@ -49,7 +51,6 @@ interface Filter {
 
 interface Misc {
   disc?: string;
-  synthesis?: boolean;
   gemlevel?: number;
   gemprogress?: string;
   maptier?: number;
@@ -170,5 +171,6 @@ interface ItemOptions {
   useitembase: boolean;
   usecorrupted: string;
   influences: string[];
-  usesynthesisbase?: boolean;
+  usefractured: boolean;
+  usesynthesised: boolean;
 }
