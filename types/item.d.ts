@@ -9,6 +9,7 @@ interface Item {
   unidentified?: boolean;
   corrupted?: boolean;
   fractured?: boolean;
+  synthesised?: boolean;
   influences?: string[];
 
   filters?: {
@@ -50,7 +51,6 @@ interface Filter {
 
 interface Misc {
   disc?: string;
-  synthesis?: boolean;
   gemlevel?: number;
   gemprogress?: string;
   maptier?: number;
@@ -172,5 +172,5 @@ interface ItemOptions {
   usecorrupted: string;
   influences: string[];
   usefractured: boolean;
-  usesynthesisbase?: boolean;
+  usesynthesised: boolean;
 }

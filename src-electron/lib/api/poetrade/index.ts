@@ -336,7 +336,7 @@ export class POETradeAPI implements PriceAPI {
       }
 
       // Force Synthesis
-      if (item.misc?.synthesis) {
+      if (item.synthesised) {
         query.query = merge(query.query, {
           filters: {
             misc_filters: {
@@ -349,7 +349,10 @@ export class POETradeAPI implements PriceAPI {
           }
         });
 
-        sopts.children.push({ label: 'Synthesis' });
+        sopts.children.push({
+          label: 'Synthesised',
+          children: [{ label: 'Yes' }]
+        });
       }
 
       // Force Fractured
@@ -771,7 +774,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Synthesis
-    if (options.usesynthesisbase != null && options.usesynthesisbase) {
+    if (options.usesynthesised) {
       query.query = merge(query.query, {
         filters: {
           misc_filters: {
@@ -784,7 +787,10 @@ export class POETradeAPI implements PriceAPI {
         }
       });
 
-      sopts.children.push({ label: 'Synthesis' });
+      sopts.children.push({
+        label: 'Synthesised',
+        children: [{ label: 'Yes' }]
+      });
     }
 
     // Fractured

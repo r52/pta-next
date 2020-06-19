@@ -773,8 +773,7 @@ export class ItemParser {
 
     // Synthesised
     if (lines.peekLast().startsWith('Synthesised Item')) {
-      item.misc = item.misc ?? ({} as Misc);
-      item.misc.synthesis = true;
+      item.synthesised = true;
       lines.pop();
     }
 
@@ -816,8 +815,7 @@ export class ItemParser {
 
     if (type.startsWith('Synthesised ')) {
       type = type.replace('Synthesised ', '');
-      item.misc = item.misc ?? ({} as Misc);
-      item.misc.synthesis = true;
+      item.synthesised = true;
     }
 
     if (item.rarity === 'Magic') {
@@ -1124,8 +1122,7 @@ export class ItemParser {
 
     if (stat == 'Synthesised Item') {
       // Should already have been processed
-      item.misc = item.misc ?? ({} as Misc);
-      item.misc.synthesis = true;
+      item.synthesised = true;
       return true;
     }
 

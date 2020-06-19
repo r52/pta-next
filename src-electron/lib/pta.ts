@@ -744,7 +744,8 @@ export class PTA {
       useitembase: prefillbase,
       usecorrupted: item.corrupted ? 'Yes' : 'Any',
       influences: [],
-      usefractured: false
+      usefractured: false,
+      usesynthesised: false
     } as ItemOptions;
 
     if (prefillbase) {
@@ -752,8 +753,8 @@ export class PTA {
         options.influences.push(...item.influences);
       }
 
-      if (item.misc?.synthesis) {
-        options.usesynthesisbase = prefillbase;
+      if (item.synthesised) {
+        options.usesynthesised = prefillbase;
       }
 
       if (item.fractured) {

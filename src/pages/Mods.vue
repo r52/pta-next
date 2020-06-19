@@ -148,9 +148,9 @@
           </div>
           <div class="col-auto">
             <q-toggle
-              v-if="item.misc && item.misc.synthesis"
+              v-if="item.synthesised"
               label="Synthesis"
-              v-model="options.usesynthesisbase"
+              v-model="options.usesynthesised"
               color="orange"
             />
           </div>
