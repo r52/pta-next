@@ -149,7 +149,7 @@
           <div class="col-auto">
             <q-toggle
               v-if="item.synthesised"
-              label="Synthesis"
+              label="Synthesised"
               v-model="options.usesynthesised"
               color="orange"
             />
