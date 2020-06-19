@@ -73,7 +73,7 @@ export default {
     corruptoverride: false,
     corruptsearch: 'Any',
     primarycurrency: 'chaos',
-    secondarycurrency: 'exa',
+    secondarycurrency: 'exalted',
     onlineonly: true,
     buyoutonly: true,
     removedupes: true,

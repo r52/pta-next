@@ -61,7 +61,7 @@ export default class TradeManager {
         type: 'incoming',
         item: 'Bramble Ruin Medium Cluster Jewel',
         price: 69,
-        currency: 'exa',
+        currency: 'exalted',
         league: 'Delirium',
         tab: 'Trade',
         x: 3,
