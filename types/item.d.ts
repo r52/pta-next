@@ -8,6 +8,7 @@ interface Item {
   ilvl?: number;
   unidentified?: boolean;
   corrupted?: boolean;
+  fractured?: boolean;
   influences?: string[];
 
   filters?: {
@@ -170,5 +171,6 @@ interface ItemOptions {
   useitembase: boolean;
   usecorrupted: string;
   influences: string[];
+  usefractured: boolean;
   usesynthesisbase?: boolean;
 }

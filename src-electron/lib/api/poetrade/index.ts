@@ -352,6 +352,26 @@ export class POETradeAPI implements PriceAPI {
         sopts.children.push({ label: 'Synthesis' });
       }
 
+      // Force Fractured
+      if (item.fractured) {
+        query.query = merge(query.query, {
+          filters: {
+            misc_filters: {
+              filters: {
+                fractured_item: {
+                  option: true
+                }
+              }
+            }
+          }
+        });
+
+        sopts.children.push({
+          label: 'Fractured',
+          children: [{ label: 'Yes' }]
+        });
+      }
+
       // Default corrupt options
       const corruptoverride = cfg.get(
         Config.corruptoverride,
@@ -765,6 +785,26 @@ export class POETradeAPI implements PriceAPI {
       });
 
       sopts.children.push({ label: 'Synthesis' });
+    }
+
+    // Fractured
+    if (options.usefractured) {
+      query.query = merge(query.query, {
+        filters: {
+          misc_filters: {
+            filters: {
+              fractured_item: {
+                option: true
+              }
+            }
+          }
+        }
+      });
+
+      sopts.children.push({
+        label: 'Fractured',
+        children: [{ label: 'Yes' }]
+      });
     }
 
     // Corrupt

@@ -585,40 +585,8 @@ export class ItemParser {
 
     const lines = new ItemText(itemtext);
 
-    // Preprocess out bottom sections here
-    // so flavour text can be processed out
-
-    // Remove notes section
-    if (lines.peekLast().startsWith('Note:')) {
-      lines.pop();
-    }
-
-    if (lines.peekLast().startsWith('---')) {
-      lines.pop();
-    }
-
-    // Synthesised
-    if (lines.peekLast().startsWith('Synthesised Item')) {
-      item.misc = item.misc ?? ({} as Misc);
-      item.misc.synthesis = true;
-      lines.pop();
-    }
-
-    if (lines.peekLast().startsWith('---')) {
-      lines.pop();
-    }
-
-    // Corrupted
-    if (lines.peekLast().startsWith('Corrupted')) {
-      item.corrupted = true;
-      lines.pop();
-    }
-
-    if (lines.peekLast().startsWith('---')) {
-      lines.pop();
-    }
-
-    lines.calcSections();
+    // Preprocess out bottom sections
+    this.preprocessItemText(item, lines);
 
     let line = lines.readLine();
 
@@ -788,6 +756,53 @@ export class ItemParser {
     }
 
     return item;
+  }
+
+  private preprocessItemText(item: Item, lines: ItemText) {
+    // Preprocess out bottom sections
+    // so flavour text can be processed out
+
+    // Remove notes section
+    if (lines.peekLast().startsWith('Note:')) {
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    // Synthesised
+    if (lines.peekLast().startsWith('Synthesised Item')) {
+      item.misc = item.misc ?? ({} as Misc);
+      item.misc.synthesis = true;
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    // Fractured
+    if (lines.peekLast().startsWith('Fractured Item')) {
+      item.fractured = true;
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    // Corrupted
+    if (lines.peekLast().startsWith('Corrupted')) {
+      item.corrupted = true;
+      lines.pop();
+    }
+
+    if (lines.peekLast().startsWith('---')) {
+      lines.pop();
+    }
+
+    lines.calcSections();
   }
 
   private readName(name: string) {
@@ -1101,6 +1116,12 @@ export class ItemParser {
       return true;
     }
 
+    if (stat == 'Fractured Item') {
+      // Should already have been processed
+      item.fractured = true;
+      return true;
+    }
+
     if (stat == 'Synthesised Item') {
       // Should already have been processed
       item.misc = item.misc ?? ({} as Misc);
@@ -1129,6 +1150,11 @@ export class ItemParser {
     if (stat.endsWith('(enchant)')) {
       stattype = 'enchant';
       stat = stat.replace(' (enchant)', '');
+    }
+
+    if (stat.endsWith('(fractured)')) {
+      stattype = 'fractured';
+      stat = stat.replace(' (fractured)', '');
     }
 
     let valstat = String(stat);

@@ -154,6 +154,14 @@
               color="orange"
             />
           </div>
+          <div class="col-auto">
+            <q-toggle
+              v-if="item.fractured"
+              label="Fractured"
+              v-model="options.usefractured"
+              color="amber"
+            />
+          </div>
         </div>
 
         <q-separator />
