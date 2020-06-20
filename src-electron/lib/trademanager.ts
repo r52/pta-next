@@ -210,9 +210,9 @@ export default class TradeManager {
         alwaysOnTop: true,
         frame: false,
         transparent: true,
-        //focusable: false,
-        skipTaskbar: true,
         backgroundColor: '#00000000',
+        focusable: false,
+        skipTaskbar: true,
         webPreferences: {
           nodeIntegration: true
         }
