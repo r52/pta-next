@@ -164,14 +164,23 @@ export default defineComponent({
       }
     }
 
-    ipcRenderer.on('item', (event, itm, set, opts, type) => {
-      handleItem(event, itm, set, opts, type);
+    ipcRenderer.on(
+      'item',
+      (event, itm: Item, set: PTASettings, opts: ItemOptions, type: number) => {
+        handleItem(event, itm, set, opts, type);
 
-      // If type == SIMPLE, queue a simple search
-      if (type == 0 || !('filters' in itm)) {
-        ipcRenderer.send('search-defaults', itm);
+        // If type == SIMPLE, or item type only supports a simple type, queue a simple search
+        if (
+          type == 0 ||
+          itm.category == 'map' ||
+          itm.category == 'card' ||
+          itm.category == 'prophecy' ||
+          !('filters' in itm)
+        ) {
+          ipcRenderer.send('search-defaults', itm);
+        }
       }
-    });
+    );
 
     function handleResults(
       event: Electron.IpcRendererEvent,

@@ -637,8 +637,11 @@ export class ItemParser {
     if (item.type.endsWith('Map')) {
       item.category = 'map';
 
-      item.misc = item.misc ?? ({} as Misc);
-      item.misc.disc = this.mapDisc; // Default map discriminator
+      // Don't apply standard discriminator to blighted maps
+      if (!item.type.startsWith('Blighted')) {
+        item.misc = item.misc ?? ({} as Misc);
+        item.misc.disc = this.mapDisc; // Default map discriminator
+      }
 
       item.type = item.type.replace('Elder ', '');
       item.type = item.type.replace('Shaped ', '');

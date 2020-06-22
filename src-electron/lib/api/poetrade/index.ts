@@ -111,13 +111,18 @@ export class POETradeAPI implements PriceAPI {
       sopts.children.push({ label: 'Buyout Only' });
     }
 
-    // Search by type if rare map, or if it has no name
+    // Search by type if non-unique map, or if it has no name
     if (
-      (item.category == 'map' && item.rarity == 'Rare') ||
+      (item.category == 'map' && item.rarity != 'Unique') ||
       item.name == null
     ) {
-      isUniqueBase = this.uniques.has(item.type);
-      searchToken = item.type;
+      if (item.category == 'map' && item.type.startsWith('Blighted')) {
+        // Let blighted maps thru to simple search
+        isUniqueBase = true;
+      } else {
+        isUniqueBase = this.uniques.has(item.type);
+        searchToken = item.type;
+      }
     } else {
       isUniqueBase = this.uniques.has(item.name);
       searchToken = item.name;
@@ -159,34 +164,49 @@ export class POETradeAPI implements PriceAPI {
 
     // Check for unique items
     if (isUniqueBase) {
-      const range = this.uniques.get(searchToken);
-      for (const entry of range) {
-        // If has discriminator, match discriminator and type
-        if (item.misc?.disc) {
-          if (entry['disc'] == item.misc.disc && entry['type'] == item.type) {
-            if ('name' in entry) {
-              query.query['name'] = {
-                discriminator: entry['disc'],
-                option: entry['name']
-              };
-            }
+      if (searchToken) {
+        const range = this.uniques.get(searchToken);
+        for (const entry of range) {
+          // If has discriminator, match discriminator and type
+          if (item.misc?.disc) {
+            if (entry['disc'] == item.misc.disc && entry['type'] == item.type) {
+              if ('name' in entry) {
+                query.query['name'] = {
+                  discriminator: entry['disc'],
+                  option: entry['name']
+                };
+              }
 
-            query.query['type'] = {
-              discriminator: entry['disc'],
-              option: entry['type']
-            };
+              query.query['type'] = {
+                discriminator: entry['disc'],
+                option: entry['type']
+              };
+
+              break;
+            }
+          } else if (entry['type'] == item.type) {
+            // For everything else, just match type
+            query.query['type'] = entry['type'];
+
+            if ('name' in entry) {
+              query.query['name'] = entry['name'];
+            }
 
             break;
           }
-        } else if (entry['type'] == item.type) {
-          // For everything else, just match type
-          query.query['type'] = entry['type'];
+        }
+      } else {
+        // Force a manual search
+        let term = item.name;
 
-          if ('name' in entry) {
-            query.query['name'] = entry['name'];
-          }
+        if (term == null) {
+          term = item.type;
+        }
 
-          break;
+        if (term != null) {
+          query.query = merge(query.query, {
+            term: term
+          });
         }
       }
 
@@ -260,7 +280,13 @@ export class POETradeAPI implements PriceAPI {
       }
 
       // Force iLvl
-      if (item.rarity != 'Unique' && item.category != 'card' && item.ilvl) {
+      if (
+        item.rarity != 'Unique' &&
+        item.category != 'card' &&
+        item.category != 'map' &&
+        item.category != 'prophecy' &&
+        item.ilvl
+      ) {
         query.query = merge(query.query, {
           filters: {
             misc_filters: {
