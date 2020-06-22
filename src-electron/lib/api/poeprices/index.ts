@@ -28,7 +28,7 @@ export class POEPricesAPI implements PriceAPI {
       isUniqueBase = this.uniques.has(item.name);
     }
 
-    if (usepoeprices && !isUniqueBase && item.rarity != 'Magic') {
+    if (usepoeprices && !isUniqueBase && item.rarity == 'Rare') {
       let itemText = String(item.origtext);
 
       itemText = itemText.replace(/<<.*?>>|<.*?>/g, '');
