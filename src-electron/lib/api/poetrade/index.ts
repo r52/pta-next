@@ -334,7 +334,12 @@ export class POETradeAPI implements PriceAPI {
       }
 
       // Force Influences
-      if (item.category != 'card' && item.influences) {
+      if (
+        item.category != 'card' &&
+        item.category != 'map' &&
+        item.category != 'prophecy' &&
+        item.influences
+      ) {
         const inflist = [] as QTreeModel[];
 
         for (const i of item.influences) {
@@ -408,7 +413,12 @@ export class POETradeAPI implements PriceAPI {
       );
 
       // No such thing as corrupted cards or prophecies
-      if (item.category != 'card' && item.category != 'prophecy') {
+      // Don't force corruption on maps either
+      if (
+        item.category != 'card' &&
+        item.category != 'map' &&
+        item.category != 'prophecy'
+      ) {
         if (corruptoverride) {
           const corrupt = cfg.get(
             Config.corruptsearch,
