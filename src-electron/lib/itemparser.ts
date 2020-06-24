@@ -1190,12 +1190,13 @@ export class ItemParser {
 
     if (
       stat.includes('#') &&
-      (stat.includes('reduced') || stat.includes('less'))
+      ((stat.includes('reduced') && !stat.includes('reduced Mana')) ||
+        stat.includes('less'))
     ) {
       // If the stat line has a "reduced" value, try to
       // flip it and try again
 
-      if (stat.includes('reduced')) {
+      if (stat.includes('reduced') && !stat.includes('reduced Mana')) {
         stat = stat.replace('reduced', 'increased');
         valstat = valstat.replace('reduced', 'increased');
       } else {
