@@ -7,6 +7,7 @@ import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios, { AxiosResponse } from 'axios';
 import merge from 'lodash.merge';
+import cloneDeep from 'lodash.clonedeep';
 
 import Config from '../../config';
 import { PTA } from '../../pta';
@@ -16,6 +17,7 @@ import URLs from '../urls';
 interface PoEFetchResults {
   result: string[];
   id: string;
+  total: number;
 }
 
 export class POETradeAPI implements PriceAPI {
@@ -1025,10 +1027,10 @@ export class POETradeAPI implements PriceAPI {
     const url = URLs.official.trade.exchange + PTA.getInstance().getLeague();
 
     const want = this.exchange.get(item.type) as string;
-    let have = s_curr;
+    let have = p_curr;
 
-    if (want == s_curr) {
-      have = p_curr;
+    if (want == p_curr) {
+      have = s_curr;
     }
 
     query.exchange.want.push(want);
@@ -1039,26 +1041,34 @@ export class POETradeAPI implements PriceAPI {
 
     urls.push(axios.post(url, query));
 
-    if (have != p_curr && want != p_curr) {
-      have = p_curr;
+    if (have != s_curr && want != s_curr) {
+      have = s_curr;
 
-      query.exchange.have.pop();
-      query.exchange.have.push(have);
+      const squery = cloneDeep(query);
 
-      urls.push(axios.post(url, query));
+      squery.exchange.have.pop();
+      squery.exchange.have.push(have);
+
+      urls.push(axios.post(url, squery));
     }
 
     axios.all<AxiosResponse<PoEFetchResults>>(urls).then(results => {
-      results.some(resp => {
-        const data = resp.data;
+      const presp = results[0];
+      const pdata = presp.data;
 
-        if ('result' in data && 'id' in data) {
-          this.processPriceResults(data, event, null, true, true);
-          return true;
+      if ('result' in pdata && 'id' in pdata) {
+        if (pdata.total == 0 && results.length > 1) {
+          // no results for primary currency, try secondary
+          const sresp = results[1];
+          const sdata = sresp.data;
+
+          if ('result' in sdata && 'id' in sdata) {
+            this.processPriceResults(sdata, event, null, true, true);
+          }
+        } else {
+          this.processPriceResults(pdata, event, null, true, true);
         }
-
-        return false;
-      });
+      }
     });
   }
 }
