@@ -535,12 +535,7 @@ export class PTA {
     }
   }
 
-  private createItemUI(
-    item: Item,
-    settings: PTASettings,
-    options: ItemOptions,
-    type: ItemHotkey
-  ) {
+  private createItemUI() {
     const wincfg = cfg.window({ name: 'item' });
     const itemWindow = new BrowserWindow({
       width: 600,
@@ -549,7 +544,7 @@ export class PTA {
       transparent: true,
       frame: false,
       backgroundColor: '#00000000',
-      title: item.name ?? item.type,
+      title: 'PTA-Next',
       webPreferences: {
         nodeIntegration: true
       },
@@ -571,9 +566,7 @@ export class PTA {
       itemWindow.close();
     });
 
-    itemWindow.webContents.on('did-finish-load', () => {
-      itemWindow.webContents.send('item', item, settings, options, type);
-    });
+    return itemWindow;
   }
 
   private handleClipboard(type: ItemHotkey) {
@@ -592,26 +585,43 @@ export class PTA {
       return;
     }
 
+    let itmwin = null as BrowserWindow | null;
+
+    switch (type) {
+      case ItemHotkey.SIMPLE:
+      case ItemHotkey.ADVANCED: {
+        itmwin = this.createItemUI();
+        break;
+      }
+    }
+
     const item = this.parser.parse(itemtext);
 
-    if (!item) {
-      dialog.showErrorBox(
-        'Item Error',
-        'Error parsing item text. Check log for more details.'
-      );
-    } else {
+    item.then(itm => {
+      if (!itm) {
+        dialog.showErrorBox(
+          'Item Error',
+          'Error parsing item text. Check log for more details.'
+        );
+
+        itmwin?.close();
+        return;
+      }
+
       switch (type) {
         case ItemHotkey.SIMPLE:
         case ItemHotkey.ADVANCED: {
-          const { settings, options } = this.fillSearchOptions(item);
-          this.createItemUI(item, settings, options, type);
+          const { settings, options } = this.fillSearchOptions(itm);
+          itmwin?.webContents.on('did-finish-load', () => {
+            itmwin?.webContents.send('item', itm, settings, options, type);
+          });
           break;
         }
         case ItemHotkey.WIKI:
-          this.openWiki(item);
+          this.openWiki(itm);
           break;
       }
-    }
+    });
   }
 
   private openWiki(item: Item) {

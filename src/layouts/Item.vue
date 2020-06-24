@@ -141,6 +141,10 @@ export default defineComponent({
       opts: ItemOptions,
       type: number
     ) {
+      ctx.root.$q.electron.remote
+        .getCurrentWindow()
+        .setTitle(itm.name ?? itm.type);
+
       item.value = itm;
       settings.value = set;
       options.value = opts;
@@ -175,7 +179,7 @@ export default defineComponent({
           itm.category == 'map' ||
           itm.category == 'card' ||
           itm.category == 'prophecy' ||
-          !('filters' in itm)
+          itm.filters == null
         ) {
           ipcRenderer.send('search-defaults', itm);
         }

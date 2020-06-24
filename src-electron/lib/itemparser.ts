@@ -578,7 +578,7 @@ export class ItemParser {
     return sections;
   }
 
-  public parse(itemtext: string): Item | null {
+  public async parse(itemtext: string) {
     itemtext = itemtext.trim();
 
     const item = {} as Item;
@@ -669,6 +669,8 @@ export class ItemParser {
 
     // Read the rest of the crap
 
+    const promises = [] as Promise<boolean>[];
+
     while ((line = lines.readLine()) !== false) {
       // Skip flavour text
       if (
@@ -686,9 +688,11 @@ export class ItemParser {
 
       if (!this.parseProp(item, line) && lines.currentsection > 1) {
         // parse item stat
-        this.parseStat(item, line, lines);
+        promises.push(this.parseStat(item, line, lines));
       }
     }
+
+    await Promise.all(promises);
 
     // Process special/pseudo rules
     if (item.filters != null && Object.keys(item.filters).length) {
@@ -1045,7 +1049,8 @@ export class ItemParser {
     return sockets;
   }
 
-  private parseStat(item: Item, stat: string, stream: ItemText) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  private async parseStat(item: Item, stat: string, stream: ItemText) {
     const origstat = String(stat);
 
     // Special rule for A Master Seeks Help
