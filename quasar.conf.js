@@ -1,5 +1,8 @@
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /*
  * This file runs in a Node context (it's NOT transpiled by Babel), so use only
  * the ES6 features that are supported by your Node version. https://node.green/
@@ -39,28 +42,22 @@ module.exports = configure(function(/* ctx */) {
       iconSet: 'material-icons', // Quasar icon set
       lang: 'en-us', // Quasar language pack
 
-      // Possible values for "all":
+      // Possible values for "importStrategy":
       // * 'auto' - Auto-import needed Quasar components & directives
       //            (slightly higher compile time; next to minimum bundle size; most convenient)
       // * false  - Manually specify what to import
       //            (fastest compile time; minimum bundle size; most tedious)
       // * true   - Import everything from Quasar
       //            (not treeshaking Quasar; biggest bundle size; convenient)
-      all: 'auto',
+      importStrategy: 'auto',
 
       config: {
         dark: true // or Boolean true/false
       },
 
-      components: [],
-      directives: [],
-
       // Quasar plugins
       plugins: ['Notify']
     },
-
-    // https://quasar.dev/quasar-cli/cli-documentation/supporting-ie
-    supportIE: false,
 
     // https://quasar.dev/quasar-cli/cli-documentation/supporting-ts
     supportTS: {
@@ -75,9 +72,7 @@ module.exports = configure(function(/* ctx */) {
       showProgress: true,
       gzip: false,
       analyze: false,
-      modern: true,
       // Options below are automatically set depending on the env, set them if you want to override
-      // preloadChunks: false,
       // extractCSS: false,
 
       // https://quasar.dev/quasar-cli/cli-documentation/handling-webpack
@@ -119,38 +114,35 @@ module.exports = configure(function(/* ctx */) {
       workboxOptions: {}, // only for GenerateSW
       manifest: {
         name: 'PTA-Next',
-        // eslint-disable-next-line @typescript-eslint/camelcase
         short_name: 'PTA-Next',
         description: 'PTA-Next',
         display: 'standalone',
         orientation: 'portrait',
-        // eslint-disable-next-line @typescript-eslint/camelcase
         background_color: '#ffffff',
-        // eslint-disable-next-line @typescript-eslint/camelcase
         theme_color: '#027be3',
         icons: [
           {
-            src: 'statics/icons/icon-128x128.png',
+            src: 'icons/icon-128x128.png',
             sizes: '128x128',
             type: 'image/png'
           },
           {
-            src: 'statics/icons/icon-192x192.png',
+            src: 'icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'statics/icons/icon-256x256.png',
+            src: 'icons/icon-256x256.png',
             sizes: '256x256',
             type: 'image/png'
           },
           {
-            src: 'statics/icons/icon-384x384.png',
+            src: 'icons/icon-384x384.png',
             sizes: '384x384',
             type: 'image/png'
           },
           {
-            src: 'statics/icons/icon-512x512.png',
+            src: 'icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           }

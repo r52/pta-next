@@ -93,6 +93,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   defineComponent,
   ref,
@@ -157,7 +158,7 @@ export default defineComponent({
         item.value.category != 'map' &&
         type == 1
       ) {
-        ctx.root.$router.replace({
+        void ctx.root.$router.replace({
           name: 'mods',
           params: {
             item: item.value as any,
@@ -193,7 +194,7 @@ export default defineComponent({
       results.value = res;
 
       if (results.value.forcetab) {
-        ctx.root.$router.replace({
+        void ctx.root.$router.replace({
           name: 'results',
           params: {
             item: item.value as any,
@@ -207,11 +208,14 @@ export default defineComponent({
       handleResults(event, res);
     });
 
-    function handlePrediction(event: Electron.IpcRendererEvent, pred: any) {
+    function handlePrediction(
+      event: Electron.IpcRendererEvent,
+      pred: PoEPricesPrediction
+    ) {
       prediction.value = pred;
 
       if (tab.value == null) {
-        ctx.root.$router.replace({
+        void ctx.root.$router.replace({
           name: 'prediction',
           params: {
             prediction: prediction.value as any
@@ -224,7 +228,7 @@ export default defineComponent({
       handlePrediction(event, pred);
     });
 
-    ipcRenderer.on('error', (event, error) => {
+    ipcRenderer.on('error', (event, error: string) => {
       ctx.root.$q.notify({
         color: 'red',
         message: error,
@@ -236,7 +240,7 @@ export default defineComponent({
 
     ipcRenderer.on('forcetab', (event, tb) => {
       if (tb == 'mods') {
-        ctx.root.$router.replace({
+        void ctx.root.$router.replace({
           name: 'mods',
           params: {
             item: item.value as any,

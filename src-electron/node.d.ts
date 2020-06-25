@@ -1,6 +1,6 @@
 declare namespace NodeJS {
   interface Global {
-    __statics: any;
+    __statics: string;
     pta: any;
   }
 }

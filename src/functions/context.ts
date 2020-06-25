@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { SetupContext } from '@vue/composition-api';
 
 export function useElectronUtil(context: SetupContext) {
@@ -10,7 +11,7 @@ export function useElectronUtil(context: SetupContext) {
   };
 
   const openBrowser = (url: string) => {
-    context.root.$q.electron.remote.shell.openExternal(url);
+    void context.root.$q.electron.remote.shell.openExternal(url);
   };
 
   return {

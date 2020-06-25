@@ -72,7 +72,7 @@
                   </div>
                   <div class="col-auto">
                     <img
-                      :src="`statics/images/${props.row.currency}.png`"
+                      :src="`images/${props.row.currency}.png`"
                       style="height: 25px; max-width: 25px;"
                       class="q-pt-xs"
                     />

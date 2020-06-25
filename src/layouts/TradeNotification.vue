@@ -75,7 +75,7 @@
               <div>{{ trade.price }} {{ trade.currency }}</div>
               <div>
                 <img
-                  :src="`statics/images/${trade.currency}.png`"
+                  :src="`images/${trade.currency}.png`"
                   style="height: 25px; max-width: 25px;"
                   class="q-pt-xs"
                 />
@@ -202,7 +202,7 @@ export default defineComponent({
       trades.value.push(trade);
 
       if (!tab.value) {
-        tab.value = trade.name + trade.time;
+        tab.value = trade.name + trade.time.toString();
       }
     }
 
@@ -252,7 +252,7 @@ export default defineComponent({
         }
       } else if (tab.value) {
         let idx = trades.value.findIndex(trade => {
-          return tab.value == trade.name + trade.time;
+          return tab.value == trade.name + trade.time.toString();
         });
 
         trades.value.splice(idx, 1);
@@ -261,7 +261,7 @@ export default defineComponent({
         if (idx > trades.value.length - 1) idx = trades.value.length - 1;
 
         const last = trades.value[idx];
-        tab.value = last.name + last.time;
+        tab.value = last.name + last.time.toString();
       }
     }
 

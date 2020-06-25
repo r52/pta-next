@@ -69,6 +69,43 @@ interface PoETradeListing {
   };
 }
 
+interface PoETradeQuery {
+  query: {
+    status: {
+      option: string;
+    };
+    stats: {
+      type: string;
+      filters: QueryFilter[];
+    }[];
+    name?:
+      | string
+      | {
+          discriminator: string;
+          option: string;
+        };
+    type?:
+      | string
+      | {
+          discriminator: string;
+          option: string;
+        };
+  };
+  sort: {
+    price: string;
+  };
+}
+
+interface QueryFilter {
+  disabled: boolean;
+  id: string;
+  value: {
+    min: number | null;
+    max: number | null;
+    option: number | null;
+  } | null;
+}
+
 // Incomplete schema of results from https://www.poeprices.info
 interface PoEPricesPrediction {
   error: number;

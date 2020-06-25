@@ -28,8 +28,14 @@ interface Item {
 }
 
 interface Filter {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [index: string]: any; // allow indexing for looping
+  [index: string]:
+    | string
+    | number
+    | number[]
+    | boolean
+    | { options: FilterOption[] }
+    | null
+    | undefined; // allow indexing for looping
   id: string;
   type: string;
   text: string;
@@ -152,14 +158,14 @@ interface PTASettings {
 }
 
 interface MinMaxToggle {
+  [index: string]: boolean | number | null; // allow indexing
   enabled: boolean;
   min: number | null;
   max: number | null;
 }
 
 interface ItemOptions {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [index: string]: any; // allow indexing
+  [index: string]: MinMaxToggle | boolean | string | string[]; // allow indexing
   usepdps: MinMaxToggle;
   useedps: MinMaxToggle;
   usear: MinMaxToggle;

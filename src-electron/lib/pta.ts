@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   app,
   BrowserWindow,
@@ -27,17 +26,29 @@ import URLs from './api/urls';
 import { POETradeAPI } from './api/poetrade';
 import { POEPricesAPI } from './api/poeprices';
 
-interface Macro {
-  name: string;
-  key: string;
-  type: string;
-  command: string;
+enum ItemHotkey {
+  SIMPLE = 0,
+  ADVANCED = 1,
+  WIKI = 2
 }
 
-enum ItemHotkey {
-  SIMPLE,
-  ADVANCED,
-  WIKI
+// Not sure why this isn't exported by iohook
+interface IOHookEvent {
+  [index: string]: string | number | boolean | undefined;
+
+  type: string;
+  keychar?: number;
+  keycode?: number;
+  rawcode?: number;
+  button?: number;
+  clicks?: number;
+  x?: number;
+  y?: number;
+  direction?: number;
+  rotation?: number;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
 }
 
 export class PTA {
@@ -76,14 +87,14 @@ export class PTA {
     this.leagues = [];
 
     axios
-      .get(URLs.official.leagues)
-      .then((response: any) => {
+      .get<Data.Leagues>(URLs.official.leagues)
+      .then(response => {
         const data = response.data;
 
-        const lgs = data['result'];
+        const lgs = data.result;
 
-        lgs.forEach((element: { [x: string]: string }) => {
-          this.leagues.push(element['id']);
+        lgs.forEach(element => {
+          this.leagues.push(element.id);
         });
 
         const setlg = this.getLeague();
@@ -103,19 +114,19 @@ export class PTA {
     this.uniques = new MultiMap();
 
     axios
-      .get(URLs.official.items)
-      .then((response: any) => {
+      .get<Data.Items>(URLs.official.items)
+      .then(response => {
         const data = response.data;
-        const itm = data['result'];
+        const itm = data.result;
 
         for (const type of itm) {
-          const el = type['entries'];
+          const el = type.entries;
 
           for (const et of el) {
-            if ('name' in et) {
-              this.uniques.set(et['name'], et);
-            } else if ('type' in et) {
-              this.uniques.set(et['type'], et);
+            if (et.name) {
+              this.uniques.set(et.name, et);
+            } else if (et.type) {
+              this.uniques.set(et.type, et);
             } else {
               log.debug('Item entry has neither name nor type:', et);
             }
@@ -165,7 +176,7 @@ export class PTA {
       const vulkanCompat = cfg.get(
         Config.vulkanCompat,
         Config.default.vulkanCompat
-      );
+      ) as boolean;
 
       winpoe.setVulkanMode(vulkanCompat);
     });
@@ -187,25 +198,29 @@ export class PTA {
       this.trademanager.forwardPlayerEvent('left-area', name);
     });
 
-    iohook.on('mousewheel', event => {
+    iohook.on('mousewheel', (event: IOHookEvent) => {
       if (
         event.direction == 3 &&
         event.ctrlKey &&
         this.settings.cscrollEnabled
       ) {
-        winpoe.scrollStash(event.rotation, event.x, event.y);
+        winpoe.scrollStash(
+          event.rotation as number,
+          event.x as number,
+          event.y as number
+        );
       }
     });
 
-    iohook.on('keydown', event => {
+    iohook.on('keydown', (event: IOHookEvent) => {
       if (this.settings.quickpaste) {
-        this.settings.qpmodHeld = event[this.settings.quickpastemod];
+        this.settings.qpmodHeld = event[this.settings.quickpastemod] as boolean;
       }
     });
 
-    iohook.on('keyup', event => {
+    iohook.on('keyup', (event: IOHookEvent) => {
       if (this.settings.quickpaste) {
-        this.settings.qpmodHeld = event[this.settings.quickpastemod];
+        this.settings.qpmodHeld = event[this.settings.quickpastemod] as boolean;
       }
     });
 
@@ -230,7 +245,7 @@ export class PTA {
     return PTA.instance;
   }
 
-  public setup() {
+  public setup(): void {
     this.registerShortcuts();
 
     // setup native hooks
@@ -250,12 +265,15 @@ export class PTA {
     const checkForUpdates = cfg.get(
       Config.checkForUpdates,
       Config.default.checkForUpdates
-    );
-    const autoUpdate = cfg.get(Config.autoUpdate, Config.default.autoUpdate);
+    ) as boolean;
+    const autoUpdate = cfg.get(
+      Config.autoUpdate,
+      Config.default.autoUpdate
+    ) as boolean;
     const vulkanCompat = cfg.get(
       Config.vulkanCompat,
       Config.default.vulkanCompat
-    );
+    ) as boolean;
 
     const appPath = app.getAppPath();
 
@@ -265,13 +283,13 @@ export class PTA {
 
         if (autoUpdate) {
           // Auto update on
-          autoUpdater.checkForUpdatesAndNotify();
+          void autoUpdater.checkForUpdatesAndNotify();
         } else {
           // Auto update off
           autoUpdater.autoDownload = false;
 
           autoUpdater.on('update-available', () => {
-            dialog
+            void dialog
               .showMessageBox({
                 type: 'info',
                 title: 'New Version Available',
@@ -281,13 +299,13 @@ export class PTA {
               })
               .then(result => {
                 if (result.response === 0) {
-                  autoUpdater.downloadUpdate();
+                  void autoUpdater.downloadUpdate();
                 }
               });
           });
 
           autoUpdater.on('update-downloaded', () => {
-            dialog
+            void dialog
               .showMessageBox({
                 title: 'Installing Updates',
                 message:
@@ -298,14 +316,14 @@ export class PTA {
               });
           });
 
-          autoUpdater.checkForUpdates();
+          void autoUpdater.checkForUpdates();
         }
       } else {
         // portable version
         autoUpdater.autoDownload = false;
 
         autoUpdater.on('update-available', () => {
-          dialog
+          void dialog
             .showMessageBox({
               type: 'info',
               title: 'New Version Available',
@@ -315,13 +333,15 @@ export class PTA {
             })
             .then(result => {
               if (result.response === 0) {
-                shell.openExternal('https://github.com/r52/pta-next/releases');
+                void shell.openExternal(
+                  'https://github.com/r52/pta-next/releases'
+                );
               }
             });
         });
 
         if (autoUpdater.isUpdaterActive()) {
-          autoUpdater.checkForUpdates();
+          void autoUpdater.checkForUpdates();
         }
       }
     }
@@ -333,7 +353,7 @@ export class PTA {
     this.trademanager.setup();
   }
 
-  public shutdown() {
+  public shutdown(): void {
     this.unregisterShortcuts();
 
     winpoe.stop();
@@ -345,26 +365,29 @@ export class PTA {
     const smphotkeyenabled = cfg.get(
       Config.simplehotkeyenabled,
       Config.default.simplehotkeyenabled
-    );
+    ) as boolean;
     const simplehotkey = cfg.get(
       Config.simplehotkey,
       Config.default.simplehotkey
-    );
+    ) as string;
 
     const advhotkeyenabled = cfg.get(
       Config.advancedhotkeyenabled,
       Config.default.advancedhotkeyenabled
-    );
+    ) as boolean;
     const advhotkey = cfg.get(
       Config.advancedhotkey,
       Config.default.advancedhotkey
-    );
+    ) as string;
 
     const wikihotkeyenabled = cfg.get(
       Config.wikihotkeyenabled,
       Config.default.wikihotkeyenabled
-    );
-    const wikihotkey = cfg.get(Config.wikihotkey, Config.default.wikihotkey);
+    ) as boolean;
+    const wikihotkey = cfg.get(
+      Config.wikihotkey,
+      Config.default.wikihotkey
+    ) as string;
 
     if (smphotkeyenabled) {
       globalShortcut.register(simplehotkey, () => {
@@ -392,22 +415,28 @@ export class PTA {
     }
 
     // quick paste
-    const qpaste = cfg.get(Config.quickpaste, Config.default.quickpaste);
+    const qpaste = cfg.get(
+      Config.quickpaste,
+      Config.default.quickpaste
+    ) as boolean;
     this.settings.quickpaste = qpaste;
 
     const qpastemod = cfg.get(
       Config.quickpastemod,
       Config.default.quickpastemod
-    );
+    ) as string;
     this.settings.quickpastemod = qpastemod;
 
     // cscroll
-    const cscroll = cfg.get(Config.cscroll, Config.default.cscroll);
+    const cscroll = cfg.get(Config.cscroll, Config.default.cscroll) as boolean;
     this.settings.cscrollEnabled = cscroll;
 
     // macros
-    const macros: Macro[] = cfg.get(Config.macros, Config.default.macros);
-    macros.forEach((macro: Macro) => {
+    const macros = cfg.get(
+      Config.macros,
+      Config.default.macros
+    ) as CustomMacro[];
+    macros.forEach(macro => {
       const key = macro.key;
       const type = macro.type;
       const command = macro.command;
@@ -432,7 +461,7 @@ export class PTA {
         this.executeChatCommand(command);
         break;
       case 'url':
-        shell.openExternal(command);
+        void shell.openExternal(command);
         break;
       default:
         log.warn('Invalid macro type', type);
@@ -446,7 +475,7 @@ export class PTA {
 
       command = command.replace(re, (match, token) => {
         if (this.macroVariables.has(token)) {
-          const fn = this.macroVariables.get(token) as () => string;
+          const fn = this.macroVariables.get(token as string) as () => string;
           const rval = fn();
 
           if (rval) {
@@ -454,7 +483,7 @@ export class PTA {
           }
         }
 
-        return token;
+        return token as string;
       });
     }
 
@@ -462,8 +491,8 @@ export class PTA {
     winpoe.sendPaste();
   }
 
-  public getLeague() {
-    let league = cfg.get(Config.league, Config.default.league);
+  public getLeague(): string {
+    let league = cfg.get(Config.league, Config.default.league) as number;
 
     if (league > this.leagues.length) {
       dialog.showErrorBox(
@@ -478,7 +507,7 @@ export class PTA {
     return this.leagues[league];
   }
 
-  public createSettingsWindow() {
+  public createSettingsWindow(): void {
     if (!this.settingsWindow) {
       this.settingsWindow = cfg.window({ name: 'settings' }).create({
         width: 1000,
@@ -490,7 +519,7 @@ export class PTA {
         }
       });
 
-      this.settingsWindow.loadURL(
+      void this.settingsWindow.loadURL(
         (process.env.APP_URL as string) + '#/settings'
       );
 
@@ -500,7 +529,7 @@ export class PTA {
     }
   }
 
-  public createAboutWindow() {
+  public createAboutWindow(): void {
     if (!this.aboutWindow) {
       this.aboutWindow = new BrowserWindow({
         width: 1000,
@@ -512,7 +541,9 @@ export class PTA {
         }
       });
 
-      this.aboutWindow.loadURL((process.env.APP_URL as string) + '#/about');
+      void this.aboutWindow.loadURL(
+        (process.env.APP_URL as string) + '#/about'
+      );
 
       this.aboutWindow.on('closed', () => {
         this.aboutWindow = null;
@@ -520,7 +551,7 @@ export class PTA {
     }
   }
 
-  public openTradeBar() {
+  public openTradeBar(): void {
     this.trademanager.showTradeBar();
   }
 
@@ -560,7 +591,7 @@ export class PTA {
       cfg.set('windowState.item', state);
     });
 
-    itemWindow.loadURL((process.env.APP_URL as string) + '#/item');
+    void itemWindow.loadURL((process.env.APP_URL as string) + '#/item');
 
     itemWindow.webContents.on('context-menu', () => {
       itemWindow.close();
@@ -597,31 +628,36 @@ export class PTA {
 
     const item = this.parser.parse(itemtext);
 
-    item.then(itm => {
-      if (!itm) {
-        dialog.showErrorBox(
-          'Item Error',
-          'Error parsing item text. Check log for more details.'
-        );
+    item.then(
+      itm => {
+        if (!itm) {
+          dialog.showErrorBox(
+            'Item Error',
+            'Error parsing item text. Check log for more details.'
+          );
 
-        itmwin?.close();
-        return;
-      }
-
-      switch (type) {
-        case ItemHotkey.SIMPLE:
-        case ItemHotkey.ADVANCED: {
-          const { settings, options } = this.fillSearchOptions(itm);
-          itmwin?.webContents.on('did-finish-load', () => {
-            itmwin?.webContents.send('item', itm, settings, options, type);
-          });
-          break;
+          itmwin?.close();
+          return;
         }
-        case ItemHotkey.WIKI:
-          this.openWiki(itm);
-          break;
+
+        switch (type) {
+          case ItemHotkey.SIMPLE:
+          case ItemHotkey.ADVANCED: {
+            const { settings, options } = this.fillSearchOptions(itm);
+            itmwin?.webContents.on('did-finish-load', () => {
+              itmwin?.webContents.send('item', itm, settings, options, type);
+            });
+            break;
+          }
+          case ItemHotkey.WIKI:
+            this.openWiki(itm);
+            break;
+        }
+      },
+      () => {
+        // TODO: do nothing on fail
       }
-    });
+    );
   }
 
   private openWiki(item: Item) {
@@ -635,7 +671,7 @@ export class PTA {
     }
 
     itemName = itemName.replace(' ', '_');
-    shell.openExternal(URLs.wiki + itemName);
+    void shell.openExternal(URLs.wiki + itemName);
   }
 
   private fillSearchOptions(item: Item) {

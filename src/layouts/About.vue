@@ -12,7 +12,7 @@
         />
 
         <q-avatar>
-          <img src="statics/icon.png" />
+          <img src="icon.png" />
         </q-avatar>
 
         <q-toolbar-title>

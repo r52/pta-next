@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { app, dialog } from 'electron';
 import MultiMap from 'multimap';
 import log from 'electron-log';
@@ -204,15 +203,15 @@ export class ItemParser {
   private modData: Map<string, string>;
   private uniques: MultiMap;
   private baseCat: Map<string, string>;
-  private baseMap: Map<string, Record<string, any>>;
+  private baseMap: Map<string, Data.BaseMap>;
   private excludes: Set<string>;
-  private statsById: Map<string, Record<string, any>>;
+  private statsById: Map<string, StatFilter>;
   private weaponLocals: Set<string>;
   private armourLocals: Set<string>;
-  private enchantRules: Map<string, Record<string, any>>;
-  private pseudoRules: Map<string, Record<string, any>[]>;
+  private enchantRules: Map<string, Data.EnchantRule>;
+  private pseudoRules: Map<string, Data.PseudoRule[]>;
   private discriminators: Map<string, Set<string>>;
-  private priorityRules: Map<string, Record<string, any>>;
+  private priorityRules: Map<string, Data.PriorityRule>;
 
   private mapDisc = 'warfortheatlas';
 
@@ -223,32 +222,32 @@ export class ItemParser {
   public constructor(uniques: MultiMap) {
     ///////////////////////////////////////////// Download excludes/stats
     this.excludes = new Set();
-    this.statsById = new Map();
+    this.statsById = new Map<string, StatFilter>();
     this.stats = {};
 
     axios
-      .get(URLs.pta.exclude)
-      .then((response: any) => {
+      .get<Data.Excludes>(URLs.pta.exclude)
+      .then(response => {
         const data = response.data;
 
-        for (const e of data['excludes']) {
+        for (const e of data.excludes) {
           this.excludes.add(e);
         }
 
         log.info('Excludes loaded');
 
         axios
-          .get(URLs.official.stats)
-          .then((response: any) => {
+          .get<Data.Stats>(URLs.official.stats)
+          .then(response => {
             const data = response.data;
 
-            const stt = data['result'];
+            const stt = data.result;
 
             for (const type of stt) {
-              const entrylist = type['entries'];
-              const typelabel = (type['label'] as string).toLowerCase();
+              const entrylist = type.entries;
+              const typelabel = type.label.toLowerCase();
 
-              for (const entry of entrylist as StatFilter[]) {
+              for (const entry of entrylist) {
                 if (!this.excludes.has(entry.id)) {
                   this.statsById.set(entry.id, entry);
                 }
@@ -274,12 +273,11 @@ export class ItemParser {
               }
 
               // construct fuse
-              const entries = entrylist as StatFilter[];
-              const index = Fuse.createIndex(['text'], entries);
+              const index = Fuse.createIndex(['text'], entrylist);
               this.stats[typelabel] = {
-                entries: entries,
+                entries: entrylist,
                 fuse: new Fuse(
-                  entries,
+                  entrylist,
                   {
                     keys: ['text'],
                     shouldSort: true,
@@ -315,39 +313,37 @@ export class ItemParser {
     this.uniques = uniques;
 
     ///////////////////////////////////////////// Load base categories/RePoE base data
-    this.baseCat = new Map();
-    this.baseMap = new Map();
+    this.baseCat = new Map<string, string>();
+    this.baseMap = new Map<string, Data.BaseMap>();
 
     axios
-      .get(URLs.pta.basecat)
-      .then((response: any) => {
+      .get<Data.DictData>(URLs.pta.basecat)
+      .then(response => {
         const data = response.data;
 
         for (const [k, o] of Object.entries(data)) {
-          this.baseCat.set(k, o as string);
+          this.baseCat.set(k, o);
         }
 
         log.info('Base categories loaded');
 
         axios
-          .get(URLs.repoe.base)
-          .then((response: any) => {
+          .get<Data.BaseItems>(URLs.repoe.base)
+          .then(response => {
             const data = response.data;
 
             for (const val of Object.values(data)) {
-              const o = val as any;
-
-              const typeName = o['name'] as string;
-              const itemClass = o['item_class'] as string;
-              const implicits = o['implicits'].length as number;
+              const typeName = val.name;
+              const itemClass = val.item_class;
+              const implicits = val.implicits.length;
 
               if (this.baseCat.has(itemClass)) {
-                const itemCat = this.baseCat.get(itemClass);
+                const itemCat = this.baseCat.get(itemClass) as string;
 
-                const cat = {} as any;
-
-                cat['category'] = itemCat;
-                cat['implicits'] = implicits;
+                const cat = {
+                  category: itemCat,
+                  implicits: implicits
+                };
 
                 this.baseMap.set(typeName, cat);
               }
@@ -374,18 +370,16 @@ export class ItemParser {
       });
 
     ///////////////////////////////////////////// Load RePoE mod data
-    this.modData = new Map();
+    this.modData = new Map<string, string>();
 
     axios
-      .get(URLs.repoe.mods)
-      .then((response: any) => {
+      .get<Data.BaseMods>(URLs.repoe.mods)
+      .then(response => {
         const data = response.data;
 
         for (const val of Object.values(data)) {
-          const o = val as any;
-
-          const modname = o['name'] as string;
-          const modtype = o['generation_type'] as string;
+          const modname = val.name;
+          const modtype = val.generation_type;
 
           if (!modname) {
             // Skip the mods with no name
@@ -417,11 +411,11 @@ export class ItemParser {
     this.weaponLocals = new Set();
 
     axios
-      .get(URLs.pta.armour)
-      .then((response: any) => {
+      .get<Data.ArrayData>(URLs.pta.armour)
+      .then(response => {
         const data = response.data;
 
-        for (const e of data['data']) {
+        for (const e of data.data) {
           this.armourLocals.add(e);
         }
 
@@ -437,11 +431,11 @@ export class ItemParser {
       });
 
     axios
-      .get(URLs.pta.weapon)
-      .then((response: any) => {
+      .get<Data.ArrayData>(URLs.pta.weapon)
+      .then(response => {
         const data = response.data;
 
-        for (const e of data['data']) {
+        for (const e of data.data) {
           this.weaponLocals.add(e);
         }
 
@@ -457,17 +451,15 @@ export class ItemParser {
       });
 
     ///////////////////////////////////////////// Load enchant rules
-    this.enchantRules = new Map();
+    this.enchantRules = new Map<string, Data.EnchantRule>();
 
     axios
-      .get(URLs.pta.enchant)
-      .then((response: any) => {
+      .get<Data.Enchants>(URLs.pta.enchant)
+      .then(response => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
-          const o = val as any;
-
-          this.enchantRules.set(k, o);
+          this.enchantRules.set(k, val);
         }
 
         log.info('Enchant rules loaded');
@@ -482,17 +474,15 @@ export class ItemParser {
       });
 
     ///////////////////////////////////////////// Load pseudo rules
-    this.pseudoRules = new Map();
+    this.pseudoRules = new Map<string, Data.PseudoRule[]>();
 
     axios
-      .get(URLs.pta.pseudo)
-      .then((response: any) => {
+      .get<Data.Pseudos>(URLs.pta.pseudo)
+      .then(response => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
-          const o = val as Array<any>;
-
-          this.pseudoRules.set(k, o);
+          this.pseudoRules.set(k, val);
         }
 
         log.info('Pseudo rules loaded');
@@ -507,20 +497,18 @@ export class ItemParser {
       });
 
     ///////////////////////////////////////////// Mod Discriminators
-    this.discriminators = new Map();
+    this.discriminators = new Map<string, Set<string>>();
 
     axios
-      .get(URLs.pta.disc)
-      .then((response: any) => {
+      .get<Data.Discriminators>(URLs.pta.disc)
+      .then(response => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
-          const o = val as any;
-
           const set = new Set<string>();
 
-          for (const value of o['unused']) {
-            set.add(value as string);
+          for (const value of val.unused) {
+            set.add(value);
           }
 
           this.discriminators.set(k, set);
@@ -538,15 +526,15 @@ export class ItemParser {
       });
 
     ///////////////////////////////////////////// Priority rules
-    this.priorityRules = new Map();
+    this.priorityRules = new Map<string, Data.PriorityRule>();
 
     axios
-      .get(URLs.pta.priority)
-      .then((response: any) => {
+      .get<Data.Priority>(URLs.pta.priority)
+      .then(response => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
-          this.priorityRules.set(k, val as any);
+          this.priorityRules.set(k, val);
         }
 
         log.info('Priority rules loaded');
@@ -578,7 +566,7 @@ export class ItemParser {
     return sections;
   }
 
-  public async parse(itemtext: string) {
+  public async parse(itemtext: string): Promise<Item | null> {
     itemtext = itemtext.trim();
 
     const item = {} as Item;
@@ -648,10 +636,10 @@ export class ItemParser {
     }
 
     if (item.category == null && this.uniques.has(item.type)) {
-      const search = this.uniques.get(item.type);
+      const search = this.uniques.get(item.type) as Data.UniqueItemEntry[];
       if (search) {
         const je = search[0];
-        if (je['type'] == 'Prophecy') {
+        if (je.type == 'Prophecy') {
           // this is a prophecy
           item.name = item.type;
           item.type = 'Prophecy';
@@ -662,8 +650,8 @@ export class ItemParser {
 
     if (item.category == null) {
       if (this.baseMap.has(item.type)) {
-        const cat = this.baseMap.get(item.type) as any;
-        item.category = cat['category'];
+        const cat = this.baseMap.get(item.type) as Data.BaseMap;
+        item.category = cat.category;
       }
     }
 
@@ -702,7 +690,7 @@ export class ItemParser {
 
           if (rules) {
             for (const r of rules) {
-              const pid = r['id'] as string;
+              const pid = r['id'];
 
               const pentry = this.statsById.get(pid);
 
@@ -1210,15 +1198,15 @@ export class ItemParser {
 
     // Handle enchant rules
     if (this.enchantRules.has(stat)) {
-      const rule = this.enchantRules.get(stat) as any;
+      const rule = this.enchantRules.get(stat) as Data.EnchantRule;
 
-      if ('id' in rule) {
+      if (rule.id) {
         found = true;
-        foundEntry = this.statsById.get(rule['id']) as StatFilter;
+        foundEntry = this.statsById.get(rule.id) as StatFilter;
       }
 
-      if ('value' in rule) {
-        val.push(rule['value']);
+      if (rule.value) {
+        val.push(rule.value);
       }
     }
 
@@ -1253,7 +1241,7 @@ export class ItemParser {
 
         // check priority rules
         if (this.priorityRules.has(entry.id)) {
-          const rule = this.priorityRules.get(entry.id) as Record<string, any>;
+          const rule = this.priorityRules.get(entry.id) as Data.PriorityRule;
 
           if (item.filters == null) {
             // This mod has priorities but item has no filters yet
@@ -1264,7 +1252,7 @@ export class ItemParser {
           const keys = Object.keys(item.filters);
 
           // check each priority
-          const priorities = rule['priority'] as string[];
+          const priorities = rule.priority;
           const pass = priorities.every(p => {
             return keys.includes(p);
           });
