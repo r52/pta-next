@@ -12,12 +12,6 @@ import { PTA } from '../../pta';
 
 import URLs from '../urls';
 
-interface PoEFetchResults {
-  result: string[];
-  id: string;
-  total: number;
-}
-
 export class POETradeAPI implements PriceAPI {
   private exchange: Map<string, string>;
   private currencies: Set<string>;
@@ -978,7 +972,7 @@ export class POETradeAPI implements PriceAPI {
         url += '&exchange';
       }
 
-      urls.push(axios.get(url));
+      urls.push(axios.get<{ result: PoETradeListing[] }>(url));
       n = n + 10;
     }
 
@@ -990,7 +984,7 @@ export class POETradeAPI implements PriceAPI {
       siteurl: URLs.official.trade.site + league + '/' + response['id']
     } as PoETradeResults;
 
-    axios.all<AxiosResponse<{ result: PoETradeListing[] }>>(urls).then(
+    Promise.all(urls).then(
       results => {
         results.forEach(resp => {
           const data = resp.data;
@@ -1082,7 +1076,7 @@ export class POETradeAPI implements PriceAPI {
 
     query.exchange.have.push(have);
 
-    urls.push(axios.post(url, query));
+    urls.push(axios.post<PoEFetchResults>(url, query));
 
     if (have != s_curr && want != s_curr) {
       have = s_curr;
@@ -1092,10 +1086,10 @@ export class POETradeAPI implements PriceAPI {
       squery.exchange.have.pop();
       squery.exchange.have.push(have);
 
-      urls.push(axios.post(url, squery));
+      urls.push(axios.post<PoEFetchResults>(url, squery));
     }
 
-    axios.all<AxiosResponse<PoEFetchResults>>(urls).then(
+    Promise.all(urls).then(
       results => {
         const presp = results[0];
         const pdata = presp.data;

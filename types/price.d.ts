@@ -96,6 +96,12 @@ interface PoETradeQuery {
   };
 }
 
+interface PoEFetchResults {
+  result: string[];
+  id: string;
+  total: number;
+}
+
 interface QueryFilter {
   disabled: boolean;
   id: string;
