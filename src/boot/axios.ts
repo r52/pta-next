@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import axios, { AxiosInstance } from 'axios';
 import { boot } from 'quasar/wrappers';
 

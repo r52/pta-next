@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/camelcase */
 // official PoE Trade Site search api
 import { shell, dialog } from 'electron';
 import cfg from 'electron-cfg';
@@ -27,27 +25,35 @@ export class POETradeAPI implements PriceAPI {
 
   constructor(uniques: MultiMap) {
     this.uniques = uniques;
-    this.exchange = new Map();
+    this.exchange = new Map<string, string>();
     this.currencies = new Set();
 
-    axios.get(URLs.pta.currency).then((response: any) => {
-      const data = response.data;
+    axios.get<Data.DictData>(URLs.pta.currency).then(
+      response => {
+        const data = response.data;
 
-      for (const [k, val] of Object.entries(data)) {
-        const o = val as string;
+        for (const [k, val] of Object.entries(data)) {
+          const o = val;
 
-        this.exchange.set(k, o);
+          this.exchange.set(k, o);
+        }
+
+        this.exchange.forEach(val => {
+          this.currencies.add(val);
+        });
+
+        log.info('Currencies loaded');
+      },
+      () => {
+        // TODO: do nothing on fail
       }
-
-      this.exchange.forEach(val => {
-        this.currencies.add(val);
-      });
-
-      log.info('Currencies loaded');
-    });
+    );
   }
 
-  public searchItemWithDefaults(event: Electron.IpcMainEvent, item: Item) {
+  public searchItemWithDefaults(
+    event: Electron.IpcMainEvent,
+    item: Item
+  ): void {
     const league = PTA.getInstance().getLeague();
 
     // If its a currency and the currency is listed in the bulk exchange, try that first
@@ -65,14 +71,14 @@ export class POETradeAPI implements PriceAPI {
         stats: [
           {
             type: 'and',
-            filters: []
+            filters: [] as QueryFilter[]
           }
         ]
       },
       sort: {
         price: 'asc'
       }
-    } as any;
+    } as PoETradeQuery;
 
     const sopts = {
       label: 'Search Options',
@@ -90,13 +96,19 @@ export class POETradeAPI implements PriceAPI {
     let searchToken = '';
 
     // Take care of settings
-    const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
+    const onlineonly = cfg.get(
+      Config.onlineonly,
+      Config.default.onlineonly
+    ) as boolean;
     if (!onlineonly) {
       query.query.status.option = 'any';
       sopts.children.push({ label: 'Online Only' });
     }
 
-    const buyoutonly = cfg.get(Config.buyoutonly, Config.default.buyoutonly);
+    const buyoutonly = cfg.get(
+      Config.buyoutonly,
+      Config.default.buyoutonly
+    ) as boolean;
     if (buyoutonly) {
       query.query = merge(query.query, {
         filters: {
@@ -167,31 +179,31 @@ export class POETradeAPI implements PriceAPI {
     // Check for unique items
     if (isUniqueBase) {
       if (searchToken) {
-        const range = this.uniques.get(searchToken);
+        const range = this.uniques.get(searchToken) as Data.UniqueItemEntry[];
         for (const entry of range) {
           // If has discriminator, match discriminator and type
           if (item.misc?.disc) {
-            if (entry['disc'] == item.misc.disc && entry['type'] == item.type) {
-              if ('name' in entry) {
-                query.query['name'] = {
-                  discriminator: entry['disc'],
-                  option: entry['name']
+            if (entry.disc == item.misc.disc && entry.type == item.type) {
+              if (entry.name) {
+                query.query.name = {
+                  discriminator: entry.disc,
+                  option: entry.name
                 };
               }
 
-              query.query['type'] = {
-                discriminator: entry['disc'],
-                option: entry['type']
+              query.query.type = {
+                discriminator: entry.disc,
+                option: entry.type
               };
 
               break;
             }
-          } else if (entry['type'] == item.type) {
+          } else if (entry.type == item.type) {
             // For everything else, just match type
-            query.query['type'] = entry['type'];
+            query.query.type = entry.type;
 
-            if ('name' in entry) {
-              query.query['name'] = entry['name'];
+            if (entry.name) {
+              query.query.name = entry.name;
             }
 
             break;
@@ -222,7 +234,7 @@ export class POETradeAPI implements PriceAPI {
                   min: item.misc.gemlevel
                 },
                 quality: {
-                  min: item.quality
+                  min: item.quality as number
                 }
               }
             }
@@ -236,7 +248,10 @@ export class POETradeAPI implements PriceAPI {
               label: 'Level',
               children: [{ label: item.misc.gemlevel.toString() }]
             },
-            { label: 'Quality', children: [{ label: item.quality + '%' }] }
+            {
+              label: 'Quality',
+              children: [{ label: (item.quality as number).toString() + '%' }]
+            }
           ]
         });
       }
@@ -412,7 +427,7 @@ export class POETradeAPI implements PriceAPI {
       const corruptoverride = cfg.get(
         Config.corruptoverride,
         Config.default.corruptoverride
-      );
+      ) as boolean;
 
       // No such thing as corrupted cards or prophecies
       // Don't force corruption on maps either
@@ -425,7 +440,7 @@ export class POETradeAPI implements PriceAPI {
           const corrupt = cfg.get(
             Config.corruptsearch,
             Config.default.corruptsearch
-          );
+          ) as string;
 
           if (corrupt != 'Any') {
             query.query = merge(query.query, {
@@ -473,18 +488,23 @@ export class POETradeAPI implements PriceAPI {
 
       const url = URLs.official.trade.search + league;
 
-      axios.post<PoEFetchResults>(url, query).then(response => {
-        const resp = response.data;
+      axios.post<PoEFetchResults>(url, query).then(
+        response => {
+          const resp = response.data;
 
-        if (!('result' in resp) || !('id' in resp)) {
-          event.reply('error', 'Error querying trade site');
-          log.warn('PoE API: Error querying trade API');
-          log.warn('PoE API: Site responded with', resp);
-          return;
+          if (!('result' in resp) || !('id' in resp)) {
+            event.reply('error', 'Error querying trade site');
+            log.warn('PoE API: Error querying trade API');
+            log.warn('PoE API: Site responded with', resp);
+            return;
+          }
+
+          this.processPriceResults(resp, event, opttree, true);
+        },
+        () => {
+          // TODO: do nothing on fail
         }
-
-        this.processPriceResults(resp, event, opttree, true);
-      });
+      );
     } else {
       if (item.filters && Object.keys(item.filters).length > 0) {
         event.reply('forcetab', 'mods');
@@ -499,7 +519,7 @@ export class POETradeAPI implements PriceAPI {
     item: Item,
     options: ItemOptions,
     openbrowser: boolean
-  ) {
+  ): void {
     //
     if (
       item.filters == null ||
@@ -507,11 +527,11 @@ export class POETradeAPI implements PriceAPI {
       item.category == 'map'
     ) {
       // Cannot advanced search items with no filters
-      return false;
+      return;
     }
 
     if (item.unidentified) {
-      return false;
+      return;
     }
 
     const league = PTA.getInstance().getLeague();
@@ -524,14 +544,14 @@ export class POETradeAPI implements PriceAPI {
         stats: [
           {
             type: 'and',
-            filters: []
+            filters: [] as QueryFilter[]
           }
         ]
       },
       sort: {
         price: 'asc'
       }
-    } as any;
+    } as PoETradeQuery;
 
     const sopts = {
       label: 'Search Options',
@@ -546,13 +566,19 @@ export class POETradeAPI implements PriceAPI {
     sopts.children = sopts.children ?? ([] as QTreeModel[]);
 
     // Take care of settings
-    const onlineonly = cfg.get(Config.onlineonly, Config.default.onlineonly);
+    const onlineonly = cfg.get(
+      Config.onlineonly,
+      Config.default.onlineonly
+    ) as boolean;
     if (!onlineonly) {
       query.query.status.option = 'any';
       sopts.children.push({ label: 'Online Only' });
     }
 
-    const buyoutonly = cfg.get(Config.buyoutonly, Config.default.buyoutonly);
+    const buyoutonly = cfg.get(
+      Config.buyoutonly,
+      Config.default.buyoutonly
+    ) as boolean;
     if (buyoutonly) {
       query.query = merge(query.query, {
         filters: {
@@ -618,20 +644,20 @@ export class POETradeAPI implements PriceAPI {
 
     // weapon/armour base mods
     ['pdps', 'edps', 'ar', 'ev', 'es'].forEach(bm => {
-      if (options['use' + bm]['enabled']) {
+      if ((options['use' + bm] as MinMaxToggle).enabled) {
         const filter =
           bm === 'pdps' || bm === 'edps' ? 'weapon_filters' : 'armour_filters';
 
         const flt = [] as QTreeModel[];
 
         ['min', 'max'].forEach(lm => {
-          if (options['use' + bm][lm] != null) {
+          if ((options['use' + bm] as MinMaxToggle)[lm] != null) {
             query.query = merge(query.query, {
               filters: {
                 [filter]: {
                   filters: {
                     [bm]: {
-                      [lm]: options['use' + bm][lm]
+                      [lm]: (options['use' + bm] as MinMaxToggle)[lm]
                     }
                   }
                 }
@@ -640,7 +666,13 @@ export class POETradeAPI implements PriceAPI {
 
             flt.push({
               label: lm,
-              children: [{ label: options['use' + bm][lm] }]
+              children: [
+                {
+                  label: ((options['use' + bm] as MinMaxToggle)[
+                    lm
+                  ] as unknown) as string
+                }
+              ]
             });
           }
         });
@@ -677,7 +709,7 @@ export class POETradeAPI implements PriceAPI {
                   option: e.selected
                 }
               : null
-        } as any;
+        } as QueryFilter;
 
         query.query['stats'][0]['filters'].push(entry);
 
@@ -685,7 +717,7 @@ export class POETradeAPI implements PriceAPI {
 
         ['min', 'max'].forEach(vl => {
           if (vl in e && e[vl]) {
-            vflt.push({ label: vl, children: [{ label: e[vl] }] });
+            vflt.push({ label: vl, children: [{ label: e[vl] as string }] });
           }
         });
 
@@ -701,14 +733,14 @@ export class POETradeAPI implements PriceAPI {
 
     // Check for unique items
     if (isUniqueBase) {
-      const range = this.uniques.get(searchToken);
+      const range = this.uniques.get(searchToken) as Data.UniqueItemEntry[];
       for (const entry of range) {
         // For everything else, match type
-        if (entry['type'] == item.type) {
-          query.query['type'] = entry['type'];
+        if (entry.type == item.type) {
+          query.query.type = entry.type;
 
-          if ('name' in entry) {
-            query.query['name'] = entry['name'];
+          if (entry.name) {
+            query.query.name = entry.name;
           }
 
           break;
@@ -879,24 +911,29 @@ export class POETradeAPI implements PriceAPI {
 
     const url = URLs.official.trade.search + league;
 
-    axios.post<PoEFetchResults>(url, query).then(response => {
-      const resp = response.data;
+    axios.post<PoEFetchResults>(url, query).then(
+      response => {
+        const resp = response.data;
 
-      if (!('result' in resp) || !('id' in resp)) {
-        log.warn('PoE API: Error querying trade API');
-        log.warn('PoE API: Site responded with', resp);
-        event.reply('error', 'Error querying trade site');
-        return;
+        if (!('result' in resp) || !('id' in resp)) {
+          log.warn('PoE API: Error querying trade API');
+          log.warn('PoE API: Site responded with', resp);
+          event.reply('error', 'Error querying trade site');
+          return;
+        }
+
+        if (openbrowser) {
+          const burl = URLs.official.trade.site + league + '/' + resp['id'];
+          void shell.openExternal(burl);
+          return;
+        }
+
+        this.processPriceResults(resp, event, opttree, true);
+      },
+      () => {
+        // TODO: do nothing on fail
       }
-
-      if (openbrowser) {
-        const burl = URLs.official.trade.site + league + '/' + resp['id'];
-        shell.openExternal(burl);
-        return;
-      }
-
-      this.processPriceResults(resp, event, opttree, true);
-    });
+    );
   }
 
   private processPriceResults(
@@ -912,7 +949,7 @@ export class POETradeAPI implements PriceAPI {
     let displaylimit = cfg.get(
       Config.displaylimit,
       Config.default.displaylimit
-    );
+    ) as number;
 
     // enforce display limits
     if (displaylimit > 50) {
@@ -923,7 +960,10 @@ export class POETradeAPI implements PriceAPI {
       cfg.set(Config.displaylimit, displaylimit);
     }
 
-    const removedupes = cfg.get(Config.removedupes, Config.default.removedupes);
+    const removedupes = cfg.get(
+      Config.removedupes,
+      Config.default.removedupes
+    ) as boolean;
     const league = PTA.getInstance().getLeague();
 
     const urls = [];
@@ -950,9 +990,8 @@ export class POETradeAPI implements PriceAPI {
       siteurl: URLs.official.trade.site + league + '/' + response['id']
     } as PoETradeResults;
 
-    axios
-      .all<AxiosResponse<{ result: PoETradeListing[] }>>(urls)
-      .then(results => {
+    axios.all<AxiosResponse<{ result: PoETradeListing[] }>>(urls).then(
+      results => {
         results.forEach(resp => {
           const data = resp.data;
           const list = data.result;
@@ -976,7 +1015,11 @@ export class POETradeAPI implements PriceAPI {
         }
 
         event.reply('results', rdat);
-      });
+      },
+      () => {
+        // TODO: do nothing on fail
+      }
+    );
   }
 
   private doCurrencySearch(event: Electron.IpcMainEvent, item: Item) {
@@ -993,11 +1036,11 @@ export class POETradeAPI implements PriceAPI {
     let p_curr = cfg.get(
       Config.primarycurrency,
       Config.default.primarycurrency
-    );
+    ) as string;
     let s_curr = cfg.get(
       Config.secondarycurrency,
       Config.default.secondarycurrency
-    );
+    ) as string;
 
     // Reset setting that no longer exists
     if (!this.currencies.has(p_curr)) {
@@ -1052,23 +1095,28 @@ export class POETradeAPI implements PriceAPI {
       urls.push(axios.post(url, squery));
     }
 
-    axios.all<AxiosResponse<PoEFetchResults>>(urls).then(results => {
-      const presp = results[0];
-      const pdata = presp.data;
+    axios.all<AxiosResponse<PoEFetchResults>>(urls).then(
+      results => {
+        const presp = results[0];
+        const pdata = presp.data;
 
-      if ('result' in pdata && 'id' in pdata) {
-        if (pdata.total == 0 && results.length > 1) {
-          // no results for primary currency, try secondary
-          const sresp = results[1];
-          const sdata = sresp.data;
+        if ('result' in pdata && 'id' in pdata) {
+          if (pdata.total == 0 && results.length > 1) {
+            // no results for primary currency, try secondary
+            const sresp = results[1];
+            const sdata = sresp.data;
 
-          if ('result' in sdata && 'id' in sdata) {
-            this.processPriceResults(sdata, event, null, true, true);
+            if ('result' in sdata && 'id' in sdata) {
+              this.processPriceResults(sdata, event, null, true, true);
+            }
+          } else {
+            this.processPriceResults(pdata, event, null, true, true);
           }
-        } else {
-          this.processPriceResults(pdata, event, null, true, true);
         }
+      },
+      () => {
+        // TODO: do nothing on fail
       }
-    });
+    );
   }
 }

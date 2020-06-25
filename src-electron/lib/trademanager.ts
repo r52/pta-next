@@ -28,7 +28,10 @@ export default class TradeManager {
 
   constructor() {
     ipcMain.on('tradeui-enabled', (event, enabled) => {
-      const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
+      const showtradebar = cfg.get(
+        Config.tradebar,
+        Config.default.tradebar
+      ) as boolean;
 
       if (enabled) {
         if (showtradebar) {
@@ -88,21 +91,24 @@ export default class TradeManager {
       this.toggleStashSetup();
     });
 
-    ipcMain.on('highlight-stash', (event, name, x, y) => {
-      const quads = cfg.get(
-        Config.tradestashquad,
-        Config.default.tradestashquad
-      ) as string[];
+    ipcMain.on(
+      'highlight-stash',
+      (event, name: string, x: number, y: number) => {
+        const quads = cfg.get(
+          Config.tradestashquad,
+          Config.default.tradestashquad
+        ) as string[];
 
-      const tabinfo = {
-        name: name,
-        x: x,
-        y: y,
-        quad: quads.includes(name)
-      };
+        const tabinfo = {
+          name: name,
+          x: x,
+          y: y,
+          quad: quads.includes(name)
+        };
 
-      this.highlightStash(tabinfo);
-    });
+        this.highlightStash(tabinfo);
+      }
+    );
 
     ipcMain.on('stop-highlight-stash', () => {
       this.stophighlightStash();
@@ -133,8 +139,11 @@ export default class TradeManager {
     });
   }
 
-  public setup() {
-    const showtradebar = cfg.get(Config.tradebar, Config.default.tradebar);
+  public setup(): void {
+    const showtradebar = cfg.get(
+      Config.tradebar,
+      Config.default.tradebar
+    ) as boolean;
 
     if (showtradebar) {
       this.showTradeBar();
@@ -143,19 +152,19 @@ export default class TradeManager {
     const stashhighlight = cfg.get(
       Config.tradestashhighlight,
       Config.default.tradestashhighlight
-    );
+    ) as boolean;
 
     if (stashhighlight) {
       this.openStashHighlighter();
     }
   }
 
-  public isEnabled() {
-    const enabled = cfg.get(Config.tradeui, Config.default.tradeui);
+  public isEnabled(): boolean {
+    const enabled = cfg.get(Config.tradeui, Config.default.tradeui) as boolean;
     return enabled;
   }
 
-  public handleForegroundChange(ispoe: boolean) {
+  public handleForegroundChange(ispoe: boolean): void {
     if (!ispoe) {
       this.tradeBar?.hide();
 
@@ -167,13 +176,13 @@ export default class TradeManager {
     }
   }
 
-  public forwardPlayerEvent(event: string, name: string) {
+  public forwardPlayerEvent(event: string, name: string): void {
     if (this.tradeNotification) {
       this.tradeNotification.webContents.send(event, name);
     }
   }
 
-  public handleNewTrade(trade: TradeMsg) {
+  public handleNewTrade(trade: TradeMsg): void {
     this.tradeHistory.push(trade);
 
     // limit to 30 for now
@@ -196,8 +205,14 @@ export default class TradeManager {
       ...trade,
       commands:
         trade.type == 'incoming'
-          ? cfg.get(Config.tradeuiincoming, Config.default.tradeuiincoming)
-          : cfg.get(Config.tradeuioutgoing, Config.default.tradeuioutgoing),
+          ? (cfg.get(
+              Config.tradeuiincoming,
+              Config.default.tradeuiincoming
+            ) as TradeCommand[])
+          : (cfg.get(
+              Config.tradeuioutgoing,
+              Config.default.tradeuioutgoing
+            ) as TradeCommand[]),
       curtime: '',
       newwhisper: false,
       enteredarea: false
@@ -218,7 +233,7 @@ export default class TradeManager {
         }
       });
 
-      this.tradeNotification.loadURL(
+      void this.tradeNotification.loadURL(
         (process.env.APP_URL as string) + '#/trade'
       );
 
@@ -234,19 +249,16 @@ export default class TradeManager {
     }
   }
 
-  public showTradeBar() {
+  public showTradeBar(): void {
     if (this.isEnabled()) {
       if (!this.tradeBar) {
         const wincfg = cfg.window({ name: 'tradebar' });
         const opts = wincfg.options() as Rectangle;
 
-        if (opts.height > 100) {
-          opts.height = 100;
-        }
+        opts.width = 350;
+        opts.height = 100;
 
         this.tradeBar = new BrowserWindow({
-          width: 350,
-          height: 100,
           alwaysOnTop: true,
           frame: false,
           transparent: true,
@@ -262,7 +274,9 @@ export default class TradeManager {
 
         wincfg.assign(this.tradeBar);
 
-        this.tradeBar.loadURL((process.env.APP_URL as string) + '#/tradebar');
+        void this.tradeBar.loadURL(
+          (process.env.APP_URL as string) + '#/tradebar'
+        );
 
         this.tradeBar.on('closed', () => {
           this.tradeBar = null;
@@ -306,7 +320,7 @@ export default class TradeManager {
         const charname = cfg.get(
           Config.tradecharname,
           Config.default.tradecharname
-        );
+        ) as string;
         if (charname) {
           this.executeChatCommand('/kick ' + charname);
         }
@@ -329,10 +343,10 @@ export default class TradeManager {
       const ptok = getTradeVariable(trade, token);
 
       if (ptok) {
-        return ptok;
+        return ptok as string;
       }
 
-      return token;
+      return token as string;
     });
 
     this.executeChatCommand('@' + trade.name + ' ' + proccmd);
@@ -364,7 +378,9 @@ export default class TradeManager {
         }
       });
 
-      this.stashSetup.loadURL((process.env.APP_URL as string) + '#/stashsetup');
+      void this.stashSetup.loadURL(
+        (process.env.APP_URL as string) + '#/stashsetup'
+      );
 
       this.stashSetup.on('closed', () => {
         this.stashSetup = null;
@@ -375,7 +391,7 @@ export default class TradeManager {
       const stashhighlight = cfg.get(
         Config.tradestashhighlight,
         Config.default.tradestashhighlight
-      );
+      ) as boolean;
 
       if (stashhighlight) {
         this.openStashHighlighter();
@@ -402,7 +418,7 @@ export default class TradeManager {
         ...wincfg.options()
       });
 
-      this.stashHighlight.loadURL(
+      void this.stashHighlight.loadURL(
         (process.env.APP_URL as string) + '#/stashhighlight'
       );
 
@@ -452,7 +468,7 @@ export default class TradeManager {
         }
       });
 
-      this.tradeHistoryWindow.loadURL(
+      void this.tradeHistoryWindow.loadURL(
         (process.env.APP_URL as string) + '#/tradehistory'
       );
 

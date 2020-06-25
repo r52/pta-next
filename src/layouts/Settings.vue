@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar class="q-electron-drag bg-grey-10">
         <q-avatar>
-          <img src="statics/icon.png" />
+          <img src="icon.png" />
         </q-avatar>
         <q-toolbar-title>
           Settings
@@ -13,7 +13,7 @@
       </q-toolbar>
 
       <q-tabs v-model="tab" class="bg-brown-8">
-        <q-tab name="pta" icon="img:statics/icon.png" label="PTA-Next" />
+        <q-tab name="pta" icon="img:icon.png" label="PTA-Next" />
         <q-tab name="hotkey" icon="space_bar" label="Hotkey" />
         <q-tab name="price" icon="shop" label="Price Check" />
         <q-tab name="macro" icon="gamepad" label="Macros" />
@@ -745,7 +745,7 @@
 </template>
 
 <script lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable quotes */
 import { defineComponent, ref, computed, reactive } from '@vue/composition-api';
 import { useElectronUtil } from '../functions/context';
@@ -761,7 +761,7 @@ export default defineComponent({
     const clientpath = cfg.get(
       Config.clientlogpath,
       Config.default.clientlogpath
-    );
+    ) as string;
 
     let clientfile = null;
 
@@ -774,96 +774,147 @@ export default defineComponent({
         checkForUpdates: cfg.get(
           Config.checkForUpdates,
           Config.default.checkForUpdates
-        ),
-        autoUpdate: cfg.get(Config.autoUpdate, Config.default.autoUpdate),
-        vulkanCompat: cfg.get(Config.vulkanCompat, Config.default.vulkanCompat)
+        ) as boolean,
+        autoUpdate: cfg.get(
+          Config.autoUpdate,
+          Config.default.autoUpdate
+        ) as boolean,
+        vulkanCompat: cfg.get(
+          Config.vulkanCompat,
+          Config.default.vulkanCompat
+        ) as boolean
       },
       hotkey: {
-        simplehotkey: cfg.get(Config.simplehotkey, Config.default.simplehotkey),
+        simplehotkey: cfg.get(
+          Config.simplehotkey,
+          Config.default.simplehotkey
+        ) as string,
         simplehotkeyenabled: cfg.get(
           Config.simplehotkeyenabled,
           Config.default.simplehotkeyenabled
-        ),
+        ) as boolean,
         advancedhotkey: cfg.get(
           Config.advancedhotkey,
           Config.default.advancedhotkey
-        ),
+        ) as string,
         advancedhotkeyenabled: cfg.get(
           Config.advancedhotkeyenabled,
           Config.default.advancedhotkeyenabled
-        ),
-        wikihotkey: cfg.get(Config.wikihotkey, Config.default.wikihotkey),
+        ) as boolean,
+        wikihotkey: cfg.get(
+          Config.wikihotkey,
+          Config.default.wikihotkey
+        ) as string,
         wikihotkeyenabled: cfg.get(
           Config.wikihotkeyenabled,
           Config.default.wikihotkeyenabled
-        ),
-        quickpaste: cfg.get(Config.quickpaste, Config.default.quickpaste),
+        ) as boolean,
+        quickpaste: cfg.get(
+          Config.quickpaste,
+          Config.default.quickpaste
+        ) as boolean,
         quickpastemod: cfg.get(
           Config.quickpastemod,
           Config.default.quickpastemod
-        ),
-        cscroll: cfg.get(Config.cscroll, Config.default.cscroll)
+        ) as string,
+        cscroll: cfg.get(Config.cscroll, Config.default.cscroll) as boolean
       },
       pricecheck: {
-        league: cfg.get(Config.league, Config.default.league),
-        displaylimit: cfg.get(Config.displaylimit, Config.default.displaylimit),
+        league: cfg.get(Config.league, Config.default.league) as number,
+        displaylimit: cfg.get(
+          Config.displaylimit,
+          Config.default.displaylimit
+        ) as number,
         corruptoverride: cfg.get(
           Config.corruptoverride,
           Config.default.corruptoverride
-        ),
+        ) as boolean,
         corruptsearch: cfg.get(
           Config.corruptsearch,
           Config.default.corruptsearch
-        ),
+        ) as string,
         primarycurrency: cfg.get(
           Config.primarycurrency,
           Config.default.primarycurrency
-        ),
+        ) as string,
         secondarycurrency: cfg.get(
           Config.secondarycurrency,
           Config.default.secondarycurrency
-        ),
-        onlineonly: cfg.get(Config.onlineonly, Config.default.onlineonly),
-        buyoutonly: cfg.get(Config.buyoutonly, Config.default.buyoutonly),
-        removedupes: cfg.get(Config.removedupes, Config.default.removedupes),
-        poeprices: cfg.get(Config.poeprices, Config.default.poeprices),
-        prefillmin: cfg.get(Config.prefillmin, Config.default.prefillmin),
-        prefillmax: cfg.get(Config.prefillmax, Config.default.prefillmax),
-        prefillrange: cfg.get(Config.prefillrange, Config.default.prefillrange),
+        ) as string,
+        onlineonly: cfg.get(
+          Config.onlineonly,
+          Config.default.onlineonly
+        ) as boolean,
+        buyoutonly: cfg.get(
+          Config.buyoutonly,
+          Config.default.buyoutonly
+        ) as boolean,
+        removedupes: cfg.get(
+          Config.removedupes,
+          Config.default.removedupes
+        ) as boolean,
+        poeprices: cfg.get(
+          Config.poeprices,
+          Config.default.poeprices
+        ) as boolean,
+        prefillmin: cfg.get(
+          Config.prefillmin,
+          Config.default.prefillmin
+        ) as boolean,
+        prefillmax: cfg.get(
+          Config.prefillmax,
+          Config.default.prefillmax
+        ) as boolean,
+        prefillrange: cfg.get(
+          Config.prefillrange,
+          Config.default.prefillrange
+        ) as number,
         prefillnormals: cfg.get(
           Config.prefillnormals,
           Config.default.prefillnormals
-        ),
+        ) as boolean,
         prefillpseudos: cfg.get(
           Config.prefillpseudos,
           Config.default.prefillpseudos
-        ),
-        prefillilvl: cfg.get(Config.prefillilvl, Config.default.prefillilvl),
-        prefillbase: cfg.get(Config.prefillbase, Config.default.prefillbase)
+        ) as boolean,
+        prefillilvl: cfg.get(
+          Config.prefillilvl,
+          Config.default.prefillilvl
+        ) as boolean,
+        prefillbase: cfg.get(
+          Config.prefillbase,
+          Config.default.prefillbase
+        ) as boolean
       },
       client: {
         logpath: clientfile
       },
       macros: {
-        list: cfg.get(Config.macros, Config.default.macros)
+        list: cfg.get(Config.macros, Config.default.macros) as CustomMacro[]
       },
       tradeui: {
-        enabled: cfg.get(Config.tradeui, Config.default.tradeui),
-        tradebar: cfg.get(Config.tradebar, Config.default.tradebar),
-        charname: cfg.get(Config.tradecharname, Config.default.tradecharname),
+        enabled: cfg.get(Config.tradeui, Config.default.tradeui) as boolean,
+        tradebar: cfg.get(Config.tradebar, Config.default.tradebar) as boolean,
+        charname: cfg.get(
+          Config.tradecharname,
+          Config.default.tradecharname
+        ) as string,
         highlight: cfg.get(
           Config.tradestashhighlight,
           Config.default.tradestashhighlight
-        ),
-        quad: cfg.get(Config.tradestashquad, Config.default.tradestashquad),
+        ) as boolean,
+        quad: cfg.get(
+          Config.tradestashquad,
+          Config.default.tradestashquad
+        ) as string[],
         incoming: cfg.get(
           Config.tradeuiincoming,
           Config.default.tradeuiincoming
-        ),
+        ) as TradeCommand[],
         outgoing: cfg.get(
           Config.tradeuioutgoing,
           Config.default.tradeuioutgoing
-        )
+        ) as TradeCommand[]
       }
     });
 
@@ -918,7 +969,7 @@ export default defineComponent({
       const origclient = cfg.get(
         Config.clientlogpath,
         Config.default.clientlogpath
-      );
+      ) as string;
 
       if (settings.client.logpath) {
         const logpath = settings.client.logpath.path;
@@ -972,7 +1023,8 @@ export default defineComponent({
     const tab = ref('pta');
 
     // static data
-    const lgs = ctx.root.$q.electron.remote.getGlobal('pta').leagues;
+    const lgs = ctx.root.$q.electron.remote.getGlobal('pta')
+      .leagues as string[];
 
     const leagues = lgs.map((lg: string, idx: number) => {
       return {
@@ -1109,7 +1161,7 @@ export default defineComponent({
     }
 
     function deleteMacro(key: string) {
-      settings.macros.list = settings.macros.list.filter((e: any) => {
+      settings.macros.list = settings.macros.list.filter(e => {
         return e.name != key;
       });
     }
@@ -1148,17 +1200,13 @@ export default defineComponent({
 
     function deleteTradeCmd(label: string, type: string) {
       if (type == 'incoming') {
-        settings.tradeui.incoming = settings.tradeui.incoming.filter(
-          (e: any) => {
-            return e.label != label;
-          }
-        );
+        settings.tradeui.incoming = settings.tradeui.incoming.filter(e => {
+          return e.label != label;
+        });
       } else {
-        settings.tradeui.outgoing = settings.tradeui.outgoing.filter(
-          (e: any) => {
-            return e.label != label;
-          }
-        );
+        settings.tradeui.outgoing = settings.tradeui.outgoing.filter(e => {
+          return e.label != label;
+        });
       }
     }
 

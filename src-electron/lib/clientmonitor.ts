@@ -32,11 +32,11 @@ export default class ClientMonitor extends EventEmitter {
     const clientlog = cfg.get(
       Config.clientlogpath,
       Config.default.clientlogpath
-    );
+    ) as string;
     this.setPath(clientlog);
   }
 
-  public setPath(path: string) {
+  public setPath(path: string): void {
     if (!path) {
       this.enabled = false;
 
@@ -70,11 +70,11 @@ export default class ClientMonitor extends EventEmitter {
     }
   }
 
-  public isEnabled() {
+  public isEnabled(): boolean {
     return this.enabled;
   }
 
-  public getLastWhisperer() {
+  public getLastWhisperer(): string {
     return this.lastwhisper;
   }
 

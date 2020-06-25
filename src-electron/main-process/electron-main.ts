@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { app, nativeTheme, Menu, Tray, Event } from 'electron';
 import path from 'path';
 import { PTA } from '../lib/pta';
@@ -19,14 +22,10 @@ try {
   // do nothing
 }
 
-/**
- * Set `__statics` path to static files in production;
- * The reason we are setting it here is that the path needs to be evaluated at runtime
- */
-declare const __statics: any;
+declare const __statics: string;
 
 if (process.env.PROD) {
-  global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\');
+  global.__statics = __dirname;
 }
 
 cfg.logger(log);
@@ -46,27 +45,27 @@ app.on('ready', () => {
       label: 'Open Tradebar',
       click: () => {
         global.pta.openTradeBar();
-      },
+      }
     },
     {
       label: 'Settings',
       click: () => {
         global.pta.createSettingsWindow();
-      },
+      }
     },
     {
-      type: 'separator',
+      type: 'separator'
     },
     {
       label: 'About',
       click: () => {
         global.pta.createAboutWindow();
-      },
+      }
     },
     {
       label: 'Exit',
-      role: 'quit',
-    },
+      role: 'quit'
+    }
   ]);
   tray.setContextMenu(contextMenu);
 });

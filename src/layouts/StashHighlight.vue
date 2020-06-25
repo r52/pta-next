@@ -67,7 +67,7 @@ export default defineComponent({
 
       const cell = tabinfo.x + (tabinfo.y - 1) * (tabinfo.quad ? 24 : 12);
 
-      const e = document.getElementById('cell-' + cell);
+      const e = document.getElementById('cell-' + cell.toString());
       if (e) {
         e.classList.add('pulse');
       }

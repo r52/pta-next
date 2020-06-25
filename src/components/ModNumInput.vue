@@ -36,7 +36,7 @@ export default defineComponent({
     let isint = false;
 
     if (!props.disabled) {
-      let val = props.filter[props.type];
+      let val = props.filter[props.type] as number | null;
 
       if (val == null) {
         if (props.filter.value != null) {
@@ -50,7 +50,7 @@ export default defineComponent({
         }
       }
 
-      isint = Number.isInteger(val);
+      isint = Number.isInteger(val as number);
     }
 
     function scrollNum(evt: WheelEvent) {
@@ -59,7 +59,7 @@ export default defineComponent({
       if (!props.disabled) {
         const dir = evt.deltaY > 0 ? -1 : 1;
 
-        let val = props.filter[props.type];
+        let val = props.filter[props.type] as number | null;
 
         if (val == null) {
           if (props.filter.value != null) {
@@ -75,7 +75,7 @@ export default defineComponent({
 
         const step = isint ? 1 : 0.1;
         const change = step * dir;
-        val = val + change;
+        val = (val as number) + change;
         props.filter[props.type] = Math.round(val * 100) / 100;
         props.filter.enabled = true;
       }

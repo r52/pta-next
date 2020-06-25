@@ -1,4 +1,4 @@
-export function isNumber(evt: KeyboardEvent) {
+export function isNumber(evt: KeyboardEvent): void {
   const key = evt.key;
 
   switch (key) {
@@ -21,7 +21,7 @@ export function isNumber(evt: KeyboardEvent) {
   }
 }
 
-export function getElapsedTime(t1: number, t2: number) {
+export function getElapsedTime(t1: number, t2: number): string {
   let dif = t1 - t2;
 
   // convert to seconds

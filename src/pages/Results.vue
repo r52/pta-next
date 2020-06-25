@@ -20,13 +20,13 @@
             <div v-if="props.value.irate">
               {{ props.value.irate.amount }}
               <img
-                :src="`statics/images/${props.value.irate.currency}.png`"
+                :src="`images/${props.value.irate.currency}.png`"
                 style="height: 25px; max-width: 25px; vertical-align: middle;"
                 class="q-py-none"
               />
               &lt;= {{ props.value.erate.amount }}
               <img
-                :src="`statics/images/${props.value.erate.currency}.png`"
+                :src="`images/${props.value.erate.currency}.png`"
                 style="height: 25px; max-width: 25px; vertical-align: middle;"
                 class="q-py-none"
               />
@@ -34,7 +34,7 @@
             <div v-else>
               {{ props.value.amount }} {{ props.value.currency }}
               <img
-                :src="`statics/images/${props.value.currency}.png`"
+                :src="`images/${props.value.currency}.png`"
                 style="height: 25px; max-width: 25px; vertical-align: middle;"
                 class="q-py-none"
               />

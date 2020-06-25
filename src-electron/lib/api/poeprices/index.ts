@@ -14,8 +14,14 @@ export class POEPricesAPI implements PriceAPI {
     this.uniques = uniques;
   }
 
-  public searchItemWithDefaults(event: Electron.IpcMainEvent, item: Item) {
-    const usepoeprices = cfg.get(Config.poeprices, Config.default.poeprices);
+  public searchItemWithDefaults(
+    event: Electron.IpcMainEvent,
+    item: Item
+  ): void {
+    const usepoeprices = cfg.get(
+      Config.poeprices,
+      Config.default.poeprices
+    ) as boolean;
 
     let isUniqueBase = false;
 
@@ -49,36 +55,41 @@ export class POEPricesAPI implements PriceAPI {
 
       const url = URLs.poeprices + 'l=' + league + '&i=' + itemData;
 
-      axios.get<PoEPricesPrediction>(url).then(response => {
-        const data = response.data;
+      axios.get<PoEPricesPrediction>(url).then(
+        response => {
+          const data = response.data;
 
-        if (data == null) {
-          log.warn('poeprices.info: Error querying poeprices.info');
-          log.warn('poeprices.info: Site returned no data');
-          event.reply('error', 'Error querying poeprices.info');
-          return;
+          if (data == null) {
+            log.warn('poeprices.info: Error querying poeprices.info');
+            log.warn('poeprices.info: Site returned no data');
+            event.reply('error', 'Error querying poeprices.info');
+            return;
+          }
+
+          if (data.error != 0) {
+            log.warn('poeprices.info: Error querying poeprices.info');
+            log.warn('poeprices.info: Site responded with', data);
+            event.reply('error', 'Error querying poeprices.info');
+            return;
+          }
+
+          if (!('min' in data) || !('max' in data)) {
+            log.info(
+              'poeprices.info: No prediction data available from poeprices.info for this item.'
+            );
+            event.reply(
+              'error',
+              'No prediction data available from poeprices.info for this item.'
+            );
+            return;
+          }
+
+          event.reply('prediction', data);
+        },
+        () => {
+          // TODO: do nothing on fail
         }
-
-        if (data.error != 0) {
-          log.warn('poeprices.info: Error querying poeprices.info');
-          log.warn('poeprices.info: Site responded with', data);
-          event.reply('error', 'Error querying poeprices.info');
-          return;
-        }
-
-        if (!('min' in data) || !('max' in data)) {
-          log.info(
-            'poeprices.info: No prediction data available from poeprices.info for this item.'
-          );
-          event.reply(
-            'error',
-            'No prediction data available from poeprices.info for this item.'
-          );
-          return;
-        }
-
-        event.reply('prediction', data);
-      });
+      );
     }
   }
 }
