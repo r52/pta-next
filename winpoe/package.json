@@ -2,12 +2,19 @@
   "name": "winpoe",
   "version": "1.0.0",
   "description": "A bunch of PoE specific Windows hooks and calls",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "r52",
   "license": "GPL-3.0",
   "private": true,
+  "scripts": {
+      "postinstall": "tsc"
+  },
   "dependencies": {
     "bindings": "^1.5.0",
     "node-addon-api": "^3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.5"
   }
 }
