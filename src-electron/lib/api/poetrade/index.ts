@@ -1,9 +1,9 @@
 // official PoE Trade Site search api
-import { shell, dialog } from 'electron';
+import { shell, dialog, BrowserWindow } from 'electron';
 import cfg from 'electron-cfg';
 import MultiMap from 'multimap';
 import log from 'electron-log';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import merge from 'lodash.merge';
 import cloneDeep from 'lodash.clonedeep';
 
@@ -17,7 +17,9 @@ export class POETradeAPI implements PriceAPI {
   private currencies: Set<string>;
   private uniques: MultiMap;
 
-  constructor(uniques: MultiMap) {
+  constructor(uniques: MultiMap, splash: BrowserWindow | null) {
+    splash?.webContents.send('await-count', 1);
+
     this.uniques = uniques;
     this.exchange = new Map<string, string>();
     this.currencies = new Set();
@@ -37,6 +39,8 @@ export class POETradeAPI implements PriceAPI {
         });
 
         log.info('Currencies loaded');
+
+        splash?.webContents.send('data-ready');
       },
       () => {
         // TODO: do nothing on fail

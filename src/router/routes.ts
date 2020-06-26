@@ -57,6 +57,10 @@ const routes: RouteConfig[] = [
   {
     path: '/stashhighlight',
     component: () => import('layouts/StashHighlight.vue')
+  },
+  {
+    path: '/splash',
+    component: () => import('layouts/Splash.vue')
   }
 ];
 

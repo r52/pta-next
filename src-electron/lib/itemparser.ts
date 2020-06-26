@@ -1,4 +1,4 @@
-import { app, dialog } from 'electron';
+import { app, dialog, BrowserWindow } from 'electron';
 import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
@@ -219,7 +219,9 @@ export class ItemParser {
 
   private section = '';
 
-  public constructor(uniques: MultiMap) {
+  public constructor(uniques: MultiMap, splash: BrowserWindow | null) {
+    splash?.webContents.send('await-count', 11);
+
     ///////////////////////////////////////////// Download excludes/stats
     this.excludes = new Set();
     this.statsById = new Map<string, StatFilter>();
@@ -235,6 +237,7 @@ export class ItemParser {
         }
 
         log.info('Excludes loaded');
+        splash?.webContents.send('data-ready');
 
         axios
           .get<Data.Stats>(URLs.official.stats)
@@ -290,6 +293,7 @@ export class ItemParser {
             }
 
             log.info('Mod stats loaded');
+            splash?.webContents.send('data-ready');
           })
           .catch(e => {
             log.error(e);
@@ -326,6 +330,7 @@ export class ItemParser {
         }
 
         log.info('Base categories loaded');
+        splash?.webContents.send('data-ready');
 
         axios
           .get<Data.BaseItems>(URLs.repoe.base)
@@ -350,6 +355,7 @@ export class ItemParser {
             }
 
             log.info('Item base data loaded');
+            splash?.webContents.send('data-ready');
           })
           .catch(e => {
             log.error(e);
@@ -396,6 +402,7 @@ export class ItemParser {
         }
 
         log.info('Mod types loaded');
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);
@@ -420,6 +427,7 @@ export class ItemParser {
         }
 
         log.info('Armour locals loaded');
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);
@@ -440,6 +448,7 @@ export class ItemParser {
         }
 
         log.info('Weapon locals loaded');
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);
@@ -463,6 +472,7 @@ export class ItemParser {
         }
 
         log.info('Enchant rules loaded');
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);
@@ -486,6 +496,7 @@ export class ItemParser {
         }
 
         log.info('Pseudo rules loaded');
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);
@@ -515,6 +526,7 @@ export class ItemParser {
         }
 
         log.info('Discriminator rules loaded');
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);
@@ -538,6 +550,7 @@ export class ItemParser {
         }
 
         log.info('Priority rules loaded');
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);

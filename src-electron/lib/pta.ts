@@ -82,7 +82,9 @@ export class PTA {
 
   leagues: string[];
 
-  private constructor() {
+  private constructor(splash: BrowserWindow | null) {
+    splash?.webContents.send('await-count', 2);
+
     ///////////////////////////////////////////// Download leagues
     this.leagues = [];
 
@@ -100,6 +102,8 @@ export class PTA {
         const setlg = this.getLeague();
 
         log.info('League data loaded. Setting league to', setlg);
+
+        splash?.webContents.send('data-ready');
       })
       .catch(e => {
         log.error(e);
@@ -136,9 +140,11 @@ export class PTA {
         log.info('Unique item data loaded');
 
         // Load APIs
-        this.parser = new ItemParser(this.uniques);
-        this.searchAPIs.push(new POETradeAPI(this.uniques));
+        this.parser = new ItemParser(this.uniques, splash);
+        this.searchAPIs.push(new POETradeAPI(this.uniques, splash));
         this.searchAPIs.push(new POEPricesAPI(this.uniques));
+
+        splash?.webContents.send('data-ready');
 
         // XXX: potentially add more apis
       })
@@ -237,9 +243,9 @@ export class PTA {
     });
   }
 
-  public static getInstance(): PTA {
+  public static getInstance(splash: BrowserWindow | null = null): PTA {
     if (!PTA.instance) {
-      PTA.instance = new PTA();
+      PTA.instance = new PTA(splash);
     }
 
     return PTA.instance;
@@ -631,12 +637,13 @@ export class PTA {
     item.then(
       itm => {
         if (!itm) {
+          itmwin?.close();
+
           dialog.showErrorBox(
             'Item Error',
             'Error parsing item text. Check log for more details.'
           );
 
-          itmwin?.close();
           return;
         }
 
