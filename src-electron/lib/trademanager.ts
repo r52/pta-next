@@ -183,21 +183,23 @@ export default class TradeManager {
   }
 
   public handleNewTrade(trade: TradeMsg): void {
-    this.tradeHistory.push(trade);
+    if (this.isEnabled()) {
+      this.tradeHistory.push(trade);
 
-    // limit to 30 for now
-    if (this.tradeHistory.length > 30) {
-      this.tradeHistory.shift();
+      // limit to 30 for now
+      if (this.tradeHistory.length > 30) {
+        this.tradeHistory.shift();
+      }
+
+      // Send it
+      this.tradeHistoryWindow?.webContents.send(
+        'trade-history',
+        this.tradeHistory
+      );
+
+      // Show it
+      this.showNewTrade(trade);
     }
-
-    // Send it
-    this.tradeHistoryWindow?.webContents.send(
-      'trade-history',
-      this.tradeHistory
-    );
-
-    // Show it
-    this.showNewTrade(trade);
   }
 
   private showNewTrade(trade: TradeMsg) {
