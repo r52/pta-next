@@ -1,15 +1,14 @@
 <template>
   <q-layout view="hHh Lpr fFf">
-    <q-footer class="bg-grey-9 text-center">Downloading API data...</q-footer>
-
     <q-page-container>
       <q-page padding>
-        <q-img
-          class="absolute-center"
-          src="icon.png"
-          width="70%"
-          height="70%"
-        />
+        <div class="q-pa-md">
+          <div class="q-gutter-sm column items-center">
+            <q-img src="icon.png" width="70%" height="70%" />
+            <q-spinner color="primary" size="3em" :thickness="10" />
+            <p>Downloading API data...</p>
+          </div>
+        </div>
       </q-page>
     </q-page-container>
   </q-layout>

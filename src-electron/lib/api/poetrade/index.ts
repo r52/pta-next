@@ -1075,41 +1075,18 @@ export class POETradeAPI implements PriceAPI {
     }
 
     query.exchange.want.push(want);
-
-    const urls = [];
-
     query.exchange.have.push(have);
 
-    urls.push(axios.post<PoEFetchResults>(url, query));
-
     if (have != s_curr && want != s_curr) {
-      have = s_curr;
-
-      const squery = cloneDeep(query);
-
-      squery.exchange.have.pop();
-      squery.exchange.have.push(have);
-
-      urls.push(axios.post<PoEFetchResults>(url, squery));
+      query.exchange.have.push(s_curr);
     }
 
-    Promise.all(urls).then(
+    axios.post<PoEFetchResults>(url, query).then(
       results => {
-        const presp = results[0];
-        const pdata = presp.data;
+        const pdata = results.data;
 
         if ('result' in pdata && 'id' in pdata) {
-          if (pdata.total == 0 && results.length > 1) {
-            // no results for primary currency, try secondary
-            const sresp = results[1];
-            const sdata = sresp.data;
-
-            if ('result' in sdata && 'id' in sdata) {
-              this.processPriceResults(sdata, event, null, true, true);
-            }
-          } else {
-            this.processPriceResults(pdata, event, null, true, true);
-          }
+          this.processPriceResults(pdata, event, null, true, true);
         }
       },
       () => {
