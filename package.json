@@ -12,7 +12,8 @@
     "build": "quasar build -m electron",
     "rebuild": "./node_modules/.bin/electron-rebuild",
     "lint": "eslint --ext .js,.ts,.vue --ignore-path .gitignore ./",
-    "test": "echo \"No test specified\" && exit 0"
+    "test": "echo \"No test specified\" && exit 0",
+    "postinstall": "cd winpoe && yarn build"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
