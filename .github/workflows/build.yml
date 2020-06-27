@@ -3,8 +3,6 @@ name: Windows Build
 on:
   push:
   pull_request:
-  release:
-    types: [published, prereleased]
 
 jobs:
   build:
