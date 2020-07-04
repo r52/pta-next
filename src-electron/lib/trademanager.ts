@@ -186,7 +186,7 @@ export default class TradeManager {
 
   public handleNewTrade(trade: TradeMsg): void {
     if (this.isEnabled()) {
-      this.tradeHistory.push(trade);
+      this.tradeHistory.unshift(trade);
 
       // limit to 30 for now
       if (this.tradeHistory.length > 30) {
