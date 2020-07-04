@@ -171,8 +171,10 @@ export default class TradeManager {
       this.tradeNotification?.hide();
     } else {
       this.tradeBar?.show();
+      this.tradeBar?.moveTop();
 
       this.tradeNotification?.show();
+      this.tradeNotification?.moveTop();
     }
   }
 
@@ -184,7 +186,7 @@ export default class TradeManager {
 
   public handleNewTrade(trade: TradeMsg): void {
     if (this.isEnabled()) {
-      this.tradeHistory.push(trade);
+      this.tradeHistory.unshift(trade);
 
       // limit to 30 for now
       if (this.tradeHistory.length > 30) {
@@ -231,7 +233,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 
@@ -269,7 +272,8 @@ export default class TradeManager {
           focusable: false,
           skipTaskbar: true,
           webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            enableRemoteModule: true
           },
           ...opts
         });
@@ -376,7 +380,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 
@@ -415,7 +420,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         },
         ...wincfg.options()
       });
@@ -466,7 +472,8 @@ export default class TradeManager {
         resizable: true,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 

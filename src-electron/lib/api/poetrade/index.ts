@@ -5,7 +5,6 @@ import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
 import merge from 'lodash.merge';
-import cloneDeep from 'lodash.clonedeep';
 
 import Config from '../../config';
 import { PTA } from '../../pta';

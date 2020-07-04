@@ -633,6 +633,8 @@ export class ItemParser {
       item.quality = 0;
     } else if ('Divination Card' == item.rarity) {
       item.category = item.rarity = 'card';
+    } else if ('Currency' == item.rarity) {
+      item.category = item.rarity = 'currency';
     }
 
     if (item.type.endsWith('Map')) {
