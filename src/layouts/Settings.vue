@@ -164,6 +164,7 @@
                       :disable="!settings.hotkey.quickpaste"
                       style="width: 250px;"
                       map-options
+                      emit-value
                     />
                   </div>
                 </div>
@@ -195,6 +196,7 @@
                         :options="leagues"
                         label="League"
                         map-options
+                        emit-value
                       />
                     </div>
                   </div>
@@ -223,6 +225,7 @@
                         :options="currencies"
                         label="Primary Currency"
                         map-options
+                        emit-value
                       />
                     </div>
                   </div>
@@ -234,6 +237,7 @@
                         :options="currencies"
                         label="Secondary Currency"
                         map-options
+                        emit-value
                       />
                     </div>
                   </div>
@@ -578,7 +582,7 @@
                 <q-table
                   title="Incoming Trade Commands"
                   :data="settings.tradeui.incoming"
-                  :columns="tradeColumns"
+                  :columns="tradeuicolumns"
                   row-key="label"
                 >
                   <template v-slot:top-right>
@@ -641,7 +645,7 @@
                 <q-table
                   title="Outgoing Trade Commands"
                   :data="settings.tradeui.outgoing"
-                  :columns="tradeColumns"
+                  :columns="tradeuicolumns"
                   row-key="label"
                 >
                   <template v-slot:top-right>
@@ -751,7 +755,10 @@ import { defineComponent, ref, computed, reactive } from '@vue/composition-api';
 import { useElectronUtil } from '../functions/context';
 import { ipcRenderer } from 'electron';
 import cfg from 'electron-cfg';
-import Config from '../../src-electron/lib/config';
+import Config, { QuickPasteKey } from '../../src-electron/lib/config';
+import log from 'electron-log';
+
+Object.assign(console, log.functions);
 
 export default defineComponent({
   name: 'Settings',
@@ -816,7 +823,7 @@ export default defineComponent({
         quickpastemod: cfg.get(
           Config.quickpastemod,
           Config.default.quickpastemod
-        ) as string,
+        ) as QuickPasteKey,
         cscroll: cfg.get(Config.cscroll, Config.default.cscroll) as boolean
       },
       pricecheck: {
@@ -1122,11 +1129,11 @@ export default defineComponent({
     const quickpastemods = [
       {
         label: 'Ctrl',
-        value: 'ctrlKey'
+        value: QuickPasteKey.CTRL
       },
       {
         label: 'Shift',
-        value: 'shiftKey'
+        value: QuickPasteKey.SHIFT
       }
     ];
 

@@ -43,7 +43,8 @@ function createSplashWindow() {
     backgroundColor: '#00000000',
     title: 'PTA-Next',
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      enableRemoteModule: true
     }
   });
 

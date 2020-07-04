@@ -1,3 +1,8 @@
+export enum QuickPasteKey {
+  CTRL = 0,
+  SHIFT = 1
+}
+
 export default {
   // pta
   checkForUpdates: 'pta.checkforupdates',
@@ -64,7 +69,7 @@ export default {
     wikihotkey: 'CmdOrCtrl+Alt+G',
     wikihotkeyenabled: true,
     quickpaste: false,
-    quickpastemod: 'ctrlKey',
+    quickpastemod: QuickPasteKey.CTRL,
     cscroll: true,
 
     // price check

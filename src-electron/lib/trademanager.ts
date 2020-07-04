@@ -233,7 +233,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 
@@ -271,7 +272,8 @@ export default class TradeManager {
           focusable: false,
           skipTaskbar: true,
           webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            enableRemoteModule: true
           },
           ...opts
         });
@@ -378,7 +380,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 
@@ -417,7 +420,8 @@ export default class TradeManager {
         focusable: false,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         },
         ...wincfg.options()
       });
@@ -468,7 +472,8 @@ export default class TradeManager {
         resizable: true,
         skipTaskbar: true,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 

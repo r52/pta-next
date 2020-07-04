@@ -12,11 +12,11 @@ import cfg from 'electron-cfg';
 import winpoe from 'winpoe';
 import axios from 'axios';
 import MultiMap from 'multimap';
-import iohook from 'iohook';
+import { uIOhook, WheelDirection } from 'uiohook-napi';
 import { autoUpdater } from 'electron-updater';
 
 import { ItemParser } from '../lib/itemparser';
-import Config from '../lib/config';
+import Config, { QuickPasteKey } from '../lib/config';
 
 import ClientMonitor from './clientmonitor';
 import TradeManager from './trademanager';
@@ -30,25 +30,6 @@ enum ItemHotkey {
   SIMPLE = 0,
   ADVANCED = 1,
   WIKI = 2
-}
-
-// Not sure why this isn't exported by iohook
-interface IOHookEvent {
-  [index: string]: string | number | boolean | undefined;
-
-  type: string;
-  keychar?: number;
-  keycode?: number;
-  rawcode?: number;
-  button?: number;
-  clicks?: number;
-  x?: number;
-  y?: number;
-  direction?: number;
-  rotation?: number;
-  ctrlKey?: boolean;
-  shiftKey?: boolean;
-  altKey?: boolean;
 }
 
 export class PTA {
@@ -67,7 +48,7 @@ export class PTA {
   private settings = {
     cscrollEnabled: false,
     quickpaste: false,
-    quickpastemod: '',
+    quickpastemod: QuickPasteKey.CTRL,
     qpmodHeld: false
   };
 
@@ -204,29 +185,39 @@ export class PTA {
       this.trademanager.forwardPlayerEvent('left-area', name);
     });
 
-    iohook.on('mousewheel', (event: IOHookEvent) => {
+    uIOhook.on('wheel', event => {
       if (
-        event.direction == 3 &&
+        event.direction == WheelDirection.VERTICAL &&
         event.ctrlKey &&
         this.settings.cscrollEnabled
       ) {
-        winpoe.scrollStash(
-          event.rotation as number,
-          event.x as number,
-          event.y as number
-        );
+        winpoe.scrollStash(event.rotation, event.x, event.y);
       }
     });
 
-    iohook.on('keydown', (event: IOHookEvent) => {
+    uIOhook.on('keydown', event => {
       if (this.settings.quickpaste) {
-        this.settings.qpmodHeld = event[this.settings.quickpastemod] as boolean;
+        switch (this.settings.quickpastemod) {
+          case QuickPasteKey.CTRL:
+            this.settings.qpmodHeld = event.ctrlKey;
+            break;
+          case QuickPasteKey.SHIFT:
+            this.settings.qpmodHeld = event.shiftKey;
+            break;
+        }
       }
     });
 
-    iohook.on('keyup', (event: IOHookEvent) => {
+    uIOhook.on('keyup', event => {
       if (this.settings.quickpaste) {
-        this.settings.qpmodHeld = event[this.settings.quickpastemod] as boolean;
+        switch (this.settings.quickpastemod) {
+          case QuickPasteKey.CTRL:
+            this.settings.qpmodHeld = event.ctrlKey;
+            break;
+          case QuickPasteKey.SHIFT:
+            this.settings.qpmodHeld = event.shiftKey;
+            break;
+        }
       }
     });
 
@@ -237,7 +228,7 @@ export class PTA {
         if (cbtext.startsWith('@') && winpoe.setPoEForeground()) {
           setTimeout(() => {
             winpoe.sendPaste();
-          }, 100);
+          }, 250);
         }
       }
     });
@@ -353,7 +344,7 @@ export class PTA {
     }
 
     winpoe.start(vulkanCompat, process.env.NODE_ENV == 'development');
-    iohook.start(process.env.NODE_ENV == 'development');
+    uIOhook.start();
 
     // setup trade manager
     this.trademanager.setup();
@@ -363,7 +354,7 @@ export class PTA {
     this.unregisterShortcuts();
 
     winpoe.stop();
-    iohook.stop();
+    uIOhook.stop();
   }
 
   private registerShortcuts() {
@@ -430,7 +421,7 @@ export class PTA {
     const qpastemod = cfg.get(
       Config.quickpastemod,
       Config.default.quickpastemod
-    ) as string;
+    ) as QuickPasteKey;
     this.settings.quickpastemod = qpastemod;
 
     // cscroll
@@ -521,7 +512,8 @@ export class PTA {
         frame: false,
         title: 'PTA-Next Settings',
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 
@@ -543,7 +535,8 @@ export class PTA {
         frame: false,
         title: 'About PTA-Next',
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          enableRemoteModule: true
         }
       });
 
@@ -583,7 +576,8 @@ export class PTA {
       backgroundColor: '#00000000',
       title: 'PTA-Next',
       webPreferences: {
-        nodeIntegration: true
+        nodeIntegration: true,
+        enableRemoteModule: true
       },
       ...wincfg.options()
     });
