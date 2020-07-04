@@ -171,8 +171,10 @@ export default class TradeManager {
       this.tradeNotification?.hide();
     } else {
       this.tradeBar?.show();
+      this.tradeBar?.moveTop();
 
       this.tradeNotification?.show();
+      this.tradeNotification?.moveTop();
     }
   }
 
