@@ -572,7 +572,11 @@ export class ItemParser {
       sections++;
     }
 
-    if (item.category == 'flask' || item.category == 'map') {
+    if (
+      item.category == 'flask' ||
+      item.category == 'map' ||
+      item.category == 'gem'
+    ) {
       sections++;
     }
 
@@ -1075,6 +1079,11 @@ export class ItemParser {
       return true;
     }
 
+    if (item.category == 'card' || item.category == 'prophecy') {
+      // Ignore all card/prophecy lines
+      return true;
+    }
+
     if (stat == 'Unidentified') {
       item.unidentified = true;
       return true;
@@ -1138,8 +1147,12 @@ export class ItemParser {
     }
 
     // Vaal gems
-    if (item.category && item.category == 'gem' && stat.startsWith('Vaal ')) {
-      item.type = stat;
+    if (item.category == 'gem') {
+      if (stat.startsWith('Vaal ')) {
+        item.type = stat;
+      }
+
+      // Don't care about gem mods
       return true;
     }
 
