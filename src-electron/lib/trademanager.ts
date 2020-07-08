@@ -244,6 +244,7 @@ export default class TradeManager {
 
       this.tradeNotification.webContents.once('did-finish-load', () => {
         this.tradeNotification?.webContents.send('trade', notification);
+        this.tradeNotification?.moveTop();
       });
 
       this.tradeNotification.on('closed', () => {
@@ -251,6 +252,7 @@ export default class TradeManager {
       });
     } else {
       this.tradeNotification?.webContents.send('trade', notification);
+      this.tradeNotification?.moveTop();
     }
   }
 
@@ -470,7 +472,7 @@ export default class TradeManager {
         alwaysOnTop: false,
         frame: false,
         resizable: true,
-        skipTaskbar: true,
+        title: 'Trade History',
         webPreferences: {
           nodeIntegration: true,
           enableRemoteModule: true
@@ -493,6 +495,7 @@ export default class TradeManager {
       });
     } else {
       this.tradeHistoryWindow.show();
+      this.tradeHistoryWindow.moveTop();
     }
   }
 }

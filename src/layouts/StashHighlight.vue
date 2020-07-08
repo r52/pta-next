@@ -125,25 +125,25 @@ body {
 }
 
 .grid-item {
-  margin: 15px;
+  margin: 20px;
 }
 
 .pulse {
   display: block;
   border-radius: 0%;
   box-shadow: 0 0 0 rgba(255, 255, 255, 1);
-  animation: pulse 0.5s infinite;
+  animation: pulse 1s infinite;
 }
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    box-shadow: 0 0 0 20px rgba(255, 255, 255, 1);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 1);
   }
 }
 </style>

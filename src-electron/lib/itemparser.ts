@@ -572,7 +572,12 @@ export class ItemParser {
       sections++;
     }
 
-    if (item.category == 'flask' || item.category == 'map') {
+    if (
+      item.category == 'flask' ||
+      item.category == 'map' ||
+      item.category == 'gem' ||
+      item.category?.startsWith('jewel')
+    ) {
       sections++;
     }
 
@@ -1075,6 +1080,11 @@ export class ItemParser {
       return true;
     }
 
+    if (item.category == 'card' || item.category == 'prophecy') {
+      // Ignore all card/prophecy lines
+      return true;
+    }
+
     if (stat == 'Unidentified') {
       item.unidentified = true;
       return true;
@@ -1138,8 +1148,12 @@ export class ItemParser {
     }
 
     // Vaal gems
-    if (item.category && item.category == 'gem' && stat.startsWith('Vaal ')) {
-      item.type = stat;
+    if (item.category == 'gem') {
+      if (stat.startsWith('Vaal ')) {
+        item.type = stat;
+      }
+
+      // Don't care about gem mods
       return true;
     }
 
@@ -1194,12 +1208,16 @@ export class ItemParser {
     if (
       stat.includes('#') &&
       ((stat.includes('reduced') && !stat.includes('reduced Mana')) ||
+        stat.includes('reduced Mana Reserved') ||
         stat.includes('less'))
     ) {
       // If the stat line has a "reduced" value, try to
       // flip it and try again
 
-      if (stat.includes('reduced') && !stat.includes('reduced Mana')) {
+      if (
+        (stat.includes('reduced') && !stat.includes('reduced Mana')) ||
+        stat.includes('reduced Mana Reserved')
+      ) {
         stat = stat.replace('reduced', 'increased');
         valstat = valstat.replace('reduced', 'increased');
       } else {
