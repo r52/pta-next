@@ -59,6 +59,6 @@
     "yarn": ">= 1.21.1"
   },
   "browserslist": [
-    "electron 9.0.5"
+    "electron 9.1.0"
   ]
 }
