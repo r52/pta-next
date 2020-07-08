@@ -575,7 +575,8 @@ export class ItemParser {
     if (
       item.category == 'flask' ||
       item.category == 'map' ||
-      item.category == 'gem'
+      item.category == 'gem' ||
+      item.category?.startsWith('jewel')
     ) {
       sections++;
     }
