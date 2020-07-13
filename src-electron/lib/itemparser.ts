@@ -6,7 +6,7 @@ import Fuse from 'fuse.js';
 
 import URLs from './api/urls';
 
-const FuseMatchThreshold = 0.5;
+const FuseMatchThreshold = 0.6;
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
