@@ -242,6 +242,81 @@ export class PTA {
     return PTA.instance;
   }
 
+  public checkForUpdates(): void {
+    const appPath = app.getAppPath();
+    const autoUpdate = cfg.get(
+      Config.autoUpdate,
+      Config.default.autoUpdate
+    ) as boolean;
+
+    if (appPath.includes('AppData')) {
+      // installer version
+
+      if (autoUpdate) {
+        // Auto update on
+        void autoUpdater.checkForUpdatesAndNotify();
+      } else {
+        // Auto update off
+        autoUpdater.autoDownload = false;
+
+        autoUpdater.on('update-available', () => {
+          void dialog
+            .showMessageBox({
+              type: 'info',
+              title: 'New Version Available',
+              message:
+                'A new version of PTA-Next is available. Would you like to update now?',
+              buttons: ['Yes', 'No']
+            })
+            .then(result => {
+              if (result.response === 0) {
+                void autoUpdater.downloadUpdate();
+              }
+            });
+        });
+
+        autoUpdater.on('update-downloaded', () => {
+          void dialog
+            .showMessageBox({
+              title: 'Installing Updates',
+              message:
+                'Updates downloaded. PTA-Next will now exit to install update.'
+            })
+            .then(() => {
+              setImmediate(() => autoUpdater.quitAndInstall());
+            });
+        });
+
+        void autoUpdater.checkForUpdates();
+      }
+    } else {
+      // portable version
+      autoUpdater.autoDownload = false;
+
+      autoUpdater.on('update-available', () => {
+        void dialog
+          .showMessageBox({
+            type: 'info',
+            title: 'New Version Available',
+            message:
+              'A new version of PTA-Next is available. Would you like to go download it?',
+            buttons: ['Yes', 'No']
+          })
+          .then(result => {
+            if (result.response === 0) {
+              void shell.openExternal(
+                'https://github.com/r52/pta-next/releases'
+              );
+            }
+          });
+      });
+
+      if (autoUpdater.isUpdaterActive()) {
+        void autoUpdater.checkForUpdates();
+      }
+    }
+  }
+
   public setup(): void {
     this.registerShortcuts();
 
@@ -263,84 +338,13 @@ export class PTA {
       Config.checkForUpdates,
       Config.default.checkForUpdates
     ) as boolean;
-    const autoUpdate = cfg.get(
-      Config.autoUpdate,
-      Config.default.autoUpdate
-    ) as boolean;
     const vulkanCompat = cfg.get(
       Config.vulkanCompat,
       Config.default.vulkanCompat
     ) as boolean;
 
-    const appPath = app.getAppPath();
-
     if (checkForUpdates) {
-      if (appPath.includes('AppData')) {
-        // installer version
-
-        if (autoUpdate) {
-          // Auto update on
-          void autoUpdater.checkForUpdatesAndNotify();
-        } else {
-          // Auto update off
-          autoUpdater.autoDownload = false;
-
-          autoUpdater.on('update-available', () => {
-            void dialog
-              .showMessageBox({
-                type: 'info',
-                title: 'New Version Available',
-                message:
-                  'A new version of PTA-Next is available. Would you like to update now?',
-                buttons: ['Yes', 'No']
-              })
-              .then(result => {
-                if (result.response === 0) {
-                  void autoUpdater.downloadUpdate();
-                }
-              });
-          });
-
-          autoUpdater.on('update-downloaded', () => {
-            void dialog
-              .showMessageBox({
-                title: 'Installing Updates',
-                message:
-                  'Updates downloaded. PTA-Next will now exit to install update.'
-              })
-              .then(() => {
-                setImmediate(() => autoUpdater.quitAndInstall());
-              });
-          });
-
-          void autoUpdater.checkForUpdates();
-        }
-      } else {
-        // portable version
-        autoUpdater.autoDownload = false;
-
-        autoUpdater.on('update-available', () => {
-          void dialog
-            .showMessageBox({
-              type: 'info',
-              title: 'New Version Available',
-              message:
-                'A new version of PTA-Next is available. Would you like to go download it?',
-              buttons: ['Yes', 'No']
-            })
-            .then(result => {
-              if (result.response === 0) {
-                void shell.openExternal(
-                  'https://github.com/r52/pta-next/releases'
-                );
-              }
-            });
-        });
-
-        if (autoUpdater.isUpdaterActive()) {
-          void autoUpdater.checkForUpdates();
-        }
-      }
+      this.checkForUpdates();
     }
 
     winpoe.start(vulkanCompat, process.env.NODE_ENV == 'development');

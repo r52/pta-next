@@ -79,6 +79,12 @@ app.on('ready', () => {
         }
       },
       {
+        label: 'Check for Updates',
+        click: () => {
+          global.pta.checkForUpdates();
+        }
+      },
+      {
         type: 'separator'
       },
       {

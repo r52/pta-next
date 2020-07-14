@@ -708,7 +708,7 @@ export class POETradeAPI implements PriceAPI {
               : null
         } as QueryFilter;
 
-        query.query['stats'][0]['filters'].push(entry);
+        query.query.stats[0].filters.push(entry);
 
         const vflt = [] as QTreeModel[];
 
@@ -719,7 +719,7 @@ export class POETradeAPI implements PriceAPI {
         });
 
         if (vflt.length) {
-          mflt.push({ label: e['text'], children: [...vflt] });
+          mflt.push({ label: e.text, children: [...vflt] });
         }
       }
     }
@@ -729,7 +729,7 @@ export class POETradeAPI implements PriceAPI {
     }
 
     // Check for unique items
-    if (isUniqueBase) {
+    if (isUniqueBase && item.rarity == 'Unique') {
       const range = this.uniques.get(searchToken) as Data.UniqueItemEntry[];
       for (const entry of range) {
         // For everything else, match type
@@ -807,7 +807,7 @@ export class POETradeAPI implements PriceAPI {
 
     // Use item base
     if (options.useitembase) {
-      query.query['type'] = item.type;
+      query.query.type = item.type;
       sopts.children.push({
         label: 'Item Base',
         children: [{ label: item.type }]

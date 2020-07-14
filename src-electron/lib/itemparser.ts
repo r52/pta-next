@@ -6,7 +6,7 @@ import Fuse from 'fuse.js';
 
 import URLs from './api/urls';
 
-const FuseMatchThreshold = 0.5;
+const FuseMatchThreshold = 0.6;
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -267,7 +267,7 @@ export class ItemParser {
                       keys: ['text'],
                       shouldSort: true,
                       threshold: 0.6,
-                      distance: 1000,
+                      ignoreLocation: true,
                       includeScore: false
                     },
                     index
@@ -777,44 +777,66 @@ export class ItemParser {
     // Preprocess out bottom sections
     // so flavour text can be processed out
 
-    // Remove notes section
-    if (lines.peekLast().startsWith('Note:')) {
-      lines.pop();
-    }
+    let res: string;
 
-    if (lines.peekLast().startsWith('---')) {
-      lines.pop();
-    }
+    (function() {
+      while ((res = lines.peekLast())) {
+        if (res.startsWith('Note:')) {
+          lines.pop();
+          continue;
+        }
 
-    // Synthesised
-    if (lines.peekLast().startsWith('Synthesised Item')) {
-      item.synthesised = true;
-      lines.pop();
-    }
-
-    if (lines.peekLast().startsWith('---')) {
-      lines.pop();
-    }
-
-    // Fractured
-    if (lines.peekLast().startsWith('Fractured Item')) {
-      item.fractured = true;
-      lines.pop();
-    }
-
-    if (lines.peekLast().startsWith('---')) {
-      lines.pop();
-    }
-
-    // Corrupted
-    if (lines.peekLast().startsWith('Corrupted')) {
-      item.corrupted = true;
-      lines.pop();
-    }
-
-    if (lines.peekLast().startsWith('---')) {
-      lines.pop();
-    }
+        switch (res) {
+          case '--------':
+            lines.pop();
+            break;
+          case 'Synthesised Item':
+            item.synthesised = true;
+            lines.pop();
+            break;
+          case 'Fractured Item':
+            item.fractured = true;
+            lines.pop();
+            break;
+          case 'Corrupted':
+            item.corrupted = true;
+            lines.pop();
+            break;
+          case 'Shaper Item':
+            item.influences = item.influences ?? ([] as string[]);
+            item.influences.push('shaper');
+            lines.pop();
+            break;
+          case 'Elder Item':
+            item.influences = item.influences ?? ([] as string[]);
+            item.influences.push('elder');
+            lines.pop();
+            break;
+          case 'Crusader Item':
+            item.influences = item.influences ?? ([] as string[]);
+            item.influences.push('crusader');
+            lines.pop();
+            break;
+          case 'Redeemer Item':
+            item.influences = item.influences ?? ([] as string[]);
+            item.influences.push('redeemer');
+            lines.pop();
+            break;
+          case 'Hunter Item':
+            item.influences = item.influences ?? ([] as string[]);
+            item.influences.push('hunter');
+            lines.pop();
+            break;
+          case 'Warlord Item':
+            item.influences = item.influences ?? ([] as string[]);
+            item.influences.push('warlord');
+            lines.pop();
+            break;
+          default:
+            return;
+        }
+      }
+    })();
 
     lines.calcSections();
   }
@@ -1090,63 +1112,6 @@ export class ItemParser {
       return true;
     }
 
-    if (stat == 'Shaper Item') {
-      item.influences = item.influences ?? ([] as string[]);
-      item.influences.push('shaper');
-      return true;
-    }
-
-    if (stat == 'Elder Item') {
-      item.influences = item.influences ?? ([] as string[]);
-      item.influences.push('elder');
-      return true;
-    }
-
-    if (stat == 'Crusader Item') {
-      item.influences = item.influences ?? ([] as string[]);
-      item.influences.push('crusader');
-      return true;
-    }
-
-    if (stat == 'Redeemer Item') {
-      item.influences = item.influences ?? ([] as string[]);
-      item.influences.push('redeemer');
-
-      return true;
-    }
-
-    if (stat == 'Hunter Item') {
-      item.influences = item.influences ?? ([] as string[]);
-      item.influences.push('hunter');
-
-      return true;
-    }
-
-    if (stat == 'Warlord Item') {
-      item.influences = item.influences ?? ([] as string[]);
-      item.influences.push('warlord');
-
-      return true;
-    }
-
-    if (stat == 'Corrupted') {
-      // Should already have been processed
-      item.corrupted = true;
-      return true;
-    }
-
-    if (stat == 'Fractured Item') {
-      // Should already have been processed
-      item.fractured = true;
-      return true;
-    }
-
-    if (stat == 'Synthesised Item') {
-      // Should already have been processed
-      item.synthesised = true;
-      return true;
-    }
-
     // Vaal gems
     if (item.category == 'gem') {
       if (stat.startsWith('Vaal ')) {
@@ -1262,6 +1227,11 @@ export class ItemParser {
     if (!found) {
       let results = this.stats[stattype].fuse.search(stat);
 
+      // Don't bother checking more than the first couple of results
+      // since the results are sorted
+      results = results.slice(0, 5);
+
+      // Further filter out any that exceed the score threshold
       results = results.filter(r => {
         if (r.score) return r.score <= FuseMatchThreshold;
         return false;
