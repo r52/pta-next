@@ -7,7 +7,7 @@ export default {
       fetch: 'https://www.pathofexile.com/api/trade/fetch/',
       search: 'https://www.pathofexile.com/api/trade/search/',
       exchange: 'https://www.pathofexile.com/api/trade/exchange/',
-      site: 'https://www.pathofexile.com/trade/search/'
+      site: 'https://www.pathofexile.com/trade/'
     }
   },
   repoe: {
