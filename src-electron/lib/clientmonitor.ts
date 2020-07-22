@@ -159,30 +159,32 @@ export default class ClientMonitor extends EventEmitter {
       const msg = msgparts[1];
 
       const processed = Object.entries(trademsg).some(entry => {
-        const mobj = entry[1];
+        const mobjs = entry[1];
 
-        if (msg.startsWith(mobj.test)) {
-          // process
-          mobj.types.some(t => {
-            const match = t.reg.exec(msg);
+        return mobjs.some(mobj => {
+          if (msg.startsWith(mobj.test)) {
+            // process
+            mobj.types.some(t => {
+              const match = t.reg.exec(msg);
 
-            if (match) {
-              const tradeobj = t.process(pname, type, match);
+              if (match) {
+                const tradeobj = t.process(pname, type, match);
 
-              if (tradeobj) {
-                this.emit('new-trade', tradeobj);
+                if (tradeobj) {
+                  this.emit('new-trade', tradeobj);
 
-                return true;
+                  return true;
+                }
               }
-            }
 
-            return false;
-          });
+              return false;
+            });
 
-          return true;
-        }
+            return true;
+          }
 
-        return false;
+          return false;
+        });
       });
 
       if (!processed && type == 'incoming') {

@@ -8,6 +8,7 @@ interface TradeMsg {
   tab?: string;
   x?: number;
   y?: number;
+  msg?: string;
   time: number;
 }
 
@@ -25,7 +26,7 @@ interface TabInfo {
 }
 
 interface TradeMessages {
-  [index: string]: TradeMessageProcess;
+  [index: string]: TradeMessageProcess[];
 }
 
 interface TradeMessageProcess {

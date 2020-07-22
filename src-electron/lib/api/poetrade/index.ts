@@ -920,7 +920,8 @@ export class POETradeAPI implements PriceAPI {
         }
 
         if (openbrowser) {
-          const burl = URLs.official.trade.site + league + '/' + resp['id'];
+          const burl =
+            URLs.official.trade.site + 'search/' + league + '/' + resp['id'];
           void shell.openExternal(burl);
           return;
         }
@@ -984,7 +985,12 @@ export class POETradeAPI implements PriceAPI {
       options: searchoptions,
       forcetab: forcetab,
       exchange: exchange,
-      siteurl: URLs.official.trade.site + league + '/' + response['id']
+      siteurl:
+        URLs.official.trade.site +
+        (exchange ? 'exchange/' : 'search/') +
+        league +
+        '/' +
+        response['id']
     } as PoETradeResults;
 
     Promise.all(urls).then(
