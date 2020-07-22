@@ -1224,6 +1224,11 @@ export class ItemParser {
       }
     }
 
+    // Handle anointments
+    if (stat.startsWith('Allocates ') && stattype === 'enchant') {
+      stat = stat.substring(0, stat.indexOf(' '));
+    }
+
     if (!found) {
       let results = this.stats[stattype].fuse.search(stat);
 
@@ -1246,24 +1251,35 @@ export class ItemParser {
         if (this.priorityRules.has(entry.id)) {
           const rule = this.priorityRules.get(entry.id) as Data.PriorityRule;
 
-          if (item.filters == null) {
-            // This mod has priorities but item has no filters yet
-            idx++;
-            continue;
-          }
+          if (rule.single) {
+            // There can only be a single one of these
+            if (
+              item.filters != null &&
+              Object.keys(item.filters).includes(entry.id)
+            ) {
+              idx++;
+              continue;
+            }
+          } else {
+            if (item.filters == null) {
+              // This mod has priorities but item has no filters yet
+              idx++;
+              continue;
+            }
 
-          const keys = Object.keys(item.filters);
+            const keys = Object.keys(item.filters);
 
-          // check each priority
-          const priorities = rule.priority;
-          const pass = priorities.every(p => {
-            return keys.includes(p);
-          });
+            // check each priority
+            const priorities = rule.priority;
+            const pass = priorities.every(p => {
+              return keys.includes(p);
+            });
 
-          if (!pass) {
-            // doesn't pass priority rules
-            idx++;
-            continue;
+            if (!pass) {
+              // doesn't pass priority rules
+              idx++;
+              continue;
+            }
           }
         }
 

@@ -93,6 +93,7 @@ declare namespace Data {
 
   // https://raw.githubusercontent.com/r52/pta-data/master/data/priority_rules.json
   interface PriorityRule {
+    single: boolean;
     priority: string[];
   }
 
