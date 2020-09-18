@@ -394,6 +394,10 @@ export default class TradeManager {
       this.stashSetup.on('closed', () => {
         this.stashSetup = null;
       });
+
+      this.stashSetup.webContents.once('did-finish-load', () => {
+        this.stashSetup?.moveTop();
+      });
     } else {
       this.stashSetup.close();
 
@@ -450,6 +454,7 @@ export default class TradeManager {
     if (this.stashHighlight) {
       this.stashHighlight.webContents.send('highlight', tabinfo);
       this.stashHighlight.show();
+      this.stashHighlight.moveTop();
     }
   }
 
