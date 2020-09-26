@@ -13,7 +13,7 @@
         :columns="columns"
         row-key="name"
         no-data-label="No Results"
-        :pagination.sync="pagination"
+        :pagination="pagination"
       >
         <template v-slot:body-cell-price="props">
           <q-td :props="props">
