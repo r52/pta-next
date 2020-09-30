@@ -125,7 +125,7 @@ body {
 }
 
 .grid-item {
-  margin: 20px;
+  margin: 0px;
 }
 
 .pulse {
