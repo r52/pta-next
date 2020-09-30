@@ -3,7 +3,7 @@
     <div class="col-8">
       <q-item tag="label" v-ripple>
         <q-item-section avatar>
-          <q-toggle dense v-model="options[type].enabled" />
+          <q-toggle dense v-model="opts[type].enabled" />
         </q-item-section>
         <q-item-section>
           <q-item-label class="magic--text">{{ label }}</q-item-label>
@@ -11,7 +11,12 @@
       </q-item>
     </div>
     <div class="col">
-      <mod-num-input type="min" :filter="options[type]" :current="current" />
+      <mod-num-input
+        type="min"
+        :filter="opts[type]"
+        :current="current"
+        @update="update"
+      />
     </div>
     <div class="col text-center">
       <span
@@ -20,13 +25,18 @@
       </span>
     </div>
     <div class="col">
-      <mod-num-input type="max" :filter="options[type]" :current="current" />
+      <mod-num-input
+        type="max"
+        :filter="opts[type]"
+        :current="current"
+        @update="update"
+      />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from '@vue/composition-api';
+import { defineComponent, PropType, ref, watch } from '@vue/composition-api';
 import ModNumInput from 'components/ModNumInput.vue';
 
 export default defineComponent({
@@ -56,12 +66,22 @@ export default defineComponent({
     }
   },
 
-  setup(props) {
+  setup(props, ctx) {
+    const opts = ref(props.options);
+
+    watch(opts, opts => {
+      ctx.emit('update', opts.value);
+    });
+
+    function update(flt: MinMaxToggle) {
+      opts.value[props.type] = flt;
+    }
+
     const range = props.settings.prefillrange / 100.0;
     const value = props.current;
     const diff = range * value;
 
-    const tog = props.options[props.type] as MinMaxToggle;
+    const tog = opts.value[props.type] as MinMaxToggle;
 
     if (props.settings.prefillmin && !tog.min) {
       tog.min = Math.round(value - diff);
@@ -70,6 +90,11 @@ export default defineComponent({
     if (props.settings.prefillmax && !tog.max) {
       tog.max = Math.round(value + diff);
     }
+
+    return {
+      opts,
+      update
+    };
   }
 });
 </script>

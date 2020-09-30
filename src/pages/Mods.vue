@@ -21,66 +21,75 @@
 
         <!-- weapon/armour -->
         <base-mod-filter
-          v-if="item.weapon && item.weapon.pdps"
+          v-if="itm.weapon && itm.weapon.pdps"
           label="Physical DPS"
-          :options="options"
+          :options="opts"
           :settings="settings"
           type="usepdps"
-          :current="getAvg(item.weapon.mqpdps) * item.weapon.aps"
+          :current="getAvg(itm.weapon.mqpdps) * itm.weapon.aps"
+          @update="updateBaseMod"
         />
         <base-mod-filter
-          v-if="item.weapon && item.weapon.edps"
+          v-if="itm.weapon && itm.weapon.edps"
           label="Elemental DPS"
-          :options="options"
+          :options="opts"
           :settings="settings"
           type="useedps"
-          :current="getAvg(item.weapon.edps) * item.weapon.aps"
+          :current="getAvg(itm.weapon.edps) * itm.weapon.aps"
+          @update="updateBaseMod"
         />
         <base-mod-filter
-          v-if="item.armour && item.armour.ar"
+          v-if="itm.armour && itm.armour.ar"
           label="Armour"
-          :options="options"
+          :options="opts"
           :settings="settings"
           type="usear"
-          :current="item.armour.mqar"
+          :current="itm.armour.mqar"
+          @update="updateBaseMod"
         />
         <base-mod-filter
-          v-if="item.armour && item.armour.ev"
+          v-if="itm.armour && itm.armour.ev"
           label="Evasion"
-          :options="options"
+          :options="opts"
           :settings="settings"
           type="useev"
-          :current="item.armour.mqev"
+          :current="itm.armour.mqev"
+          @update="updateBaseMod"
         />
         <base-mod-filter
-          v-if="item.armour && item.armour.es"
+          v-if="itm.armour && itm.armour.es"
           label="Energy Shield"
-          :options="options"
+          :options="opts"
           :settings="settings"
           type="usees"
-          :current="item.armour.mqes"
+          :current="itm.armour.mqes"
+          @update="updateBaseMod"
         />
 
-        <q-separator v-if="item.weapon || item.armour" />
+        <q-separator v-if="itm.weapon || itm.armour" />
 
         <!-- mods -->
         <mod-filter
-          v-for="filter in item.filters"
+          v-for="filter in itm.filters"
           :key="filter.id"
+          :id="filter.id"
           :filter="filter"
           :settings="settings"
           type="normal"
+          @update="updateFilter"
         />
         <q-separator />
         <mod-filter
-          v-for="filter in item.pseudos"
+          v-for="filter in itm.pseudos"
           :key="filter.id"
+          :id="filter.id"
           :filter="filter"
           :settings="settings"
           type="pseudo"
+          @update="updateFilter"
         />
 
-        <q-separator v-if="item.pseudos" />
+        <q-separator v-if="itm.pseudos" />
 
         <!-- misc option checkboxes -->
         <div class="row items-center">
@@ -89,7 +98,7 @@
               dense
               options-dense
               stack-label
-              v-model="options.usecorrupted"
+              v-model="opts.usecorrupted"
               :options="corrupts"
               label="Corrupted"
               style="width: 100px;"
@@ -98,23 +107,23 @@
           <q-space />
           <div class="col-auto">
             <q-toggle
-              v-if="item.sockets"
-              v-model="options.usesockets"
-              :label="`Use Sockets (${item.sockets.total})`"
+              v-if="itm.sockets"
+              v-model="opts.usesockets"
+              :label="`Use Sockets (${itm.sockets.total})`"
             />
           </div>
           <div class="col-auto">
             <q-toggle
-              v-if="item.sockets"
-              v-model="options.uselinks"
-              :label="`Use Links (${item.sockets.links})`"
+              v-if="itm.sockets"
+              v-model="opts.uselinks"
+              :label="`Use Links (${itm.sockets.links})`"
             />
           </div>
         </div>
         <q-separator />
         <div class="row items-center justify-end">
           <div class="col-auto">
-            <q-toggle label="iLvl (min):" v-model="options.useilvl" />
+            <q-toggle label="iLvl (min):" v-model="opts.useilvl" />
           </div>
 
           <div class="col-auto">
@@ -122,8 +131,8 @@
               dense
               clearable
               type="number"
-              v-model.number.lazy="item.ilvl"
-              @input="options.useilvl = true"
+              v-model.number.lazy="itm.ilvl"
+              @input="opts.useilvl = true"
               @keypress="isNumber($event)"
               class="q-pa-xs"
               style="width: 60px"
@@ -131,15 +140,12 @@
           </div>
 
           <div class="col-auto">
-            <q-toggle label="Use Item Base" v-model="options.useitembase" />
+            <q-toggle label="Use Item Base" v-model="opts.useitembase" />
           </div>
-          <div
-            class="col-auto"
-            v-if="item.influences && item.influences.length"
-          >
+          <div class="col-auto" v-if="itm.influences && itm.influences.length">
             <q-toggle
-              v-for="inf in item.influences"
-              v-model="options.influences"
+              v-for="inf in itm.influences"
+              v-model="opts.influences"
               :key="inf"
               :label="inf"
               :val="inf"
@@ -148,17 +154,17 @@
           </div>
           <div class="col-auto">
             <q-toggle
-              v-if="item.synthesised"
+              v-if="itm.synthesised"
               label="Synthesised"
-              v-model="options.usesynthesised"
+              v-model="opts.usesynthesised"
               color="orange"
             />
           </div>
           <div class="col-auto">
             <q-toggle
-              v-if="item.fractured"
+              v-if="itm.fractured"
               label="Fractured"
-              v-model="options.usefractured"
+              v-model="opts.usefractured"
               color="amber"
             />
           </div>
@@ -193,7 +199,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from '@vue/composition-api';
+import { defineComponent, PropType, ref } from '@vue/composition-api';
 import { isNumber } from '../functions/util';
 import { ipcRenderer } from 'electron';
 import BaseModFilter from 'components/BaseModFilter.vue';
@@ -223,6 +229,21 @@ export default defineComponent({
   },
 
   setup(props) {
+    const itm = ref(props.item);
+    const opts = ref(props.options);
+
+    function updateBaseMod(o: ItemOptions) {
+      opts.value = o;
+    }
+
+    function updateFilter(type: string, id: string, f: Filter) {
+      if (type == 'normal' && itm.value.filters) {
+        itm.value.filters[id] = f;
+      } else if (type == 'pseudo' && itm.value.pseudos) {
+        itm.value.pseudos[id] = f;
+      }
+    }
+
     const corrupts = ['Any', 'Yes', 'No'];
 
     function getAvg(range: NumericRange) {
@@ -230,10 +251,14 @@ export default defineComponent({
     }
 
     function search(openbrowser: boolean) {
-      ipcRenderer.send('search', props.item, props.options, openbrowser);
+      ipcRenderer.send('search', itm.value, opts.value, openbrowser);
     }
 
     return {
+      itm,
+      opts,
+      updateBaseMod,
+      updateFilter,
       corrupts,
       getAvg,
       isNumber,

@@ -3,8 +3,8 @@
     dense
     clearable
     type="number"
-    v-model.number="filter[type]"
-    v-on:input="filter.enabled = true"
+    v-model.number="flt[type]"
+    v-on:input="flt.enabled = true"
     :disabled="disabled"
     @keypress="isNumber($event)"
     @mousewheel="scrollNum($event)"
@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from '@vue/composition-api';
+import { defineComponent, PropType, watch, ref } from '@vue/composition-api';
 import { isNumber } from '../functions/util';
 
 export default defineComponent({
@@ -32,18 +32,24 @@ export default defineComponent({
     current: Number
   },
 
-  setup(props) {
+  setup(props, ctx) {
+    const flt = ref(props.filter);
+
+    watch(flt, flt => {
+      ctx.emit('update', flt.value);
+    });
+
     let isint = false;
 
     if (!props.disabled) {
-      let val = props.filter[props.type] as number | null;
+      let val = flt.value[props.type] as number | null;
 
       if (val == null) {
-        if (props.filter.value != null) {
-          if (props.filter.value.length > 1) {
-            val = (props.filter.value[0] + props.filter.value[1]) / 2;
+        if (flt.value.value != null) {
+          if (flt.value.value.length > 1) {
+            val = (flt.value.value[0] + flt.value.value[1]) / 2;
           } else {
-            val = props.filter.value[0];
+            val = flt.value.value[0];
           }
         } else if (props.current) {
           val = Math.round(props.current);
@@ -59,14 +65,14 @@ export default defineComponent({
       if (!props.disabled) {
         const dir = evt.deltaY > 0 ? -1 : 1;
 
-        let val = props.filter[props.type] as number | null;
+        let val = flt.value[props.type] as number | null;
 
         if (val == null) {
-          if (props.filter.value != null) {
-            if (props.filter.value.length > 1) {
-              val = (props.filter.value[0] + props.filter.value[1]) / 2;
+          if (flt.value.value != null) {
+            if (flt.value.value.length > 1) {
+              val = (flt.value.value[0] + flt.value.value[1]) / 2;
             } else {
-              val = props.filter.value[0];
+              val = flt.value.value[0];
             }
           } else if (props.current) {
             val = Math.round(props.current);
@@ -76,12 +82,13 @@ export default defineComponent({
         const step = isint ? 1 : 0.1;
         const change = step * dir;
         val = (val as number) + change;
-        props.filter[props.type] = Math.round(val * 100) / 100;
-        props.filter.enabled = true;
+        flt.value[props.type] = Math.round(val * 100) / 100;
+        flt.value.enabled = true;
       }
     }
 
     return {
+      flt,
       scrollNum,
       isNumber
     };
