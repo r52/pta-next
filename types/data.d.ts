@@ -1,5 +1,7 @@
 // Incomplete schemas for essential data downloaded and used by PTA-Next
 
+import { StatFilter } from './item';
+
 declare namespace Data {
   // https://www.pathofexile.com/api/trade/data/leagues
   interface Leagues {

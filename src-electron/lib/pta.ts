@@ -25,6 +25,8 @@ import TradeManager from './trademanager';
 import URLs from './api/urls';
 import { POETradeAPI } from './api/poetrade';
 import { POEPricesAPI } from './api/poeprices';
+import { Item, ItemOptions, PriceAPI, PTASettings } from 'app/types/item';
+import { Data } from 'app/types/data';
 
 enum ItemHotkey {
   SIMPLE = 0,

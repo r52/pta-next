@@ -2,11 +2,21 @@ import { app, dialog, BrowserWindow } from 'electron';
 import MultiMap from 'multimap';
 import log from 'electron-log';
 import axios from 'axios';
-import Fuse from 'fuse.js';
-
 import URLs from './api/urls';
-
-const FuseMatchThreshold = 0.6;
+import {
+  NumericRange,
+  StatFilter,
+  StatType,
+  Misc,
+  Armour,
+  Weapon,
+  Requirements,
+  Sockets,
+  Filter,
+  Item
+} from 'app/types/item';
+import { Searcher } from 'fast-fuzzy';
+import { Data } from 'app/types/data';
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -255,40 +265,26 @@ export class ItemParser {
                   this.statsById.set(entry.id, entry);
                 }
 
-                // construct option fuse
+                // construct option fuzzy search
                 if (entry.option != null) {
-                  const index = Fuse.createIndex(
-                    ['text'],
-                    entry.option.options
-                  );
-                  entry.option.fuse = new Fuse(
-                    entry.option.options,
-                    {
-                      keys: ['text'],
-                      shouldSort: true,
-                      threshold: 0.6,
-                      ignoreLocation: true,
-                      includeScore: false
-                    },
-                    index
-                  );
+                  entry.option.searcher = new Searcher(entry.option.options, {
+                    keySelector: o => o.text,
+                    ignoreCase: false,
+                    ignoreSymbols: false,
+                    returnMatchData: true
+                  });
                 }
               }
 
-              // construct fuse
-              const index = Fuse.createIndex(['text'], entrylist);
+              // construct fuzzy search
               this.stats[typelabel] = {
                 entries: entrylist,
-                fuse: new Fuse(
-                  entrylist,
-                  {
-                    keys: ['text'],
-                    shouldSort: true,
-                    threshold: FuseMatchThreshold,
-                    includeScore: true
-                  },
-                  index
-                )
+                searcher: new Searcher(entrylist, {
+                  keySelector: o => o.text,
+                  ignoreCase: false,
+                  ignoreSymbols: false,
+                  returnMatchData: true
+                })
               };
             }
 
@@ -1230,22 +1226,25 @@ export class ItemParser {
     }
 
     if (!found) {
-      let results = this.stats[stattype].fuse.search(stat);
+      let results = this.stats[stattype].searcher.search(stat);
 
       // Don't bother checking more than the first couple of results
       // since the results are sorted
       results = results.slice(0, 5);
 
-      // Further filter out any that exceed the score threshold
-      results = results.filter(r => {
-        if (r.score) return r.score <= FuseMatchThreshold;
-        return false;
-      });
-
       // loop thru the first couple of results
       let idx = 0;
       while (results.length && idx < results.length) {
-        const entry = results[idx].item;
+        const entry = results[idx].item as StatFilter;
+
+        // Skip ones that are excessively different in size
+        if (
+          entry.text.length > stat.length * 1.25 ||
+          entry.text.length < stat.length * 0.75
+        ) {
+          idx++;
+          continue;
+        }
 
         // check priority rules
         if (this.priorityRules.has(entry.id)) {
@@ -1361,11 +1360,11 @@ export class ItemParser {
             search = search.replace(end, '');
           }
 
-          const results = foundEntry.option.fuse.search(search);
+          const results = foundEntry.option.searcher.search(search);
 
           // look for exact matches within results
-          results.some((e: { item: FilterOption }) => {
-            if (e.item.text.includes(search)) {
+          results.some(e => {
+            if (e.item?.text.includes(search)) {
               selected = e.item.id;
               return true;
             }

@@ -38,6 +38,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, watch } from '@vue/composition-api';
 import ModNumInput from 'components/ModNumInput.vue';
+import { ItemOptions, PTASettings, MinMaxToggle } from 'app/types/item';
 
 export default defineComponent({
   name: 'BaseModFilter',

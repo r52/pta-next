@@ -204,6 +204,13 @@ import { isNumber } from '../functions/util';
 import { ipcRenderer } from 'electron';
 import BaseModFilter from 'components/BaseModFilter.vue';
 import ModFilter from 'components/ModFilter.vue';
+import {
+  Item,
+  ItemOptions,
+  Filter,
+  NumericRange,
+  PTASettings
+} from 'app/types/item';
 
 export default defineComponent({
   name: 'Mods',

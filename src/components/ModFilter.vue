@@ -57,6 +57,7 @@ import {
   watch
 } from '@vue/composition-api';
 import ModNumInput from 'components/ModNumInput.vue';
+import { Filter, PTASettings } from 'app/types/item';
 
 export default defineComponent({
   name: 'ModFilter',

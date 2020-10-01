@@ -15,6 +15,7 @@
 <script lang="ts">
 import { defineComponent, PropType, watch, ref } from '@vue/composition-api';
 import { isNumber } from '../functions/util';
+import { Filter } from 'app/types/item';
 
 export default defineComponent({
   name: 'ModNumInput',

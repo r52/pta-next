@@ -1,4 +1,6 @@
-interface Item {
+import { Searcher } from 'fast-fuzzy';
+
+export interface Item {
   origtext: string;
   rarity: string;
   type: string;
@@ -27,7 +29,7 @@ interface Item {
   armour?: Armour;
 }
 
-interface Filter {
+export interface Filter {
   [index: string]:
     | string
     | number
@@ -55,14 +57,14 @@ interface Filter {
   disabled?: boolean;
 }
 
-interface Misc {
+export interface Misc {
   disc?: string;
   gemlevel?: number;
   gemprogress?: string;
   maptier?: number;
 }
 
-interface Sockets {
+export interface Sockets {
   [index: string]: number;
   links: number;
   total: number;
@@ -74,14 +76,14 @@ interface Sockets {
   D: number;
 }
 
-interface Requirements {
+export interface Requirements {
   lvl?: number;
   str?: number;
   dex?: number;
   int?: number;
 }
 
-interface Weapon {
+export interface Weapon {
   aps: number;
   crit: number;
   pdps?: NumericRange;
@@ -90,7 +92,7 @@ interface Weapon {
   mqpdps?: NumericRange;
 }
 
-interface Armour {
+export interface Armour {
   ar?: number;
   ev?: number;
   es?: number;
@@ -101,34 +103,34 @@ interface Armour {
   mqes?: number;
 }
 
-interface NumericRange {
+export interface NumericRange {
   min: number;
   max: number;
 }
 
-interface StatType {
+export interface StatType {
   entries: StatFilter[];
-  fuse: Fuse.default<StatFilter>;
+  searcher: Searcher<StatFilter>;
 }
 
-interface StatFilter {
+export interface StatFilter {
   id: string;
   text: string;
   type: string;
   option?: StatFilterOptions;
 }
 
-interface StatFilterOptions {
+export interface StatFilterOptions {
   options: FilterOption[];
-  fuse: Fuse.default<FilterOption>;
+  searcher: Searcher<FilterOption>;
 }
 
-interface FilterOption {
+export interface FilterOption {
   id: number;
   text: string;
 }
 
-interface PriceAPI {
+export interface PriceAPI {
   searchItemWithDefaults(event: Electron.IpcMainEvent, item: Item): void;
   searchItemWithOptions?(
     event: Electron.IpcMainEvent,
@@ -138,7 +140,7 @@ interface PriceAPI {
   ): void;
 }
 
-interface PTASettings {
+export interface PTASettings {
   league: string;
   displaylimit: number;
   corruptoverride: boolean;
@@ -157,14 +159,14 @@ interface PTASettings {
   prefillbase: boolean;
 }
 
-interface MinMaxToggle {
+export interface MinMaxToggle {
   [index: string]: boolean | number | null; // allow indexing
   enabled: boolean;
   min: number | null;
   max: number | null;
 }
 
-interface ItemOptions {
+export interface ItemOptions {
   [index: string]: MinMaxToggle | boolean | string | string[]; // allow indexing
   usepdps: MinMaxToggle;
   useedps: MinMaxToggle;
