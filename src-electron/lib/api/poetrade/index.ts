@@ -11,6 +11,15 @@ import { PTA } from '../../pta';
 
 import URLs from '../urls';
 
+import {
+  Item,
+  PriceAPI,
+  ItemOptions,
+  Filter,
+  MinMaxToggle
+} from 'app/types/item';
+import { Data } from 'app/types/data';
+
 export class POETradeAPI implements PriceAPI {
   private exchange: Map<string, string>;
   private currencies: Set<string>;

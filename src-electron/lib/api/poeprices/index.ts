@@ -6,6 +6,7 @@ import MultiMap from 'multimap';
 import { PTA } from '../../pta';
 import Config from '../../config';
 import URLs from '../urls';
+import { Item, PriceAPI } from 'app/types/item';
 
 export class POEPricesAPI implements PriceAPI {
   private uniques: MultiMap;

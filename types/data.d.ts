@@ -1,5 +1,7 @@
 // Incomplete schemas for essential data downloaded and used by PTA-Next
 
+import { StatFilter } from './item';
+
 declare namespace Data {
   // https://www.pathofexile.com/api/trade/data/leagues
   interface Leagues {
@@ -63,13 +65,18 @@ declare namespace Data {
   }
 
   // https://raw.githubusercontent.com/r52/pta-data/master/data/enchant_rules.json
-  interface EnchantRule {
+  interface SpecialRule {
     id?: string;
+    search?: string;
+    fixes?: {
+      if: string;
+      val: string;
+    }[];
     value?: number;
   }
 
-  interface Enchants {
-    [index: string]: EnchantRule;
+  interface Specials {
+    [index: string]: SpecialRule;
   }
 
   // https://raw.githubusercontent.com/r52/pta-data/master/data/pseudo_rules.json

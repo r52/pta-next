@@ -60,6 +60,7 @@
 import { defineComponent, PropType } from '@vue/composition-api';
 import { getElapsedTime } from '../functions/util';
 import { useElectronUtil } from '../functions/context';
+import { Item } from 'app/types/item';
 
 function parseListings(type: string, results: PoETradeListing[]) {
   const lst: PriceListing[] = [];

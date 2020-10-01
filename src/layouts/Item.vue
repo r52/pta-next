@@ -102,6 +102,7 @@ import {
 } from '@vue/composition-api';
 import { useElectronUtil } from '../functions/context';
 import { ipcRenderer } from 'electron';
+import { Item, ItemOptions, PTASettings } from 'app/types/item';
 
 export default defineComponent({
   name: 'Item',
