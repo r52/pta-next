@@ -23,7 +23,7 @@ export default {
       'https://raw.githubusercontent.com/r52/pta-data/master/data/armour_locals.json',
     weapon:
       'https://raw.githubusercontent.com/r52/pta-data/master/data/weapon_locals.json',
-    enchant:
+    special:
       'https://raw.githubusercontent.com/r52/pta-data/master/data/enchant_rules.json',
     pseudo:
       'https://raw.githubusercontent.com/r52/pta-data/master/data/pseudo_rules.json',

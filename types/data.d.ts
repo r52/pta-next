@@ -65,13 +65,18 @@ declare namespace Data {
   }
 
   // https://raw.githubusercontent.com/r52/pta-data/master/data/enchant_rules.json
-  interface EnchantRule {
+  interface SpecialRule {
     id?: string;
+    search?: string;
+    fixes?: {
+      if: string;
+      val: string;
+    }[];
     value?: number;
   }
 
-  interface Enchants {
-    [index: string]: EnchantRule;
+  interface Specials {
+    [index: string]: SpecialRule;
   }
 
   // https://raw.githubusercontent.com/r52/pta-data/master/data/pseudo_rules.json

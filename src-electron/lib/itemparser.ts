@@ -218,7 +218,7 @@ export class ItemParser {
   private statsById: Map<string, StatFilter>;
   private weaponLocals: Set<string>;
   private armourLocals: Set<string>;
-  private enchantRules: Map<string, Data.EnchantRule>;
+  private specialRules: Map<string, Data.SpecialRule>;
   private pseudoRules: Map<string, Data.PseudoRule[]>;
   private discriminators: Map<string, Set<string>>;
   private priorityRules: Map<string, Data.PriorityRule>;
@@ -456,15 +456,15 @@ export class ItemParser {
       });
 
     ///////////////////////////////////////////// Load enchant rules
-    this.enchantRules = new Map<string, Data.EnchantRule>();
+    this.specialRules = new Map<string, Data.SpecialRule>();
 
     axios
-      .get<Data.Enchants>(URLs.pta.enchant)
+      .get<Data.Specials>(URLs.pta.special)
       .then(response => {
         const data = response.data;
 
         for (const [k, val] of Object.entries(data)) {
-          this.enchantRules.set(k, val);
+          this.specialRules.set(k, val);
         }
 
         log.info('Enchant rules loaded');
@@ -1170,7 +1170,8 @@ export class ItemParser {
       stat.includes('#') &&
       ((stat.includes('reduced') && !stat.includes('reduced Mana')) ||
         stat.includes('reduced Mana Reserved') ||
-        stat.includes('less'))
+        stat.includes('less')) &&
+      !stat.startsWith('Players have')
     ) {
       // If the stat line has a "reduced" value, try to
       // flip it and try again
@@ -1190,13 +1191,27 @@ export class ItemParser {
       factor = -1;
     }
 
-    // Handle enchant rules
-    if (this.enchantRules.has(stat)) {
-      const rule = this.enchantRules.get(stat) as Data.EnchantRule;
+    // Handle special rules
+    if (this.specialRules.has(stat)) {
+      const rule = this.specialRules.get(stat) as Data.SpecialRule;
 
       if (rule.id) {
         found = true;
         foundEntry = this.statsById.get(rule.id) as StatFilter;
+      }
+
+      if (rule.search) {
+        // Fix search term
+        stat = rule.search;
+      }
+
+      if (rule.fixes) {
+        // Fix value matching
+        rule.fixes.forEach(fix => {
+          if (fix.if == valstat) {
+            valstat = fix.val;
+          }
+        });
       }
 
       if (rule.value) {
