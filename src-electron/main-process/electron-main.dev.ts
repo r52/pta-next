@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-var-requires */
 /**
  * This file is used specifically and only for development. It installs
  * `electron-debug` & `vue-devtools`. There shouldn't be any need to
@@ -9,19 +7,22 @@
  *  environment.
  */
 
-// Install `electron-debug` with `devtron`
-require('electron-debug')({ showDevTools: false });
+import electronDebug from 'electron-debug';
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
+import { app } from 'electron';
 
-// Install `vue-devtools`
-require('electron').app.on('ready', () => {
-  const installExtension = require('electron-devtools-installer');
-  installExtension
-    .default(installExtension.VUEJS_DEVTOOLS)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch((err: any) => {
-      console.log('Unable to install `vue-devtools`: \n', err);
+// Install `electron-debug` with `devtron`
+electronDebug({ showDevTools: false });
+
+// Install vuejs devtools
+void app.whenReady().then(() => {
+  installExtension(VUEJS_DEVTOOLS)
+    .then(ext => {
+      console.log(`Added Extension: ${ext}`);
+    })
+    .catch(err => {
+      console.log('An error occurred: ', err);
     });
 });
 
-// Require `main` process to boot app
-require('./electron-main');
+import './electron-main';
