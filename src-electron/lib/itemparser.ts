@@ -632,6 +632,7 @@ export class ItemParser {
 
       // Initialize quality
       item.quality = 0;
+      this.readAlternateGem(item);
     } else if ('Divination Card' == item.rarity) {
       item.category = item.rarity = 'card';
     } else if ('Currency' == item.rarity) {
@@ -837,6 +838,23 @@ export class ItemParser {
     lines.calcSections();
   }
 
+  private readAlternateGem(item: Item) {
+    item.misc = item.misc ?? ({} as Misc);
+
+    item.misc.gemalternatequality = 0;
+
+    if (item.type.startsWith('Anomalous ')) {
+      item.type = item.type.replace('Anomalous ', '');
+      item.misc.gemalternatequality = 1;
+    } else if (item.type.startsWith('Divergent ')) {
+      item.type = item.type.replace('Divergent ', '');
+      item.misc.gemalternatequality = 2;
+    } else if (item.type.startsWith('Phantasmal ')) {
+      item.type = item.type.replace('Phantasmal ', '');
+      item.misc.gemalternatequality = 3;
+    }
+  }
+
   private readName(name: string) {
     name = name.replace(/<<.*?>>|<.*?>/g, '');
     return name;
@@ -894,7 +912,7 @@ export class ItemParser {
       case 'Quality (Life and Mana Modifiers)':
       case 'Quality (Resistance Modifiers)':
       case 'Quality (Attribute Modifiers)':
-        item['quality'] = this.readPropInt(v);
+        item.quality = this.readPropInt(v);
         break;
       case 'Evasion Rating':
         item.armour = item.armour ?? ({} as Armour);

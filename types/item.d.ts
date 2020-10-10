@@ -60,6 +60,7 @@ export interface Filter {
 export interface Misc {
   disc?: string;
   gemlevel?: number;
+  gemalternatequality?: number;
   gemprogress?: string;
   maptier?: number;
 }

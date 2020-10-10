@@ -20,6 +20,13 @@ import {
 } from 'app/types/item';
 import { Data } from 'app/types/data';
 
+const AlternateQualityLabel = [
+  'Default',
+  'Anomalous',
+  'Divergent',
+  'Phantasmal'
+];
+
 export class POETradeAPI implements PriceAPI {
   private exchange: Map<string, string>;
   private currencies: Set<string>;
@@ -241,6 +248,9 @@ export class POETradeAPI implements PriceAPI {
                 },
                 quality: {
                   min: item.quality as number
+                },
+                gem_alternate_quality: {
+                  option: item.misc.gemalternatequality
                 }
               }
             }
@@ -257,6 +267,17 @@ export class POETradeAPI implements PriceAPI {
             {
               label: 'Quality',
               children: [{ label: (item.quality as number).toString() + '%' }]
+            },
+            {
+              label: 'Quality Type',
+              children: [
+                {
+                  label:
+                    AlternateQualityLabel[
+                      item.misc.gemalternatequality as number
+                    ]
+                }
+              ]
             }
           ]
         });
