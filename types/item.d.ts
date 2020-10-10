@@ -1,4 +1,4 @@
-import { Searcher } from 'fast-fuzzy';
+import { FullOptions, Searcher } from 'fast-fuzzy';
 
 export interface Item {
   origtext: string;
@@ -111,7 +111,7 @@ export interface NumericRange {
 
 export interface StatType {
   entries: StatFilter[];
-  searcher: Searcher<StatFilter>;
+  searcher: Searcher<StatFilter, FullOptions<StatFilter>>;
 }
 
 export interface StatFilter {
@@ -123,7 +123,7 @@ export interface StatFilter {
 
 export interface StatFilterOptions {
   options: FilterOption[];
-  searcher: Searcher<FilterOption>;
+  searcher: Searcher<FilterOption, FullOptions<FilterOption>>;
 }
 
 export interface FilterOption {

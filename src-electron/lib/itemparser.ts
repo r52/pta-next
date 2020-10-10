@@ -1259,7 +1259,9 @@ export class ItemParser {
     }
 
     if (!found) {
-      let results = this.stats[stattype].searcher.search(stat);
+      let results = this.stats[stattype].searcher.search(stat, {
+        returnMatchData: true
+      });
 
       // Don't bother checking more than the first couple of results
       // since the results are sorted
@@ -1268,7 +1270,7 @@ export class ItemParser {
       // loop thru the first couple of results
       let idx = 0;
       while (results.length && idx < results.length) {
-        const entry = results[idx].item as StatFilter;
+        const entry = results[idx].item;
 
         // Skip ones that are excessively different in size
         if (
@@ -1393,7 +1395,9 @@ export class ItemParser {
             search = search.replace(end, '');
           }
 
-          const results = foundEntry.option.searcher.search(search);
+          const results = foundEntry.option.searcher.search(search, {
+            returnMatchData: true
+          });
 
           // look for exact matches within results
           results.some(e => {
