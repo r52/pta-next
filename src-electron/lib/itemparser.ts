@@ -652,6 +652,11 @@ export class ItemParser {
       item.type = item.type.replace('Shaped ', '');
     }
 
+    if (item.category == 'prophecy') {
+      item.name = item.type;
+      item.type = 'Prophecy';
+    }
+
     if (item.category == null && this.uniques.has(item.type)) {
       const search = this.uniques.get(item.type) as Data.UniqueItemEntry[];
       if (search) {
@@ -827,6 +832,10 @@ export class ItemParser {
           case 'Warlord Item':
             item.influences = item.influences ?? ([] as string[]);
             item.influences.push('warlord');
+            lines.pop();
+            break;
+          case 'Right-click to add this prophecy to your character.':
+            item.category = 'prophecy';
             lines.pop();
             break;
           default:
@@ -1110,7 +1119,7 @@ export class ItemParser {
         const master = match[1];
 
         item.misc = item.misc ?? ({} as Misc);
-        item.misc.disc = master;
+        item.misc.disc = master.toLowerCase();
       }
 
       return true;
@@ -1210,8 +1219,14 @@ export class ItemParser {
     }
 
     // Handle special rules
-    if (this.specialRules.has(stat)) {
-      const rule = this.specialRules.get(stat) as Data.SpecialRule;
+    if (this.specialRules.has(stat) || this.specialRules.has(valstat)) {
+      let rule: Data.SpecialRule;
+
+      if (this.specialRules.has(valstat)) {
+        rule = this.specialRules.get(valstat) as Data.SpecialRule;
+      } else {
+        rule = this.specialRules.get(stat) as Data.SpecialRule;
+      }
 
       if (rule.id) {
         found = true;
