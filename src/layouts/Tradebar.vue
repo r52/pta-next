@@ -49,6 +49,26 @@
           <q-btn
             dense
             flat
+            color="red"
+            icon="change_history"
+            size="sm"
+            @click="sendMsg('open-cheatsheet-incursion')"
+          >
+            <q-tooltip>Incursion Cheat Sheet</q-tooltip>
+          </q-btn>
+          <q-btn
+            dense
+            flat
+            color="amber"
+            icon="change_circle"
+            size="sm"
+            @click="sendMsg('open-cheatsheet-betrayal')"
+          >
+            <q-tooltip>Betrayal Cheat Sheet</q-tooltip>
+          </q-btn>
+          <q-btn
+            dense
+            flat
             color="orange"
             icon="settings"
             size="sm"
