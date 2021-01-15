@@ -55,6 +55,10 @@ export default {
   tradeuiincoming: 'tradeui.incoming',
   tradeuioutgoing: 'tradeui.outgoing',
 
+  // cheat sheets
+  cheatsheetincursion: 'cheatsheet.incursion',
+  cheatsheetbetrayal: 'cheatsheet.betrayal',
+
   default: {
     // pta
     checkForUpdates: true,
@@ -134,6 +138,10 @@ export default {
         command: 'ty',
         close: false
       }
-    ]
+    ],
+
+    // cheat sheet
+    cheatsheetincursion: '',
+    cheatsheetbetrayal: ''
   }
 };

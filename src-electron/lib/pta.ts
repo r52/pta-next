@@ -42,6 +42,7 @@ export class PTA {
   private aboutWindow: BrowserWindow | null = null;
   private clientmonitor: ClientMonitor;
   private trademanager: TradeManager;
+  private cheatsheet: BrowserWindow | null = null;
 
   private uniques: MultiMap;
   private searchAPIs: PriceAPI[] = [];
@@ -159,6 +160,14 @@ export class PTA {
 
     ipcMain.on('open-settings', () => {
       this.createSettingsWindow();
+    });
+
+    ipcMain.on('open-cheatsheet-incursion', () => {
+      this.openCheatSheet('incursion');
+    });
+
+    ipcMain.on('open-cheatsheet-betrayal', () => {
+      this.openCheatSheet('betrayal');
     });
 
     ipcMain.on('vulkan-compat-changed', () => {
@@ -833,5 +842,75 @@ export class PTA {
         api.searchItemWithOptions(event, item, options, openbrowser);
       }
     });
+  }
+
+  private openCheatSheet(type: string) {
+    let path = '';
+
+    switch (type) {
+      case 'incursion':
+        path = cfg.get(
+          Config.cheatsheetincursion,
+          Config.default.cheatsheetincursion
+        ) as string;
+
+        path = path.trim();
+
+        if (!path) {
+          path = 'cheatsheets/incursion.png';
+        }
+        break;
+      case 'betrayal':
+        path = cfg.get(
+          Config.cheatsheetbetrayal,
+          Config.default.cheatsheetbetrayal
+        ) as string;
+
+        path = path.trim();
+
+        if (!path) {
+          path = 'cheatsheets/betrayal.png';
+        }
+        break;
+      default:
+        log.error('Unsupported cheat sheet type:', type);
+        return;
+    }
+
+    if (!this.cheatsheet) {
+      this.cheatsheet = cfg.window({ name: 'cheatsheet' }).create({
+        width: 1280,
+        height: 720,
+        alwaysOnTop: true,
+        frame: false,
+        resizable: true,
+        title: 'Cheat Sheet',
+        webPreferences: {
+          nodeIntegration: true,
+          enableRemoteModule: true
+        }
+      });
+
+      void this.cheatsheet.loadURL(
+        (process.env.APP_URL as string) + '#/cheatsheet'
+      );
+
+      this.cheatsheet.on('closed', () => {
+        this.cheatsheet = null;
+      });
+
+      this.cheatsheet.webContents.on('did-finish-load', () => {
+        this.cheatsheet?.webContents.send('cheatsheet-type', type, path);
+      });
+
+      this.cheatsheet.webContents.on('context-menu', () => {
+        this.cheatsheet?.close();
+      });
+    } else {
+      this.cheatsheet.show();
+      this.cheatsheet.moveTop();
+
+      this.cheatsheet.webContents.send('cheatsheet-type', type, path);
+    }
   }
 }

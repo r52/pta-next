@@ -61,6 +61,10 @@ const routes: RouteConfig[] = [
   {
     path: '/splash',
     component: () => import('layouts/Splash.vue')
+  },
+  {
+    path: '/cheatsheet',
+    component: () => import('layouts/CheatSheet.vue')
   }
 ];
 

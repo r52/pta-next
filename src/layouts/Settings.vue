@@ -19,6 +19,7 @@
         <q-tab name="macro" icon="gamepad" label="Macros" />
         <q-tab name="client" icon="desktop_windows" label="Client" />
         <q-tab name="tradeui" icon="swap_horiz" label="Trade UI" />
+        <q-tab name="cheatsheet" icon="addchart" label="Cheat Sheets" />
       </q-tabs>
     </q-header>
     <q-footer>
@@ -742,6 +743,45 @@
               </q-card>
             </q-dialog>
           </q-tab-panel>
+
+          <q-tab-panel name="cheatsheet">
+            <q-card>
+              <q-card-section>
+                <div class="text-h6">Cheat Sheets</div>
+                <div class="text-caption">
+                  Use Image URLs (Clear to use default PTA-Next cheat sheets)
+                </div>
+              </q-card-section>
+
+              <q-card-section class="q-pt-none">
+                <div class="q-pa-xs">
+                  <div class="row items-center">
+                    <div class="col">
+                      Incursion
+                    </div>
+                    <div class="col">
+                      <q-input
+                        v-model="settings.cheatsheet.incursion"
+                        label="Incursion Cheat Sheet (Image URL)"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <div class="col">
+                      Betrayal
+                    </div>
+                    <div class="col">
+                      <q-input
+                        v-model="settings.cheatsheet.betrayal"
+                        label="Betrayal Cheat Sheet (Image URL)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-tab-panel>
         </q-tab-panels>
       </q-page>
     </q-page-container>
@@ -922,6 +962,16 @@ export default defineComponent({
           Config.tradeuioutgoing,
           Config.default.tradeuioutgoing
         ) as TradeCommand[]
+      },
+      cheatsheet: {
+        incursion: cfg.get(
+          Config.cheatsheetincursion,
+          Config.default.cheatsheetincursion
+        ) as string,
+        betrayal: cfg.get(
+          Config.cheatsheetbetrayal,
+          Config.default.cheatsheetbetrayal
+        ) as string
       }
     });
 
@@ -1005,6 +1055,10 @@ export default defineComponent({
 
       ipcRenderer.send('tradeui-enabled', settings.tradeui.enabled);
       ipcRenderer.send('set-stash-highlight', settings.tradeui.highlight);
+
+      // cheat sheet
+      cfg.set(Config.cheatsheetincursion, settings.cheatsheet.incursion);
+      cfg.set(Config.cheatsheetbetrayal, settings.cheatsheet.betrayal);
 
       ctx.root.$q.notify({
         color: 'green',

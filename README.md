@@ -26,9 +26,9 @@ Portable version: Extract the archive and run **PTA-Next.exe**
 
 ## Known Issues
 
-- Overlay features (i.e. Trade Bar, Trade Notifications, Stash Highlighting) doesn't work when using Windowed Fullscreen with Vulkan
-  - Most desktop-based third-party tools are currently broken when using Vulkan Windowed Fullscreen in PoE because the current implementation of the Vulkan Windowed Fullscreen in PoE does not render within the desktop context.
-  - To workaround this, you can choose to emulate Windowed Fullscreen while using Vulkan by enabling the option in the settings (ensure that PoE is set to Windowed mode before enabling this option). Note that those with weaker computers may see performance issues while using this option because it is not "true" Windowed Fullscreen.
+- **Fixed by GGG. The setting will be kept if for whatever reason PTA-Next doesn't work with Vulkan Windowed Fullscreen on your PC.** ~~Overlay features (i.e. Trade Bar, Trade Notifications, Stash Highlighting) doesn't work when using Windowed Fullscreen with Vulkan~~
+  - ~~Most desktop-based third-party tools are currently broken when using Vulkan Windowed Fullscreen in PoE because the current implementation of the Vulkan Windowed Fullscreen in PoE does not render within the desktop context.~~
+  - ~~To workaround this, you can choose to emulate Windowed Fullscreen while using Vulkan by enabling the option in the settings (ensure that PoE is set to Windowed mode before enabling this option). Note that those with weaker computers may see performance issues while using this option because it is not "true" Windowed Fullscreen.~~
 
 ## Features
 
@@ -54,17 +54,23 @@ Portable version: Extract the archive and run **PTA-Next.exe**
   - `Disabled` by default
   - See [wiki](https://github.com/r52/pta-next/wiki#trade-ui) for examples.
   - **Please ensure that your Client.txt path in set in the settings for this to work!**
+- Cheat Sheets
+  - Currently includes Incursion and Betrayal
+  - Access from Trade Bar
+  - Custom images supported (change in settings)
 - Vulkan Windowed Fullscreen Emulation
   - `Disabled` by default
-  - Emulates Windowed Fullscreen mode when using Vulkan to restore functionality to third-party tools.
+  - Emulates Windowed Fullscreen mode when using Vulkan, if for whatever reason PTA-Next doesn't work with Vulkan Windowed Fullscreen on your PC.
   - Set your PoE to Windowed mode before enabling this setting!
 
 QoL Shortcuts:
 
 - Search Window
-  - Right Click/`Alt+C` - Dismiss window
+  - Right Click/`Alt+C` - Dismisses window
   - `Alt+S` - Search button
   - `Alt+E` - Open on pathofexile.com
+- Cheat Sheets
+  - Right Click - Dismisses window
 
 ## Building
 
