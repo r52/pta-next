@@ -543,20 +543,20 @@
 
                   <div class="row items-center">
                     <div class="col">
-                      Quad Stash Tabs for stash highlighting (separate each
-                      entry with a comma):
-                    </div>
-                    <div class="col">
-                      <q-input v-model="quadtabs" label="Quad Tabs" />
+                      <q-toggle
+                        v-model="settings.tradeui.highlight"
+                        label="Stash Highlighting"
+                      />
                     </div>
                   </div>
 
                   <div class="row items-center">
                     <div class="col">
-                      <q-toggle
-                        v-model="settings.tradeui.highlight"
-                        label="Stash highlighting (setup alignment using Trade bar)"
-                      />
+                      Quad Stash Tabs for stash highlighting (separate each
+                      entry with a comma):
+                    </div>
+                    <div class="col">
+                      <q-input v-model="quadtabs" label="Quad Tabs" />
                     </div>
                   </div>
 

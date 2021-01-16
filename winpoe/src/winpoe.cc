@@ -6,6 +6,8 @@
 
 namespace
 {
+    const double STASH_WIDTH_PCT = 0.346875;
+
     HWINEVENTHOOK g_ForegroundHook = nullptr;
 
     HWND g_LastPoEHwnd = nullptr;
@@ -105,7 +107,7 @@ namespace pta
     bool CheckMouseInStash(RECT bounds, int x)
     {
         int winLength = bounds.right - bounds.left;
-        int stashLength = (int)((double)winLength * 0.346875);
+        int stashLength = (int)((double)winLength * STASH_WIDTH_PCT);
 
         return (x > bounds.left && x < (bounds.left + stashLength));
     }
@@ -389,6 +391,36 @@ void InstallHandlerCallback(const Napi::CallbackInfo &info)
     });
 }
 
+Napi::Object GetPoERect(const Napi::CallbackInfo &info)
+{
+    Napi::Env env = info.Env();
+
+    Napi::Object result = Napi::Object::New(env);
+
+    result.Set(Napi::String::New(env, "valid"), false);
+
+    if (g_LastPoEHwnd)
+    {
+        result.Set(Napi::String::New(env, "valid"), true);
+
+        RECT rect;
+
+        GetClientRect(g_LastPoEHwnd, &rect);
+
+        result.Set(Napi::String::New(env, "w"), rect.right);
+        result.Set(Napi::String::New(env, "h"), rect.bottom);
+
+        POINT pt = {0, 0};
+
+        ClientToScreen(g_LastPoEHwnd, &pt);
+
+        result.Set(Napi::String::New(env, "x"), pt.x);
+        result.Set(Napi::String::New(env, "y"), pt.y);
+    }
+
+    return result;
+}
+
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // raw funcs
@@ -397,6 +429,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "SendPasteCommand"), Napi::Function::New(env, SendPasteCommand));
     exports.Set(Napi::String::New(env, "SendStashMove"), Napi::Function::New(env, SendStashMove));
     exports.Set(Napi::String::New(env, "SetPoEForeground"), Napi::Function::New(env, SetPoEForeground));
+    exports.Set(Napi::String::New(env, "GetPoERect"), Napi::Function::New(env, GetPoERect));
 
     // cbs
     exports.Set(Napi::String::New(env, "InstallHandlerCallback"), Napi::Function::New(env, InstallHandlerCallback));

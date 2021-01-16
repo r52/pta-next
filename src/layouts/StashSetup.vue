@@ -2,7 +2,7 @@
   <q-layout view="hHh Lpr fFf">
     <q-page-container>
       <q-page>
-        <div class="q-electron-drag bg-grey-9 top">
+        <div class="bg-grey-9 top">
           <div class="row">
             <div class="col-auto">
               <q-card class="q-ma-sm">
@@ -39,17 +39,19 @@ html {
 }
 
 body {
-  background-color: #121212e6 !important;
+  background-color: #12121200 !important;
 }
 
 .top {
   width: 100%;
-  min-height: 120px;
 }
 
 .grid {
-  width: 100%;
-  min-height: calc(100vh - 120px);
+  position: absolute;
+  top: 15.5%;
+  left: 2.5%;
+  width: 95%;
+  height: 77.3%;
   border-style: solid;
   border-width: 2px;
 }

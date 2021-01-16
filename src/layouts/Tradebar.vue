@@ -26,16 +26,18 @@
           >
             <q-tooltip>Test Notification</q-tooltip>
           </q-btn>
+          <!--
           <q-btn
             dense
             flat
             color="indigo-3"
             icon="grid_on"
             size="sm"
-            @click="sendMsg('stash-setup')"
+            @click="sendMsg('stash-debug')"
           >
-            <q-tooltip>Setup Stash Highlighting</q-tooltip>
+            <q-tooltip>Stash Highlighting Debug</q-tooltip>
           </q-btn>
+          -->
           <q-btn
             dense
             flat

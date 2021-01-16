@@ -4,6 +4,9 @@ import winpoe from 'winpoe';
 
 import Config from '../lib/config';
 
+const STASH_WIDTH_PCT = 0.346875;
+const STASH_HEIGHT_PCT = 0.759259;
+
 function getTradeVariable(trade: TradeMsg, token: string) {
   switch (token) {
     case 'item':
@@ -20,7 +23,7 @@ function getTradeVariable(trade: TradeMsg, token: string) {
 export default class TradeManager {
   private tradeBar: BrowserWindow | null = null;
   private tradeNotification: BrowserWindow | null = null;
-  private stashSetup: BrowserWindow | null = null;
+  private stashDebug: BrowserWindow | null = null;
   private stashHighlight: BrowserWindow | null = null;
   private stashHighlightTimeout: NodeJS.Timeout | null = null;
   private tradeHistory: TradeMsg[] = [];
@@ -87,8 +90,8 @@ export default class TradeManager {
       this.handleTradeCustomCommand(event, trade, command);
     });
 
-    ipcMain.on('stash-setup', () => {
-      this.toggleStashSetup();
+    ipcMain.on('stash-debug', () => {
+      this.toggleStashDebug();
     });
 
     ipcMain.on(
@@ -175,6 +178,28 @@ export default class TradeManager {
 
       this.tradeNotification?.show();
       this.tradeNotification?.moveTop();
+
+      if (this.stashHighlight) {
+        const rect = winpoe.getPoERect();
+
+        if (rect.valid) {
+          this.stashHighlight.setBounds({
+            width: Math.round((rect.w as number) * STASH_WIDTH_PCT),
+            height: Math.round((rect.h as number) * STASH_HEIGHT_PCT),
+            x: rect.x,
+            y: rect.y
+          });
+        }
+      } else {
+        const stashhighlight = cfg.get(
+          Config.tradestashhighlight,
+          Config.default.tradestashhighlight
+        ) as boolean;
+
+        if (stashhighlight) {
+          this.openStashHighlighter();
+        }
+      }
     }
   }
 
@@ -365,41 +390,47 @@ export default class TradeManager {
     winpoe.sendPaste();
   }
 
-  private toggleStashSetup() {
-    if (!this.stashSetup) {
+  private toggleStashDebug() {
+    if (!this.stashDebug) {
       if (this.stashHighlight) {
         this.stashHighlight.close();
       }
 
-      this.stashSetup = cfg.window({ name: 'stash' }).create({
-        width: 1000,
-        height: 800,
-        alwaysOnTop: true,
-        frame: false,
-        transparent: true,
-        backgroundColor: '#00000000',
-        resizable: true,
-        focusable: false,
-        skipTaskbar: true,
-        webPreferences: {
-          nodeIntegration: true,
-          enableRemoteModule: true
-        }
-      });
+      const rect = winpoe.getPoERect();
 
-      void this.stashSetup.loadURL(
-        (process.env.APP_URL as string) + '#/stashsetup'
-      );
+      if (rect.valid) {
+        this.stashDebug = new BrowserWindow({
+          width: Math.round((rect.w as number) * STASH_WIDTH_PCT),
+          height: Math.round((rect.h as number) * STASH_HEIGHT_PCT),
+          x: rect.x,
+          y: rect.y,
+          alwaysOnTop: true,
+          frame: false,
+          transparent: true,
+          backgroundColor: '#00000000',
+          resizable: false,
+          focusable: false,
+          skipTaskbar: true,
+          webPreferences: {
+            nodeIntegration: true,
+            enableRemoteModule: true
+          }
+        });
 
-      this.stashSetup.on('closed', () => {
-        this.stashSetup = null;
-      });
+        void this.stashDebug.loadURL(
+          (process.env.APP_URL as string) + '#/stashsetup'
+        );
 
-      this.stashSetup.webContents.once('did-finish-load', () => {
-        this.stashSetup?.moveTop();
-      });
+        this.stashDebug.on('closed', () => {
+          this.stashDebug = null;
+        });
+
+        this.stashDebug.webContents.once('did-finish-load', () => {
+          this.stashDebug?.moveTop();
+        });
+      }
     } else {
-      this.stashSetup.close();
+      this.stashDebug.close();
 
       const stashhighlight = cfg.get(
         Config.tradestashhighlight,
@@ -414,34 +445,38 @@ export default class TradeManager {
 
   private openStashHighlighter() {
     if (!this.stashHighlight) {
-      const wincfg = cfg.window({ name: 'stash' });
-      this.stashHighlight = new BrowserWindow({
-        width: 1000,
-        height: 800,
-        alwaysOnTop: true,
-        frame: false,
-        transparent: true,
-        backgroundColor: '#00000000',
-        resizable: false,
-        focusable: false,
-        skipTaskbar: true,
-        webPreferences: {
-          nodeIntegration: true,
-          enableRemoteModule: true
-        },
-        ...wincfg.options()
-      });
+      const rect = winpoe.getPoERect();
 
-      void this.stashHighlight.loadURL(
-        (process.env.APP_URL as string) + '#/stashhighlight'
-      );
+      if (rect.valid) {
+        this.stashHighlight = new BrowserWindow({
+          width: Math.round((rect.w as number) * STASH_WIDTH_PCT),
+          height: Math.round((rect.h as number) * STASH_HEIGHT_PCT),
+          x: rect.x,
+          y: rect.y,
+          alwaysOnTop: true,
+          frame: false,
+          transparent: true,
+          backgroundColor: '#00000000',
+          resizable: false,
+          focusable: false,
+          skipTaskbar: true,
+          webPreferences: {
+            nodeIntegration: true,
+            enableRemoteModule: true
+          }
+        });
 
-      this.stashHighlight.on('closed', () => {
-        this.stashHighlight = null;
-      });
+        void this.stashHighlight.loadURL(
+          (process.env.APP_URL as string) + '#/stashhighlight'
+        );
 
-      this.stashHighlight.setIgnoreMouseEvents(true);
-      this.stashHighlight.hide();
+        this.stashHighlight.on('closed', () => {
+          this.stashHighlight = null;
+        });
+
+        this.stashHighlight.setIgnoreMouseEvents(true);
+        this.stashHighlight.hide();
+      }
     }
   }
 
