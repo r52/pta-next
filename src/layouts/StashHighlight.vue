@@ -115,12 +115,14 @@ body {
 
 .top {
   width: 100%;
-  min-height: 120px;
 }
 
 .grid {
-  width: 100%;
-  min-height: calc(100vh - 120px);
+  position: absolute;
+  top: 15.5%;
+  left: 2.5%;
+  width: 95%;
+  height: 77.3%;
   display: grid;
 }
 

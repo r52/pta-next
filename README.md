@@ -50,7 +50,7 @@ Portable version: Extract the archive and run **PTA-Next.exe**
 - Custom macros
   - Supports in-game chat commands as well as opening URLs in your browser.
   - See [wiki](https://github.com/r52/pta-next/wiki) for examples.
-- [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI
+- [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI with stash highlighting
   - `Disabled` by default
   - See [wiki](https://github.com/r52/pta-next/wiki#trade-ui) for examples.
   - **Please ensure that your Client.txt path in set in the settings for this to work!**
