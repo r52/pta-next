@@ -6,6 +6,14 @@ import { EventEmitter } from 'events';
 
 const poeaddon: PoEAddon = require('bindings')('winpoe');
 
+interface PoERect {
+  valid: boolean;
+  w?: number;
+  h?: number;
+  x?: number;
+  y?: number;
+}
+
 interface PoEAddon {
   InstallHandlerCallback(cb: (event: string, arg: any) => void): void;
   Start(vulkan: boolean): void;
@@ -18,6 +26,7 @@ interface PoEAddon {
   SendPasteCommand(): void;
   SendStashMove(direction: number, x: number, y: number): void;
   SetPoEForeground(): void;
+  GetPoERect(): PoERect;
 }
 
 declare interface WinPoE {
@@ -68,6 +77,10 @@ class WinPoE extends EventEmitter {
 
   setPoEForeground() {
     return poeaddon.SetPoEForeground();
+  }
+
+  getPoERect() {
+    return poeaddon.GetPoERect();
   }
 
   private _handler(event: string, arg: any) {
