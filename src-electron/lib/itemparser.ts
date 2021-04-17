@@ -597,16 +597,24 @@ export class ItemParser {
       return null;
     }
 
-    if (!line.startsWith('Rarity:')) {
+    if (!line.startsWith('Item Class:')) {
       log.warn('Parse called on non PoE item text');
       return null;
     }
 
     item.origtext = itemtext;
 
+    // Item class
+    let parts = line.split(': ');
+    item.class = parts[1];
+
+    line = lines.readLine();
+
     // Rarity
-    const parts = line.split(': ');
-    item.rarity = parts[1];
+    if (line && line.startsWith('Rarity:')) {
+      parts = line.split(': ');
+      item.rarity = parts[1];
+    }
 
     let nametype = lines.readLine();
     let type = lines.readLine();

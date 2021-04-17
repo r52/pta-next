@@ -2,6 +2,7 @@ import { FullOptions, Searcher } from 'fast-fuzzy';
 
 export interface Item {
   origtext: string;
+  class: string;
   rarity: string;
   type: string;
   name?: string;
