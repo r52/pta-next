@@ -16,11 +16,10 @@ interface PoERect {
 
 interface PoEAddon {
   InstallHandlerCallback(cb: (event: string, arg: any) => void): void;
-  Start(vulkan: boolean): void;
+  Start(): void;
   InitializeHooks(): void;
   ShutdownHooks(): void;
   Stop(): void;
-  SetVulkanCompatibility(vulkan: boolean): void;
   IsPoEForeground(): boolean;
   SendCopyCommand(): void;
   SendPasteCommand(): void;
@@ -41,8 +40,8 @@ class WinPoE extends EventEmitter {
     poeaddon.InstallHandlerCallback(this._handler.bind(this));
   }
 
-  start(vulkanMode: boolean, debug = false) {
-    poeaddon.Start(vulkanMode);
+  start(debug = false) {
+    poeaddon.Start();
 
     if (!debug) {
       poeaddon.InitializeHooks();
@@ -53,10 +52,6 @@ class WinPoE extends EventEmitter {
     poeaddon.ShutdownHooks();
 
     poeaddon.Stop();
-  }
-
-  setVulkanMode(enabled: boolean) {
-    poeaddon.SetVulkanCompatibility(enabled);
   }
 
   isPoEForeground() {
