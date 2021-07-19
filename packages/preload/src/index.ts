@@ -1,4 +1,5 @@
 import { contextBridge, shell, ipcRenderer } from 'electron';
+import log from 'electron-log';
 
 const apiKey = 'electron';
 /**
@@ -14,6 +15,8 @@ const api: ElectronApi = {
     ipcRenderer.send('close-current-window');
   },
 };
+
+window.log = log.functions;
 
 if (import.meta.env.MODE !== 'test') {
   /**

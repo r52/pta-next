@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, Tray } from 'electron';
 import { join } from 'path';
 import { URL } from 'url';
 import { PTA } from './pta';
@@ -37,7 +37,27 @@ let tray: Tray | null = null;
 let splash: BrowserWindow | null = null;
 let about: BrowserWindow | null = null;
 
-const pta = new PTA();
+/**
+ * URL for app entry.
+ * Vite dev server for development.
+ * `file://../renderer/index.html` for production and test
+ */
+const pageUrl =
+  env.MODE === 'development'
+    ? (env.VITE_DEV_SERVER_URL as string)
+    : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
+
+const pta = new PTA(pageUrl);
+
+ipcMain.on('close-current-window', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  win?.close();
+});
+
+ipcMain.handle('get-version', async () => {
+  const result = app.getVersion();
+  return result;
+});
 
 const createSplash = async () => {
   splash = new BrowserWindow({
@@ -77,19 +97,6 @@ const createSplash = async () => {
     }, 2500);
   });
 
-  /**
-   * URL for main window.
-   * Vite dev server for development.
-   * `file://../renderer/index.html` for production and test
-   */
-  const pageUrl =
-    env.MODE === 'development'
-      ? (env.VITE_DEV_SERVER_URL as string)
-      : new URL(
-          '../renderer/dist/index.html',
-          'file://' + __dirname,
-        ).toString();
-
   await splash.loadURL(pageUrl + '#/splash');
 };
 
@@ -115,37 +122,23 @@ const createAbout = async () => {
     about = null;
   });
 
-  const pageUrl =
-    env.MODE === 'development'
-      ? (env.VITE_DEV_SERVER_URL as string)
-      : new URL(
-          '../renderer/dist/index.html',
-          'file://' + __dirname,
-        ).toString();
-
   await about.loadURL(pageUrl + '#/about');
 };
 
 const createTray = async () => {
-  tray = new Tray(join(__dirname, '../../renderer/assets/logo.png'));
+  tray = new Tray(join(__dirname, '../../../logo.png'));
 
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Open Tradebar',
       click: () => {
-        // TODO
+        pta.openTradeBar();
       },
     },
     {
       label: 'Settings',
       click: () => {
-        // TODO
-      },
-    },
-    {
-      label: 'Check for Updates',
-      click: () => {
-        // TODO
+        pta.createSettingsWindow();
       },
     },
     {

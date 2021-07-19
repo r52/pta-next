@@ -8,4 +8,5 @@ interface ElectronApi {
 declare interface Window {
   electron: Readonly<ElectronApi>;
   electronRequire?: NodeRequire;
+  log: LogFunctions;
 }

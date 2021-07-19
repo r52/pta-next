@@ -25,7 +25,9 @@
     "typecheck-main": "tsc --noEmit -p packages/main/tsconfig.json",
     "typecheck-preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "typecheck-renderer": "vue-tsc --noEmit -p packages/renderer/tsconfig.json",
-    "typecheck": "npm run typecheck-main && npm run typecheck-preload && npm run typecheck-renderer"
+    "typecheck": "npm run typecheck-main && npm run typecheck-preload && npm run typecheck-renderer",
+    "eb": "electron-builder install-app-deps",
+    "postinstall": "npm run eb"
   },
   "browserslist": [
     "Chrome 91"
@@ -59,8 +61,11 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "electron-cfg": "^1.2.6",
+    "electron-log": "^4.3.5",
     "electron-updater": "^4.4.1",
     "vue": "^3.1.5",
-    "vue-router": "^4.0.10"
+    "vue-router": "^4.0.10",
+    "winpoe": "file:winpoe"
   }
 }

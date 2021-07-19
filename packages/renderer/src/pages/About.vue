@@ -32,7 +32,7 @@
 
     <card>
       <card-section>
-        <span class="text-2xl">PTA-Next v{{ appVer }}</span>
+        <span class="text-2xl">PTA-Next {{ appVer }}</span>
       </card-section>
       <card-section>
         <button
