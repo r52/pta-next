@@ -54,19 +54,6 @@ namespace pta
         return true;
     }
 
-    bool CheckBounds(RECT bounds, int x, int y)
-    {
-        return (x > bounds.left && x < bounds.right && y > bounds.top && y < bounds.bottom);
-    }
-
-    bool CheckMouseInStash(RECT bounds, int x)
-    {
-        int winLength = bounds.right - bounds.left;
-        int stashLength = (int)((double)winLength * STASH_WIDTH_PCT);
-
-        return (x > bounds.left && x < (bounds.left + stashLength));
-    }
-
 } // namespace pta
 
 VOID CALLBACK
@@ -140,50 +127,6 @@ void SendPasteCommand(const Napi::CallbackInfo &info)
     keystrokes.push_back(pta::CreateInput(VK_ESCAPE, false));
 
     SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
-}
-
-void SendCopyCommand(const Napi::CallbackInfo &info)
-{
-    std::vector<INPUT> keystrokes;
-
-    // ensure all used keys are up
-    keystrokes.push_back(pta::CreateInput(VK_MENU, false));
-    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
-    keystrokes.push_back(pta::CreateInput('C', false));
-
-    keystrokes.push_back(pta::CreateInput(VK_CONTROL, true));
-    keystrokes.push_back(pta::CreateInput('C', true));
-    keystrokes.push_back(pta::CreateInput('C', false));
-    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
-
-    SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
-}
-
-void SendStashMove(const Napi::CallbackInfo &info)
-{
-    Napi::Env env = info.Env();
-    Napi::Number direction = info[0].As<Napi::Number>();
-    Napi::Number x = info[1].As<Napi::Number>();
-    Napi::Number y = info[2].As<Napi::Number>();
-
-    if (pta::IsPoEForeground())
-    {
-        HWND hwnd = GetForegroundWindow();
-        RECT screen;
-
-        if (GetWindowRect(hwnd, &screen) && pta::CheckBounds(screen, x.Int32Value(), y.Int32Value()) && !pta::CheckMouseInStash(screen, x.Int32Value()))
-        {
-            WORD key = (direction.Int32Value() > 0 ? VK_RIGHT : VK_LEFT);
-
-            // Send input
-            std::vector<INPUT> keystroke;
-
-            keystroke.push_back(pta::CreateInput(key, true));
-            keystroke.push_back(pta::CreateInput(key, false));
-
-            SendInput(keystroke.size(), keystroke.data(), sizeof(keystroke[0]));
-        }
-    }
 }
 
 Napi::Boolean SetPoEForeground(const Napi::CallbackInfo &info)
@@ -357,9 +300,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // raw funcs
     exports.Set(Napi::String::New(env, "IsPoEForeground"), Napi::Function::New(env, IsPoEForeground));
-    exports.Set(Napi::String::New(env, "SendCopyCommand"), Napi::Function::New(env, SendCopyCommand));
     exports.Set(Napi::String::New(env, "SendPasteCommand"), Napi::Function::New(env, SendPasteCommand));
-    exports.Set(Napi::String::New(env, "SendStashMove"), Napi::Function::New(env, SendStashMove));
     exports.Set(Napi::String::New(env, "SetPoEForeground"), Napi::Function::New(env, SetPoEForeground));
     exports.Set(Napi::String::New(env, "GetPoERect"), Napi::Function::New(env, GetPoERect));
 

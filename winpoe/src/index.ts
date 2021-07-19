@@ -16,14 +16,12 @@ interface PoERect {
 
 interface PoEAddon {
   InstallHandlerCallback(cb: (event: string, arg: any) => void): void;
-  Start(): void;
   InitializeHooks(): void;
   ShutdownHooks(): void;
+  Start(): void;
   Stop(): void;
   IsPoEForeground(): boolean;
-  SendCopyCommand(): void;
   SendPasteCommand(): void;
-  SendStashMove(direction: number, x: number, y: number): void;
   SetPoEForeground(): void;
   GetPoERect(): PoERect;
 }
@@ -58,16 +56,8 @@ class WinPoE extends EventEmitter {
     return poeaddon.IsPoEForeground();
   }
 
-  sendCopy() {
-    poeaddon.SendCopyCommand();
-  }
-
   sendPaste() {
     poeaddon.SendPasteCommand();
-  }
-
-  scrollStash(direction: number, x: number, y: number) {
-    poeaddon.SendStashMove(direction, x, y);
   }
 
   setPoEForeground() {
