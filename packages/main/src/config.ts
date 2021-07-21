@@ -11,9 +11,6 @@ export default {
   // client
   clientlogpath: 'client.logpath',
 
-  // custom macros
-  macros: 'macros.list',
-
   // trade ui
   tradeui: 'tradeui.enabled',
   tradebar: 'tradeui.tradebar',
@@ -34,16 +31,6 @@ export default {
 
     //client
     clientlogpath: '',
-
-    // custom macros
-    macros: [
-      {
-        name: 'hideout',
-        key: 'F5',
-        type: 'chat',
-        command: '/hideout',
-      },
-    ],
 
     // trade ui
     tradeui: false,

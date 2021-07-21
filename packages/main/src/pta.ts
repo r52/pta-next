@@ -1,8 +1,7 @@
 import type { BrowserWindow } from 'electron';
-import { clipboard, globalShortcut, shell, ipcMain } from 'electron';
+import { ipcMain } from 'electron';
 import { join } from 'path';
 import cfg from 'electron-cfg';
-import log from 'electron-log';
 import winpoe from 'winpoe';
 
 import ClientMonitor from './clientmonitor';
@@ -24,15 +23,6 @@ export class PTA {
     quickpastemod: QuickPasteKey.CTRL,
     qpmodHeld: false,
   };
-
-  private macroVariables = new Map<string, () => string>([
-    [
-      'last_whisper',
-      () => {
-        return this.clientmonitor.getLastWhisperer();
-      },
-    ],
-  ]);
 
   constructor(entryURL: string) {
     this.entryURL = entryURL;
@@ -104,25 +94,10 @@ export class PTA {
       Config.default.quickpastemod,
     ) as QuickPasteKey;
     this.settings.quickpastemod = qpastemod;
-
-    // macros
-    const macros = cfg.get(
-      Config.macros,
-      Config.default.macros,
-    ) as CustomMacro[];
-    macros.forEach((macro) => {
-      const key = macro.key;
-      const type = macro.type;
-      const command = macro.command;
-
-      globalShortcut.register(key, () => {
-        this.handleMacro(type, command);
-      });
-    });
   }
 
   private unregisterShortcuts() {
-    globalShortcut.unregisterAll();
+    // TODO Does nothing?
   }
 
   public openTradeBar(): void {
@@ -153,45 +128,5 @@ export class PTA {
 
       void this.settingsWindow.loadURL(this.entryURL + '#/settings');
     }
-  }
-
-  private handleMacro(type: string, command: string) {
-    if (!winpoe.isPoEForeground()) {
-      return;
-    }
-
-    switch (type) {
-      case 'chat':
-        this.executeChatCommand(command);
-        break;
-      case 'url':
-        void shell.openExternal(command);
-        break;
-      default:
-        log.warn('Invalid macro type', type);
-        break;
-    }
-  }
-
-  private executeChatCommand(command: string) {
-    if (this.clientmonitor.isEnabled()) {
-      const re = /!(\w+)!/g;
-
-      command = command.replace(re, (match, token) => {
-        if (this.macroVariables.has(token)) {
-          const fn = this.macroVariables.get(token as string) as () => string;
-          const rval = fn();
-
-          if (rval) {
-            return rval;
-          }
-        }
-
-        return token as string;
-      });
-    }
-
-    clipboard.writeText(command);
-    winpoe.sendPaste();
   }
 }
