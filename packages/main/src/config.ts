@@ -50,7 +50,7 @@ export default {
     tradebar: true,
     tradecharname: '',
     tradestashhighlight: false,
-    tradestashquad: [],
+    tradestashquad: [] as string[],
     tradeuiincoming: [
       {
         label: 'ty',

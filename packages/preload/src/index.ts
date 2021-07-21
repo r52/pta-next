@@ -14,6 +14,9 @@ const api: ElectronApi = {
   closeWindow: () => {
     ipcRenderer.send('close-current-window');
   },
+  getConfig: () => ipcRenderer.invoke('get-config'),
+  setConfig: (obj: Record<string, unknown>) =>
+    ipcRenderer.invoke('set-config', obj),
 };
 
 window.log = log.functions;
@@ -26,6 +29,7 @@ if (import.meta.env.MODE !== 'test') {
    * @see https://www.electronjs.org/docs/api/context-bridge
    */
   contextBridge.exposeInMainWorld(apiKey, api);
+  contextBridge.exposeInMainWorld('log', log.functions);
 } else {
   /**
    * Recursively Object.freeze() on objects and functions

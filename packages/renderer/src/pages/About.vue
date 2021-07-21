@@ -8,23 +8,19 @@
         <span class="inline-flex">
           <button
             type="button"
-            class="p-2 inline-flex items-center border rounded-full"
+            class="
+              p-2
+              inline-flex
+              items-center
+              border border-transparent
+              rounded-full
+              hover:bg-gray-400
+              focus:border-gray-700
+              active:bg-gray-700
+            "
             @click="closeWindow"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XIcon class="h-6 w-6" />
           </button>
         </span>
       </div>
@@ -32,7 +28,7 @@
 
     <card>
       <card-section>
-        <span class="text-2xl">PTA-Next {{ appVer }}</span>
+        <span class="text-2xl">PTA-Next v{{ appVer }}</span>
       </card-section>
       <card-section>
         <button
@@ -80,6 +76,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+import { XIcon } from '@heroicons/vue/outline';
 import Card from '/@/components/Card.vue';
 import CardSection from '/@/components/CardSection.vue';
 import { useElectron } from '/@/use/electron';
@@ -87,6 +84,7 @@ import { useElectron } from '/@/use/electron';
 export default defineComponent({
   name: 'App',
   components: {
+    XIcon,
     Card,
     CardSection,
   },

@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron';
-import { clipboard, globalShortcut, shell } from 'electron';
+import { clipboard, globalShortcut, shell, ipcMain } from 'electron';
 import { join } from 'path';
 import cfg from 'electron-cfg';
 import log from 'electron-log';
@@ -35,7 +35,6 @@ export class PTA {
   ]);
 
   constructor(entryURL: string) {
-    // TODO
     this.entryURL = entryURL;
 
     // Client Monitor
@@ -43,6 +42,27 @@ export class PTA {
 
     // TradeManager
     this.trademanager = new TradeManager(entryURL);
+
+    // TODO
+
+    // Get/Set config root
+    ipcMain.handle('get-config', async () => {
+      const result = cfg.getAll();
+      return result;
+    });
+
+    ipcMain.handle(
+      'set-config',
+      async (event, obj: Record<string, unknown>) => {
+        cfg.setAll(obj);
+
+        // TODO change events
+        // ipcRenderer.send('hotkeys-changed');
+        // ipcRenderer.send('clientlog-changed', logpath);
+        // ipcRenderer.send('tradeui-enabled', settings.tradeui.enabled);
+        // ipcRenderer.send('set-stash-highlight', settings.tradeui.highlight);
+      },
+    );
   }
 
   public setup(): void {
@@ -60,7 +80,7 @@ export class PTA {
     });
 
     winpoe.start(env.MODE === 'development');
-    // uIOhook.start();
+    // uIOhook.start(); TODO
 
     // setup trade manager
     this.trademanager.setup();
@@ -114,7 +134,7 @@ export class PTA {
       this.settingsWindow = cfg.window({ name: 'settings' }).create({
         width: 1000,
         height: 600,
-        //frame: false,
+        //frame: false, TODO change
         title: 'PTA-Next Settings',
         webPreferences: {
           preload: join(__dirname, '../../preload/dist/index.cjs'),
@@ -123,11 +143,15 @@ export class PTA {
         },
       });
 
-      this.settingsWindow.loadURL(this.entryURL + '#/settings');
-
       this.settingsWindow.on('closed', () => {
         this.settingsWindow = null;
       });
+
+      this.settingsWindow.on('ready-to-show', () => {
+        this.settingsWindow?.show();
+      });
+
+      void this.settingsWindow.loadURL(this.entryURL + '#/settings');
     }
   }
 

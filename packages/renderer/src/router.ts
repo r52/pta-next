@@ -8,6 +8,11 @@ const routes = [
     name: 'About',
     component: () => import('/@/pages/About.vue'),
   },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('/@/pages/Settings.vue'),
+  },
 ];
 
 export default createRouter({
