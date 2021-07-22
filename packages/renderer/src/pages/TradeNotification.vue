@@ -122,7 +122,7 @@
 
             <div>
               <img
-                :src="`../../assets/currency/${trade.currency}.png`"
+                :src="getCurrencyImage(trade.currency)"
                 style="height: 30px; max-width: 30px"
                 class="py-1"
               >
@@ -430,6 +430,10 @@ export default defineComponent({
       }
     }
 
+    function getCurrencyImage(name: string) {
+      return new URL(`/assets/currency/${name}.png`, import.meta.url).href;
+    }
+
     setInterval(() => {
       updateElapseTime();
     }, 1000);
@@ -443,6 +447,7 @@ export default defineComponent({
       stopHighlightStash,
       sendTradeCommand,
       sendCustomCommand,
+      getCurrencyImage,
     };
   },
 });

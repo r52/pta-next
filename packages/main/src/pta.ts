@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron';
-import { ipcMain } from 'electron';
+import { ipcMain, clipboard } from 'electron';
 import { join } from 'path';
 import cfg from 'electron-cfg';
 import winpoe from 'winpoe';
@@ -34,8 +34,6 @@ export class PTA {
 
     // TradeManager
     this.trademanager = new TradeManager(entryURL);
-
-    // TODO
 
     // Get/Set config root
     ipcMain.handle('get-config', async () => {
@@ -94,6 +92,45 @@ export class PTA {
 
     this.clientmonitor.on('left-area', (name) => {
       this.trademanager.forwardPlayerEvent('left-area', name);
+    });
+
+    // TODO
+    // uIOhook.on('keydown', event => {
+    //   if (this.settings.quickpaste) {
+    //     switch (this.settings.quickpastemod) {
+    //       case QuickPasteKey.CTRL:
+    //         this.settings.qpmodHeld = event.ctrlKey;
+    //         break;
+    //       case QuickPasteKey.SHIFT:
+    //         this.settings.qpmodHeld = event.shiftKey;
+    //         break;
+    //     }
+    //   }
+    // });
+
+    // uIOhook.on('keyup', event => {
+    //   if (this.settings.quickpaste) {
+    //     switch (this.settings.quickpastemod) {
+    //       case QuickPasteKey.CTRL:
+    //         this.settings.qpmodHeld = event.ctrlKey;
+    //         break;
+    //       case QuickPasteKey.SHIFT:
+    //         this.settings.qpmodHeld = event.shiftKey;
+    //         break;
+    //     }
+    //   }
+    // });
+
+    winpoe.on('clipboard', () => {
+      if (this.settings.quickpaste && this.settings.qpmodHeld) {
+        const cbtext = clipboard.readText();
+
+        if (cbtext.startsWith('@') && winpoe.setPoEForeground()) {
+          setTimeout(() => {
+            winpoe.sendPaste();
+          }, 250);
+        }
+      }
     });
   }
 
@@ -188,7 +225,7 @@ export class PTA {
         path = path.trim();
 
         if (!path) {
-          path = '../../assets/cheatsheets/incursion.png';
+          path = 'incursion';
         }
         break;
       case 'betrayal':
@@ -200,7 +237,7 @@ export class PTA {
         path = path.trim();
 
         if (!path) {
-          path = '../../assets/cheatsheets/betrayal.png';
+          path = 'betrayal';
         }
         break;
       default:

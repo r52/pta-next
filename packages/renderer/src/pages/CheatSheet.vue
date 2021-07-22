@@ -27,7 +27,7 @@
     </div>
 
     <div>
-      <img :src="`${cheatSheetPath}`">
+      <img :src="cheatSheetPath">
     </div>
   </div>
 </template>
@@ -35,9 +35,13 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useElectron } from '/@/use/electron';
+import { XIcon } from '@heroicons/vue/outline';
 
 export default defineComponent({
   name: 'CheatSheet',
+  components: {
+    XIcon,
+  },
 
   setup() {
     const { closeWindow, ipcOn } = useElectron();
@@ -45,9 +49,18 @@ export default defineComponent({
     const title = ref('Cheat Sheet');
     const cheatSheetPath = ref('');
 
+    function getCheatsheetImage(name: string) {
+      return new URL(`/assets/cheatsheets/${name}.png`, import.meta.url).href;
+    }
+
     ipcOn('cheatsheet-type', (type: string, path: string) => {
       title.value = type + ' Cheat Sheet';
-      cheatSheetPath.value = path;
+
+      if (path.startsWith('http')) {
+        cheatSheetPath.value = path;
+      } else {
+        cheatSheetPath.value = getCheatsheetImage(path);
+      }
     });
 
     return {

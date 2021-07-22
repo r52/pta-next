@@ -15,12 +15,6 @@ export default defineComponent({
   src: url(../assets/Fontin-SmallCaps.woff) format('woff');
 }
 
-/*
-body {
-  background-color: #1f2937;
-}
-*/
-
 ::-webkit-scrollbar {
   width: 10px;
 }

@@ -604,6 +604,8 @@ export default defineComponent({
 
     function saveSettings() {
       setConfig(toRaw(settings));
+
+      // TODO Notify
     }
 
     //   // quad tab compute
