@@ -3,6 +3,7 @@ import { ipcMain } from 'electron';
 import { join } from 'path';
 import cfg from 'electron-cfg';
 import winpoe from 'winpoe';
+import log from 'electron-log';
 
 import ClientMonitor from './clientmonitor';
 import TradeManager from './trademanager';
@@ -14,6 +15,7 @@ export class PTA {
   private entryURL: string;
 
   private settingsWindow: BrowserWindow | null = null;
+  private cheatsheet: BrowserWindow | null = null;
   private clientmonitor: ClientMonitor;
   private trademanager: TradeManager;
 
@@ -69,13 +71,13 @@ export class PTA {
       this.createSettingsWindow();
     });
 
-    // ipcMain.on('open-cheatsheet-incursion', () => {
-    //   this.openCheatSheet('incursion');
-    // });
+    ipcMain.on('open-cheatsheet-incursion', () => {
+      this.openCheatSheet('incursion');
+    });
 
-    // ipcMain.on('open-cheatsheet-betrayal', () => {
-    //   this.openCheatSheet('betrayal');
-    // });
+    ipcMain.on('open-cheatsheet-betrayal', () => {
+      this.openCheatSheet('betrayal');
+    });
 
     // Initialize trade hooks
     this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
@@ -170,6 +172,80 @@ export class PTA {
       });
 
       void this.settingsWindow.loadURL(this.entryURL + '#/settings');
+    }
+  }
+
+  private openCheatSheet(type: string) {
+    let path = '';
+
+    switch (type) {
+      case 'incursion':
+        path = cfg.get(
+          Config.cheatsheetincursion,
+          Config.default.cheatsheetincursion,
+        ) as string;
+
+        path = path.trim();
+
+        if (!path) {
+          path = '../../assets/cheatsheets/incursion.png';
+        }
+        break;
+      case 'betrayal':
+        path = cfg.get(
+          Config.cheatsheetbetrayal,
+          Config.default.cheatsheetbetrayal,
+        ) as string;
+
+        path = path.trim();
+
+        if (!path) {
+          path = '../../assets/cheatsheets/betrayal.png';
+        }
+        break;
+      default:
+        log.error('Unsupported cheat sheet type:', type);
+        return;
+    }
+
+    if (!this.cheatsheet) {
+      this.cheatsheet = cfg.window({ name: 'cheatsheet' }).create({
+        width: 1280,
+        height: 720,
+        alwaysOnTop: true,
+        frame: false,
+        resizable: true,
+        title: 'Cheat Sheet',
+        show: false,
+        webPreferences: {
+          preload: join(__dirname, '../../preload/dist/index.cjs'),
+          contextIsolation: env.MODE !== 'test',
+          enableRemoteModule: env.MODE === 'test',
+        },
+      });
+
+      this.cheatsheet.on('closed', () => {
+        this.cheatsheet = null;
+      });
+
+      this.cheatsheet.webContents.on('context-menu', () => {
+        this.cheatsheet?.close();
+      });
+
+      this.cheatsheet.on('ready-to-show', () => {
+        this.cheatsheet?.show();
+      });
+
+      this.cheatsheet.loadURL(this.entryURL + '#/cheatsheet').then(() => {
+        setTimeout(() => {
+          this.cheatsheet?.webContents.send('cheatsheet-type', type, path);
+        }, 100);
+      });
+    } else {
+      this.cheatsheet.show();
+      this.cheatsheet.moveTop();
+
+      this.cheatsheet.webContents.send('cheatsheet-type', type, path);
     }
   }
 }

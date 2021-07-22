@@ -38,11 +38,11 @@ const routes = [
   //   name: 'StashHighlight',
   //   component: () => import('/@/pages/StashHighlight.vue'),
   // },
-  // {
-  //   path: '/cheatsheet',
-  //   name: 'CheatSheet',
-  //   component: () => import('/@/pages/CheatSheet.vue'),
-  // },
+  {
+    path: '/cheatsheet',
+    name: 'CheatSheet',
+    component: () => import('/@/pages/CheatSheet.vue'),
+  },
 ];
 
 export default createRouter({
