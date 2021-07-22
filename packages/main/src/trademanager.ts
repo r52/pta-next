@@ -264,12 +264,12 @@ export default class TradeManager {
 
     if (!this.tradeNotification) {
       this.tradeNotification = cfg.window({ name: 'trade' }).create({
-        width: 400,
-        height: 180,
+        width: 450,
+        height: 200,
+        minHeight: 200,
         alwaysOnTop: true,
         frame: false,
         transparent: true,
-        backgroundColor: '#00000000',
         focusable: false,
         skipTaskbar: true,
         show: false,
@@ -282,10 +282,6 @@ export default class TradeManager {
 
       this.tradeNotification.on('ready-to-show', () => {
         this.tradeNotification?.show();
-      });
-
-      this.tradeNotification.webContents.once('did-finish-load', () => {
-        this.tradeNotification?.webContents.send('trade', notification);
         this.tradeNotification?.moveTop();
       });
 
@@ -293,7 +289,14 @@ export default class TradeManager {
         this.tradeNotification = null;
       });
 
-      void this.tradeNotification.loadURL(this.entryURL + '#/trade');
+      void this.tradeNotification
+        .loadURL(this.entryURL + '#/trade')
+        .then(() => {
+          setTimeout(() => {
+            this.tradeNotification?.webContents.send('trade', notification);
+            this.tradeNotification?.moveTop();
+          }, 100);
+        });
     } else {
       this.tradeNotification?.webContents.send('trade', notification);
       this.tradeNotification?.moveTop();

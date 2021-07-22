@@ -117,8 +117,10 @@ export class PTA {
   }
 
   public shutdown(): void {
-    // TODO
+    this.unregisterShortcuts();
+
     winpoe.stop();
+    //uIOhook.stop(); TODO
   }
 
   private registerShortcuts() {

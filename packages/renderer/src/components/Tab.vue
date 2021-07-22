@@ -5,7 +5,14 @@ import type { ComponentInternalInstance } from 'vue';
 
 export default {
   name: 'Tab',
-  setup() {
+  props: {
+    name: {
+      type: String,
+      required: true,
+      default: '',
+    },
+  },
+  setup(props) {
     const instance = getCurrentInstance() as ComponentInternalInstance;
     const { tabs, selectTab, active } = inject('tabsState', {
       active: ref(null),
@@ -19,10 +26,12 @@ export default {
         (target: ComponentInternalInstance) => target.uid === instance.uid,
       ),
     );
-    const isActive = computed(() => index.value === active.value);
+    const isActive = computed(
+      () => index.value > -1 && props.name === active.value,
+    );
 
     const activateTab = () => {
-      selectTab(index.value);
+      selectTab(props.name);
     };
 
     watchEffect(() => {

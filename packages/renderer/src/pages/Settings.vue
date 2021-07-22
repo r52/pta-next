@@ -31,14 +31,22 @@
 
     <div class="p-2 pb-10 overflow-auto overscroll-auto">
       <tabs v-model="tab">
-        <tab>Hotkey</tab>
-        <tab>Client</tab>
-        <tab>Trade UI</tab>
-        <tab>Cheat Sheets</tab>
+        <tab name="hotkey">
+          Hotkey
+        </tab>
+        <tab name="client">
+          Client
+        </tab>
+        <tab name="tradeui">
+          Trade UI
+        </tab>
+        <tab name="cheatsheet">
+          Cheat Sheets
+        </tab>
       </tabs>
       <tab-panels v-model="tab">
         <!-- Hotkey tab -->
-        <tab-panel>
+        <tab-panel name="hotkey">
           <div class="p-1">
             <div class="grid grid-cols-2 items-center justify-between">
               <div>
@@ -86,7 +94,7 @@
         </tab-panel>
 
         <!-- Client tab -->
-        <tab-panel>
+        <tab-panel name="client">
           <div class="p-1">
             <div class="flex items-center">
               <div class="flex-initial px-2">
@@ -158,7 +166,7 @@
         </tab-panel>
 
         <!-- Trade UI tab -->
-        <tab-panel>
+        <tab-panel name="tradeui">
           <div class="p-1">
             <div
               class="grid grid-cols-2 items-center justify-between space-y-2"
@@ -433,7 +441,7 @@
           </modal>
         </tab-panel>
 
-        <tab-panel>
+        <tab-panel name="cheatsheet">
           <div class="p-1">
             <div
               class="grid grid-cols-2 items-center justify-between space-y-2"
@@ -699,7 +707,7 @@ export default defineComponent({
       }
     }
 
-    const tab = ref(0);
+    const tab = ref('hotkey');
 
     return {
       settings,

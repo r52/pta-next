@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 interface ElectronApi {
   readonly versions: Readonly<NodeJS.ProcessVersions>;
   appVersion: () => Promise<string>;
@@ -5,7 +6,8 @@ interface ElectronApi {
   closeWindow: () => void;
   getConfig: () => Promise<Record<string, unknown>>;
   setConfig: (obj: Record<string, unknown>) => void;
-  ipcSend: (event: string, ...args: any[]) => void;
+  ipcSend: (channel: string, ...args: any[]) => void;
+  ipcOn: (channel: string, func: Function) => void;
 }
 
 declare interface Window {

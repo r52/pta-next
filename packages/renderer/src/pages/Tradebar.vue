@@ -22,7 +22,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -43,7 +42,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -65,7 +63,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -86,7 +83,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -107,7 +103,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -128,7 +123,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -149,7 +143,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -172,7 +165,6 @@
           type="button"
           class="
             tooltip
-            group
             p-1
             inline-flex
             items-center
@@ -222,6 +214,8 @@ export default defineComponent({
   },
 
   setup() {
+    const { closeWindow, ipcSend } = useElectron();
+
     function sendMsg(msg: string) {
       ipcSend(msg);
     }
@@ -233,8 +227,6 @@ export default defineComponent({
     function ignoreMouse(enabled: boolean) {
       ipcSend('trade-bar-ignore-mouse', enabled);
     }
-
-    const { closeWindow, ipcSend } = useElectron();
 
     return {
       sendMsg,
@@ -265,13 +257,11 @@ button {
   -webkit-app-region: no-drag;
 }
 
-/* Tooltip container */
 .tooltip {
   position: relative;
   display: inline-block;
 }
 
-/* Tooltip text */
 .tooltip .tooltiptext {
   visibility: hidden;
   width: 120px;
@@ -281,12 +271,10 @@ button {
   padding: 5px 0;
   border-radius: 6px;
 
-  /* Position the tooltip text - see examples below! */
   position: absolute;
   z-index: 1;
 }
 
-/* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
   visibility: visible;
 }

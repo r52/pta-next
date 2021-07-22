@@ -54,6 +54,11 @@ export default {
         command: 'no thanks',
         close: true,
       },
+      {
+        label: 'sold',
+        command: 'sold',
+        close: true,
+      },
     ],
     tradeuioutgoing: [
       {

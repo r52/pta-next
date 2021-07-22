@@ -18,11 +18,11 @@ const routes = [
     name: 'Tradebar',
     component: () => import('/@/pages/Tradebar.vue'),
   },
-  // {
-  //   path: '/trade',
-  //   name: 'TradeNotification',
-  //   component: () => import('/@/pages/TradeNotification.vue'),
-  // },
+  {
+    path: '/trade',
+    name: 'TradeNotification',
+    component: () => import('/@/pages/TradeNotification.vue'),
+  },
   // {
   //   path: '/tradehistory',
   //   name: 'TradeHistory',

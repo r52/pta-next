@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { contextBridge, shell, ipcRenderer } from 'electron';
 import log from 'electron-log';
 
@@ -17,8 +18,13 @@ const api: ElectronApi = {
   getConfig: () => ipcRenderer.invoke('get-config'),
   setConfig: (obj: Record<string, unknown>) =>
     ipcRenderer.invoke('set-config', obj),
-  ipcSend: (event: string, ...args: any[]) => {
-    ipcRenderer.send(event, args);
+  ipcSend: (channel: string, ...args: any[]) => {
+    ipcRenderer.send(channel, args);
+  },
+  ipcOn: (channel: string, func: Function) => {
+    ipcRenderer.on(channel, (event, ...args) => {
+      func(...args);
+    });
   },
 };
 
