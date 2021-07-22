@@ -46,13 +46,53 @@ export class PTA {
       async (event, obj: Record<string, unknown>) => {
         cfg.setAll(obj);
 
-        // TODO change events
-        // ipcRenderer.send('hotkeys-changed');
-        // ipcRenderer.send('clientlog-changed', logpath);
-        // ipcRenderer.send('tradeui-enabled', settings.tradeui.enabled);
-        // ipcRenderer.send('set-stash-highlight', settings.tradeui.highlight);
+        // 'hotkeys-changed'
+        this.unregisterShortcuts();
+        this.registerShortcuts();
+
+        // 'clientlog-changed'
+        const clientlog = cfg.get(
+          Config.clientlogpath,
+          Config.default.clientlogpath,
+        ) as string;
+        this.clientmonitor.setPath(clientlog);
+
+        // 'tradeui-enabled'
+        this.trademanager.tradeUIEnabledChanged();
+
+        // 'set-stash-highlight'
+        this.trademanager.stashHighlightEnabledChanged();
       },
     );
+
+    ipcMain.on('open-settings', () => {
+      this.createSettingsWindow();
+    });
+
+    // ipcMain.on('open-cheatsheet-incursion', () => {
+    //   this.openCheatSheet('incursion');
+    // });
+
+    // ipcMain.on('open-cheatsheet-betrayal', () => {
+    //   this.openCheatSheet('betrayal');
+    // });
+
+    // Initialize trade hooks
+    this.clientmonitor.on('new-trade', (trademsg: TradeMsg) => {
+      this.trademanager.handleNewTrade(trademsg);
+    });
+
+    this.clientmonitor.on('new-whisper', (name) => {
+      this.trademanager.forwardPlayerEvent('new-whisper', name);
+    });
+
+    this.clientmonitor.on('entered-area', (name) => {
+      this.trademanager.forwardPlayerEvent('entered-area', name);
+    });
+
+    this.clientmonitor.on('left-area', (name) => {
+      this.trademanager.forwardPlayerEvent('left-area', name);
+    });
   }
 
   public setup(): void {
@@ -109,8 +149,9 @@ export class PTA {
       this.settingsWindow = cfg.window({ name: 'settings' }).create({
         width: 1000,
         height: 600,
-        //frame: false, TODO change
+        frame: false,
         title: 'PTA-Next Settings',
+        show: false,
         webPreferences: {
           preload: join(__dirname, '../../preload/dist/index.cjs'),
           contextIsolation: env.MODE !== 'test',

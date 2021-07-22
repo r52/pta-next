@@ -1,9 +1,12 @@
 import { BrowserWindow, clipboard, ipcMain } from 'electron';
 import type { Rectangle } from 'electron';
+import { join } from 'path';
 import cfg from 'electron-cfg';
 import winpoe from 'winpoe';
 
 import Config from './config';
+
+const env = import.meta.env;
 
 const STASH_WIDTH_PCT = 0.346875;
 const STASH_HEIGHT_PCT = 0.759259;
@@ -35,37 +38,6 @@ export default class TradeManager {
   constructor(entryURL: string) {
     this.entryURL = entryURL;
 
-    ipcMain.on('tradeui-enabled', (event, enabled) => {
-      const showtradebar = cfg.get(
-        Config.tradebar,
-        Config.default.tradebar,
-      ) as boolean;
-
-      if (enabled) {
-        if (showtradebar) {
-          this.showTradeBar();
-        }
-      } else {
-        this.closeTradeBar();
-
-        if (this.tradeNotification) {
-          this.tradeNotification.close();
-        }
-
-        this.tradeNotification = null;
-      }
-    });
-
-    ipcMain.on('set-stash-highlight', (event, enabled) => {
-      if (enabled) {
-        this.openStashHighlighter();
-      } else {
-        if (this.stashHighlight) {
-          this.stashHighlight.close();
-        }
-      }
-    });
-
     ipcMain.on('test-trade-notification', () => {
       const tradeobj = {
         name: 'SomePlayer',
@@ -80,7 +52,7 @@ export default class TradeManager {
         time: Date.now(),
       } as TradeMsg;
 
-      if (process.env.DEV) {
+      if (env.MODE === 'development') {
         this.handleNewTrade(tradeobj);
       } else {
         this.showNewTrade(tradeobj);
@@ -170,6 +142,44 @@ export default class TradeManager {
   public isEnabled(): boolean {
     const enabled = cfg.get(Config.tradeui, Config.default.tradeui) as boolean;
     return enabled;
+  }
+
+  public tradeUIEnabledChanged(): void {
+    const enabled = cfg.get(Config.tradeui, Config.default.tradeui) as boolean;
+
+    const showtradebar = cfg.get(
+      Config.tradebar,
+      Config.default.tradebar,
+    ) as boolean;
+
+    if (enabled) {
+      if (showtradebar) {
+        this.showTradeBar();
+      }
+    } else {
+      this.closeTradeBar();
+
+      if (this.tradeNotification) {
+        this.tradeNotification.close();
+      }
+
+      this.tradeNotification = null;
+    }
+  }
+
+  public stashHighlightEnabledChanged(): void {
+    const enabled = cfg.get(
+      Config.tradestashhighlight,
+      Config.default.tradestashhighlight,
+    ) as boolean;
+
+    if (enabled) {
+      this.openStashHighlighter();
+    } else {
+      if (this.stashHighlight) {
+        this.stashHighlight.close();
+      }
+    }
   }
 
   public handleForegroundChange(ispoe: boolean): void {
@@ -262,15 +272,17 @@ export default class TradeManager {
         backgroundColor: '#00000000',
         focusable: false,
         skipTaskbar: true,
+        show: false,
         webPreferences: {
-          nodeIntegration: true,
-          enableRemoteModule: true,
+          preload: join(__dirname, '../../preload/dist/index.cjs'),
+          contextIsolation: env.MODE !== 'test',
+          enableRemoteModule: env.MODE === 'test',
         },
       });
 
-      void this.tradeNotification.loadURL(
-        (process.env.APP_URL as string) + '#/trade',
-      );
+      this.tradeNotification.on('ready-to-show', () => {
+        this.tradeNotification?.show();
+      });
 
       this.tradeNotification.webContents.once('did-finish-load', () => {
         this.tradeNotification?.webContents.send('trade', notification);
@@ -280,6 +292,8 @@ export default class TradeManager {
       this.tradeNotification.on('closed', () => {
         this.tradeNotification = null;
       });
+
+      void this.tradeNotification.loadURL(this.entryURL + '#/trade');
     } else {
       this.tradeNotification?.webContents.send('trade', notification);
       this.tradeNotification?.moveTop();
@@ -299,26 +313,29 @@ export default class TradeManager {
           alwaysOnTop: true,
           frame: false,
           transparent: true,
-          backgroundColor: '#00000000',
           resizable: false,
           focusable: false,
           skipTaskbar: true,
+          show: false,
           webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
+            preload: join(__dirname, '../../preload/dist/index.cjs'),
+            contextIsolation: env.MODE !== 'test',
+            enableRemoteModule: env.MODE === 'test',
           },
           ...opts,
         });
 
         wincfg.assign(this.tradeBar);
 
-        void this.tradeBar.loadURL(
-          (process.env.APP_URL as string) + '#/tradebar',
-        );
+        this.tradeBar.on('ready-to-show', () => {
+          this.tradeBar?.show();
+        });
 
         this.tradeBar.on('closed', () => {
           this.tradeBar = null;
         });
+
+        void this.tradeBar.loadURL(this.entryURL + '#/tradebar');
       }
     }
   }
@@ -416,23 +433,27 @@ export default class TradeManager {
           resizable: false,
           focusable: false,
           skipTaskbar: true,
+          show: false,
           webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
+            preload: join(__dirname, '../../preload/dist/index.cjs'),
+            contextIsolation: env.MODE !== 'test',
+            enableRemoteModule: env.MODE === 'test',
           },
         });
-
-        void this.stashDebug.loadURL(
-          (process.env.APP_URL as string) + '#/stashsetup',
-        );
 
         this.stashDebug.on('closed', () => {
           this.stashDebug = null;
         });
 
+        this.stashDebug.on('ready-to-show', () => {
+          this.stashDebug?.show();
+        });
+
         this.stashDebug.webContents.once('did-finish-load', () => {
           this.stashDebug?.moveTop();
         });
+
+        void this.stashDebug.loadURL(this.entryURL + '#/stashsetup');
       }
     } else {
       this.stashDebug.close();
@@ -465,15 +486,15 @@ export default class TradeManager {
           resizable: false,
           focusable: false,
           skipTaskbar: true,
+          show: false,
           webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
+            preload: join(__dirname, '../../preload/dist/index.cjs'),
+            contextIsolation: env.MODE !== 'test',
+            enableRemoteModule: env.MODE === 'test',
           },
         });
 
-        void this.stashHighlight.loadURL(
-          (process.env.APP_URL as string) + '#/stashhighlight',
-        );
+        void this.stashHighlight.loadURL(this.entryURL + '#/stashhighlight');
 
         this.stashHighlight.on('closed', () => {
           this.stashHighlight = null;
@@ -518,19 +539,23 @@ export default class TradeManager {
         frame: false,
         resizable: true,
         title: 'Trade History',
+        show: false,
         webPreferences: {
-          nodeIntegration: true,
-          enableRemoteModule: true,
+          preload: join(__dirname, '../../preload/dist/index.cjs'),
+          contextIsolation: env.MODE !== 'test',
+          enableRemoteModule: env.MODE === 'test',
         },
       });
-
-      void this.tradeHistoryWindow.loadURL(
-        (process.env.APP_URL as string) + '#/tradehistory',
-      );
 
       this.tradeHistoryWindow.on('closed', () => {
         this.tradeHistoryWindow = null;
       });
+
+      this.tradeHistoryWindow.on('ready-to-show', () => {
+        this.tradeHistoryWindow?.show();
+      });
+
+      void this.tradeHistoryWindow.loadURL(this.entryURL + '#/tradehistory');
 
       this.tradeHistoryWindow.webContents.on('did-finish-load', () => {
         this.tradeHistoryWindow?.webContents.send(

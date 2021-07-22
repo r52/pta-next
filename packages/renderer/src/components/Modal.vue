@@ -172,7 +172,7 @@
   </TransitionRoot>
 </template>
 
-<script>
+<script lang="ts">
 import {
   Dialog,
   DialogOverlay,

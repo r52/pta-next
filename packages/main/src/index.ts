@@ -106,7 +106,7 @@ const createAbout = async () => {
     height: 600,
     frame: false,
     title: 'About PTA-Next',
-    show: false, // Use 'ready-to-show' event to show window
+    show: false,
     webPreferences: {
       preload: join(__dirname, '../../preload/dist/index.cjs'),
       contextIsolation: env.MODE !== 'test',
@@ -172,6 +172,9 @@ app
   .whenReady()
   .then(createSplash)
   .then(createTray)
+  .then(() => {
+    pta.setup();
+  })
   .catch((e) => console.error('Failed create window:', e));
 
 // Auto-updates

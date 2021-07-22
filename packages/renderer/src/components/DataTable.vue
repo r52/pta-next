@@ -170,7 +170,6 @@ export default {
   emits: ['update:modelValue', 'add', 'remove', 'edit'],
 
   setup(props, { emit }) {
-    // TODO;
     function emitEvent(e: Event, event: Emits, data?: any) {
       emit(event, data);
       e.preventDefault();

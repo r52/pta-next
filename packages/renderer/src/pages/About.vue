@@ -103,7 +103,11 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style>
+body {
+  background-color: #1f2937;
+}
+
 .titlebar {
   -webkit-user-select: none;
   -webkit-app-region: drag;

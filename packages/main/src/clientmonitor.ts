@@ -1,4 +1,3 @@
-import { ipcMain } from 'electron';
 import log from 'electron-log';
 import cfg from 'electron-cfg';
 import { EventEmitter } from 'events';
@@ -23,10 +22,6 @@ export default class ClientMonitor extends EventEmitter {
 
   constructor() {
     super();
-
-    ipcMain.on('clientlog-changed', (event, path) => {
-      this.setPath(path);
-    });
 
     // setup client monitor
     const clientlog = cfg.get(

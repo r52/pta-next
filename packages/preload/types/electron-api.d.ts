@@ -5,6 +5,7 @@ interface ElectronApi {
   closeWindow: () => void;
   getConfig: () => Promise<Record<string, unknown>>;
   setConfig: (obj: Record<string, unknown>) => void;
+  ipcSend: (event: string, ...args: any[]) => void;
 }
 
 declare interface Window {

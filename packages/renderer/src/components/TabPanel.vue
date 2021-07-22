@@ -1,12 +1,13 @@
-<script>
+<script lang="ts">
 import { inject, getCurrentInstance, watchEffect, computed, ref } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 
 export default {
   name: 'TabPanel',
   setup() {
-    const instance = getCurrentInstance();
+    const instance = getCurrentInstance() as ComponentInternalInstance;
     const { panels, active } = inject('tabsPanelState', {
-      panels: ref([]),
+      panels: ref([] as ComponentInternalInstance[]),
       active: ref(null),
     });
     const index = computed(() =>

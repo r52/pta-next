@@ -305,9 +305,7 @@
           </div>
 
           <modal v-model:open="openDlg">
-            <template
-              #body
-            >
+            <template #body>
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <DialogTitle
                   as="h3"
@@ -598,8 +596,6 @@ export default defineComponent({
 
     function saveSettings() {
       setConfig(toRaw(settings));
-
-      // TODO notify
     }
 
     //   // quad tab compute
@@ -730,3 +726,18 @@ export default defineComponent({
   },
 });
 </script>
+
+<style>
+body {
+  background-color: #1f2937;
+}
+
+.titlebar {
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+}
+
+button {
+  -webkit-app-region: no-drag;
+}
+</style>

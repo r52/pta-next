@@ -17,6 +17,9 @@ const api: ElectronApi = {
   getConfig: () => ipcRenderer.invoke('get-config'),
   setConfig: (obj: Record<string, unknown>) =>
     ipcRenderer.invoke('set-config', obj),
+  ipcSend: (event: string, ...args: any[]) => {
+    ipcRenderer.send(event, args);
+  },
 };
 
 window.log = log.functions;
