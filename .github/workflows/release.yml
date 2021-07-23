@@ -15,16 +15,13 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
-
 defaults:
   run:
     shell: 'bash'
 
-
 jobs:
-
   draft:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     outputs:
       release-note: ${{ steps.release-note.outputs.release-note }}
 
@@ -54,7 +51,6 @@ jobs:
         id: version
         run: echo "::set-output name=current-version::$(node -e "try{console.log(require('./electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
 
-
       - name: Waiting on All checks
         uses: lewagon/wait-on-check-action@v0.2
         with:
@@ -79,11 +75,11 @@ jobs:
           body: ${{ steps.release-note.outputs.release-note }}
 
   upload_artifacts:
-    needs: [ draft ]
+    needs: [draft]
 
     strategy:
       matrix:
-        os: [ windows-latest ]
+        os: [windows-latest]
     #    To compile the application for different platforms, use:
     #    os: [ macos-latest, ubuntu-latest, windows-latest ]
 
@@ -125,7 +121,6 @@ jobs:
           # Sometimes the build may fail due to a connection problem with Apple, GitHub, etc. servers.
           # This option will restart the build as many attempts as possible
           max_attempts: 3
-
 
           # Code Signing params
 
