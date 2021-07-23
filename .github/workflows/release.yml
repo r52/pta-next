@@ -103,39 +103,42 @@ jobs:
           RELEASE_NOTE: ${{ needs.draft.outputs.release-note }}
         run: echo "$RELEASE_NOTE" >> ./buildResources/release-notes.md
 
+      - name: Build packages
+        run: npm run precompile
+
       # Compile app and upload artifacts
       - name: Compile & release Electron app
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run precompile
         run: npm run release
+
         # uses: samuelmeuli/action-electron-builder@v1
         # with:
         #   build_script_name: build
         #   args: --config electron-builder.config.js
 
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          # github_token: ${{ secrets.github_token }}
+        # GitHub token, automatically provided to the action
+        # (No need to define this secret in the repo settings)
+        # github_token: ${{ secrets.github_token }}
 
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          # release: true
+        # If the commit is tagged with a version (e.g. "v1.0.0"),
+        # release the app after building
+        # release: true
 
-          # Sometimes the build may fail due to a connection problem with Apple, GitHub, etc. servers.
-          # This option will restart the build as many attempts as possible
-          # max_attempts: 2
+        # Sometimes the build may fail due to a connection problem with Apple, GitHub, etc. servers.
+        # This option will restart the build as many attempts as possible
+        # max_attempts: 2
 
-          # Code Signing params
+        # Code Signing params
 
-          # Base64-encoded code signing certificate for Windows
-          # windows_certs: ''
+        # Base64-encoded code signing certificate for Windows
+        # windows_certs: ''
 
-          # Password for decrypting `windows_certs`
-          # windows_certs_password: ''
+        # Password for decrypting `windows_certs`
+        # windows_certs_password: ''
 
-          # Base64-encoded code signing certificate for macOS
-          # mac_certs: ''
+        # Base64-encoded code signing certificate for macOS
+        # mac_certs: ''
 
-          # Password for decrypting `mac_certs`
-          # mac_certs_password: ''
+        # Password for decrypting `mac_certs`
+        # mac_certs_password: ''
