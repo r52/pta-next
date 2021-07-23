@@ -120,7 +120,7 @@ jobs:
 
           # Sometimes the build may fail due to a connection problem with Apple, GitHub, etc. servers.
           # This option will restart the build as many attempts as possible
-          max_attempts: 3
+          max_attempts: 2
 
           # Code Signing params
 
