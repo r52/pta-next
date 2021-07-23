@@ -18,6 +18,7 @@
     "precompile": "cross-env MODE=production npm run build",
     "compile": "electron-builder build --config electron-builder.config.js --dir --config.asar=false",
     "compile-release": "electron-builder build --config electron-builder.config.js --publish never",
+    "release": "electron-builder build --config electron-builder.config.js --publish always",
     "pretest": "cross-env MODE=test npm run build",
     "test": "node tests/app.spec.js",
     "watch": "node scripts/watch.js",
@@ -27,8 +28,7 @@
     "typecheck-preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "typecheck-renderer": "vue-tsc --noEmit -p packages/renderer/tsconfig.json",
     "typecheck": "npm run typecheck-main && npm run typecheck-preload && npm run typecheck-renderer",
-    "eb": "electron-builder install-app-deps",
-    "postinstall": "npm run eb"
+    "eb": "electron-builder install-app-deps"
   },
   "browserslist": [
     "Chrome 91"
