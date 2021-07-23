@@ -16,15 +16,12 @@ interface PoERect {
 
 interface PoEAddon {
   InstallHandlerCallback(cb: (event: string, arg: any) => void): void;
-  Start(vulkan: boolean): void;
   InitializeHooks(): void;
   ShutdownHooks(): void;
+  Start(): void;
   Stop(): void;
-  SetVulkanCompatibility(vulkan: boolean): void;
   IsPoEForeground(): boolean;
-  SendCopyCommand(): void;
   SendPasteCommand(): void;
-  SendStashMove(direction: number, x: number, y: number): void;
   SetPoEForeground(): void;
   GetPoERect(): PoERect;
 }
@@ -41,8 +38,8 @@ class WinPoE extends EventEmitter {
     poeaddon.InstallHandlerCallback(this._handler.bind(this));
   }
 
-  start(vulkanMode: boolean, debug = false) {
-    poeaddon.Start(vulkanMode);
+  start(debug = false) {
+    poeaddon.Start();
 
     if (!debug) {
       poeaddon.InitializeHooks();
@@ -55,24 +52,12 @@ class WinPoE extends EventEmitter {
     poeaddon.Stop();
   }
 
-  setVulkanMode(enabled: boolean) {
-    poeaddon.SetVulkanCompatibility(enabled);
-  }
-
   isPoEForeground() {
     return poeaddon.IsPoEForeground();
   }
 
-  sendCopy() {
-    poeaddon.SendCopyCommand();
-  }
-
   sendPaste() {
     poeaddon.SendPasteCommand();
-  }
-
-  scrollStash(direction: number, x: number, y: number) {
-    poeaddon.SendStashMove(direction, x, y);
   }
 
   setPoEForeground() {

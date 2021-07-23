@@ -12,7 +12,6 @@ namespace
 
     HWND g_LastPoEHwnd = nullptr;
     HWND g_clipboardMonitor = nullptr;
-    bool g_VulkanCompat = false;
 
     Napi::ThreadSafeFunction g_Callback;
 
@@ -33,38 +32,6 @@ namespace pta
         return input;
     }
 
-    void EmulateWindowedFullscreen(HWND hPoe)
-    {
-        if (hPoe)
-        {
-            MONITORINFO screen;
-            screen.cbSize = sizeof(MONITORINFO);
-
-            HMONITOR mon = MonitorFromWindow(hPoe, MONITOR_DEFAULTTONEAREST);
-            BOOL res = GetMonitorInfo(mon, &screen);
-
-            if (res)
-            {
-                UINT flags = SWP_FRAMECHANGED;
-                LONG style = GetWindowLong(hPoe, GWL_STYLE);
-
-                if (style & (WS_CAPTION | WS_SIZEBOX))
-                {
-                    style &= ~(WS_CAPTION | WS_SIZEBOX);
-
-                    SetWindowLong(hPoe, GWL_STYLE, style);
-
-                    int cx = screen.rcMonitor.right - screen.rcMonitor.left;
-                    int cy = screen.rcMonitor.bottom - screen.rcMonitor.top;
-                    int x = screen.rcMonitor.left;
-                    int y = screen.rcMonitor.top;
-
-                    SetWindowPos(hPoe, HWND_TOP, x, y, cx, cy, flags);
-                }
-            }
-        }
-    }
-
     bool IsPoEForeground()
     {
         HWND hwnd = GetForegroundWindow();
@@ -82,34 +49,9 @@ namespace pta
             return false;
         }
 
-        if (g_LastPoEHwnd != hwnd && g_VulkanCompat)
-        {
-            using namespace std::chrono_literals;
-
-            // New poe window
-            std::thread v([=] {
-                std::this_thread::sleep_for(2.5s);
-                pta::EmulateWindowedFullscreen(hwnd);
-            });
-            v.detach();
-        }
-
         g_LastPoEHwnd = hwnd;
 
         return true;
-    }
-
-    bool CheckBounds(RECT bounds, int x, int y)
-    {
-        return (x > bounds.left && x < bounds.right && y > bounds.top && y < bounds.bottom);
-    }
-
-    bool CheckMouseInStash(RECT bounds, int x)
-    {
-        int winLength = bounds.right - bounds.left;
-        int stashLength = (int)((double)winLength * STASH_WIDTH_PCT);
-
-        return (x > bounds.left && x < (bounds.left + stashLength));
     }
 
 } // namespace pta
@@ -117,7 +59,8 @@ namespace pta
 VOID CALLBACK
 ForegroundHookCallback(HWINEVENTHOOK hWinEventHook, DWORD dwEvent, HWND hwnd, LONG idObject, LONG idChild, DWORD dwEventThread, DWORD dwmsEventTime)
 {
-    auto callback = [](Napi::Env env, Napi::Function jsCallback, bool *value) {
+    auto callback = [](Napi::Env env, Napi::Function jsCallback, bool *value)
+    {
         jsCallback.Call({Napi::String::New(env, "foreground"), Napi::Boolean::New(env, *value)});
 
         delete value;
@@ -186,50 +129,6 @@ void SendPasteCommand(const Napi::CallbackInfo &info)
     SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
 }
 
-void SendCopyCommand(const Napi::CallbackInfo &info)
-{
-    std::vector<INPUT> keystrokes;
-
-    // ensure all used keys are up
-    keystrokes.push_back(pta::CreateInput(VK_MENU, false));
-    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
-    keystrokes.push_back(pta::CreateInput('C', false));
-
-    keystrokes.push_back(pta::CreateInput(VK_CONTROL, true));
-    keystrokes.push_back(pta::CreateInput('C', true));
-    keystrokes.push_back(pta::CreateInput('C', false));
-    keystrokes.push_back(pta::CreateInput(VK_CONTROL, false));
-
-    SendInput(keystrokes.size(), keystrokes.data(), sizeof(keystrokes[0]));
-}
-
-void SendStashMove(const Napi::CallbackInfo &info)
-{
-    Napi::Env env = info.Env();
-    Napi::Number direction = info[0].As<Napi::Number>();
-    Napi::Number x = info[1].As<Napi::Number>();
-    Napi::Number y = info[2].As<Napi::Number>();
-
-    if (pta::IsPoEForeground())
-    {
-        HWND hwnd = GetForegroundWindow();
-        RECT screen;
-
-        if (GetWindowRect(hwnd, &screen) && pta::CheckBounds(screen, x.Int32Value(), y.Int32Value()) && !pta::CheckMouseInStash(screen, x.Int32Value()))
-        {
-            WORD key = (direction.Int32Value() > 0 ? VK_RIGHT : VK_LEFT);
-
-            // Send input
-            std::vector<INPUT> keystroke;
-
-            keystroke.push_back(pta::CreateInput(key, true));
-            keystroke.push_back(pta::CreateInput(key, false));
-
-            SendInput(keystroke.size(), keystroke.data(), sizeof(keystroke[0]));
-        }
-    }
-}
-
 Napi::Boolean SetPoEForeground(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
@@ -244,22 +143,10 @@ Napi::Boolean SetPoEForeground(const Napi::CallbackInfo &info)
     return Napi::Boolean::New(env, false);
 }
 
-void SetVulkanCompatibility(const Napi::CallbackInfo &info)
-{
-    Napi::Env env = info.Env();
-    Napi::Boolean vulkan = info[0].As<Napi::Boolean>();
-
-    g_VulkanCompat = vulkan;
-
-    if (g_LastPoEHwnd && g_VulkanCompat)
-    {
-        pta::EmulateWindowedFullscreen(g_LastPoEHwnd);
-    }
-}
-
 LRESULT CALLBACK ClipboardMonitorProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    auto callback = [](Napi::Env env, Napi::Function jsCallback) {
+    auto callback = [](Napi::Env env, Napi::Function jsCallback)
+    {
         jsCallback.Call({Napi::String::New(env, "clipboard")});
     };
 
@@ -355,21 +242,10 @@ void ShutdownHooks(const Napi::CallbackInfo &info)
 
 void Start(const Napi::CallbackInfo &info)
 {
-    Napi::Env env = info.Env();
-    Napi::Boolean vulkan = info[0].As<Napi::Boolean>();
-
-    g_VulkanCompat = vulkan;
-
     HWND poehwnd = FindWindow(s_poeCls.c_str(), nullptr);
 
     if (poehwnd)
     {
-        if (g_LastPoEHwnd != poehwnd && g_VulkanCompat)
-        {
-            // New poe window
-            pta::EmulateWindowedFullscreen(poehwnd);
-        }
-
         g_LastPoEHwnd = poehwnd;
     }
 
@@ -386,9 +262,8 @@ void InstallHandlerCallback(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
 
-    g_Callback = Napi::ThreadSafeFunction::New(env, info[0].As<Napi::Function>(), "Event Handler", 0, 1, [](Napi::Env) {
-        ShutdownClipboardMonitor();
-    });
+    g_Callback = Napi::ThreadSafeFunction::New(env, info[0].As<Napi::Function>(), "Event Handler", 0, 1, [](Napi::Env)
+                                               { ShutdownClipboardMonitor(); });
 }
 
 Napi::Object GetPoERect(const Napi::CallbackInfo &info)
@@ -425,9 +300,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // raw funcs
     exports.Set(Napi::String::New(env, "IsPoEForeground"), Napi::Function::New(env, IsPoEForeground));
-    exports.Set(Napi::String::New(env, "SendCopyCommand"), Napi::Function::New(env, SendCopyCommand));
     exports.Set(Napi::String::New(env, "SendPasteCommand"), Napi::Function::New(env, SendPasteCommand));
-    exports.Set(Napi::String::New(env, "SendStashMove"), Napi::Function::New(env, SendStashMove));
     exports.Set(Napi::String::New(env, "SetPoEForeground"), Napi::Function::New(env, SetPoEForeground));
     exports.Set(Napi::String::New(env, "GetPoERect"), Napi::Function::New(env, GetPoERect));
 
@@ -435,7 +308,6 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set(Napi::String::New(env, "InstallHandlerCallback"), Napi::Function::New(env, InstallHandlerCallback));
 
     // set
-    exports.Set(Napi::String::New(env, "SetVulkanCompatibility"), Napi::Function::New(env, SetVulkanCompatibility));
     exports.Set(Napi::String::New(env, "InitializeHooks"), Napi::Function::New(env, InitializeHooks));
     exports.Set(Napi::String::New(env, "ShutdownHooks"), Napi::Function::New(env, ShutdownHooks));
     exports.Set(Napi::String::New(env, "Start"), Napi::Function::New(env, Start));

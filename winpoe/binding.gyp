@@ -7,6 +7,18 @@
       "target_name": "winpoe",
       "sources": [ "src/winpoe.cc" ],
       'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS', '_UNICODE', 'UNICODE' ]
+    },
+    {
+      'target_name': 'copy_binary',
+      "type":"none",
+      "dependencies" : [ "winpoe" ],
+      "copies":
+      [
+        {
+            'destination': '<(module_root_dir)/../build/',
+            'files': ['<(module_root_dir)/build/Release/winpoe.node']
+        }
+      ]
     }
   ]
 }

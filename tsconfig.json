@@ -1,7 +1,19 @@
 {
-  "extends": "@quasar/app/tsconfig-preset.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "lib": ["es2020", "dom"]
-  }
+    "module": "esnext",
+    "target": "esnext",
+    "sourceMap": true,
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "strict": true,
+    "isolatedModules": false,
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+    ],
+    "lib": ["ESNext"]
+  },
 }

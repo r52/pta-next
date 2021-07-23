@@ -13,12 +13,12 @@ init:
           Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7))-$env:APPVEYOR_BUILD_NUMBER"
       }
 environment:
-  nodejs_version: 'LTS'
+  nodejs_version: '16'
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - yarn
+  - npm ci
 build_script:
-  - yarn build
+  - npm run precompile
+  - npm run compile-release
 artifacts:
-  - path: dist/electron/Packaged/*.7z
-  - path: dist/electron/Packaged/*.exe
+  - path: dist/*.exe
