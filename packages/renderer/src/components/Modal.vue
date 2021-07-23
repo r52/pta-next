@@ -180,6 +180,7 @@ import {
   TransitionChild,
   TransitionRoot,
 } from '@headlessui/vue';
+// @ts-expect-error: heroicons have no declaration
 import { ExclamationIcon } from '@heroicons/vue/outline';
 
 export default {
@@ -199,6 +200,7 @@ export default {
     },
   },
   emits: ['update:open'],
+  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     function closeDialog() {
       emit('update:open', false);

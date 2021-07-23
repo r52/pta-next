@@ -549,6 +549,7 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref, computed, toRaw } from 'vue';
+// @ts-expect-error: heroicons have no declaration
 import { XIcon } from '@heroicons/vue/outline';
 import Tabs from '/@/components/Tabs.vue';
 import Tab from '/@/components/Tab.vue';
@@ -721,6 +722,7 @@ export default defineComponent({
 
       if (elem.files && elem.files.length) {
         const file = elem.files.item(0) as File;
+        // @ts-expect-error: this is an Electron.File, which has the path directive
         settings.client.logpath = file?.path ?? '';
       }
     }

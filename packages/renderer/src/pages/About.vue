@@ -76,6 +76,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+// @ts-expect-error: heroicons have no declaration
 import { XIcon } from '@heroicons/vue/outline';
 import Card from '/@/components/Card.vue';
 import CardSection from '/@/components/CardSection.vue';

@@ -9,6 +9,7 @@ export default {
     },
   },
   emits: ['update:modelValue'],
+  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     const active = computed(() => props.modelValue);
     const tabs = ref([]);

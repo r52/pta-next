@@ -196,6 +196,7 @@ import {
   CogIcon,
   PaperAirplaneIcon,
   GlobeIcon,
+  // @ts-expect-error: heroicons have no declaration
 } from '@heroicons/vue/solid';
 
 export default defineComponent({

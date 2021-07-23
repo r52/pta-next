@@ -54,16 +54,16 @@
           </th>
         </template>
 
-        <template #body="props">
+        <template #body="{ row }">
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="text-sm text-gray-900">
-              {{ props.row.name }}
+              {{ row.name }}
             </div>
           </td>
 
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="tooltip text-sm text-gray-900">
-              <div v-if="props.row.type == 'incoming'">
+              <div v-if="row.type == 'incoming'">
                 <ArrowRightIcon class="h-4 w-4 text-green-400" />
                 <span class="tooltiptext">Incoming</span>
               </div>
@@ -76,16 +76,16 @@
 
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="text-sm text-gray-900">
-              {{ props.row.item }}
+              {{ row.item }}
             </div>
           </td>
 
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex items-center text-sm text-gray-900 space-x-1">
-              <div>{{ props.row.price }} {{ props.row.currency }}</div>
+              <div>{{ row.price }} {{ row.currency }}</div>
               <div>
                 <img
-                  :src="getCurrencyImage(props.row.currency)"
+                  :src="getCurrencyImage(row.currency)"
                   style="height: 30px; max-width: 30px"
                   class="py-1"
                 >
@@ -95,19 +95,19 @@
 
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="text-sm text-gray-900">
-              {{ getElapsedTime(now, props.row.time) }} ago
+              {{ getElapsedTime(now, row.time) }} ago
             </div>
           </td>
         </template>
 
-        <template #utility="props">
+        <template #utility="{ row }">
           <td
             class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
           >
             <a
               href="#"
               class="text-indigo-600 hover:text-indigo-900"
-              @click="historyCommand($event, 'restore-history', props.row)"
+              @click="historyCommand($event, 'restore-history', row)"
             >Restore</a>
           </td>
 
@@ -117,7 +117,7 @@
             <a
               href="#"
               class="text-indigo-600 hover:text-indigo-900"
-              @click="historyCommand($event, 'delete-history', props.row)"
+              @click="historyCommand($event, 'delete-history', row)"
             >Remove</a>
           </td>
         </template>
@@ -129,6 +129,7 @@
 <script lang="ts">
 import { defineComponent, ref, toRaw } from 'vue';
 import { useElectron } from '/@/use/electron';
+// @ts-expect-error: heroicons have no declaration
 import { XIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/vue/outline';
 import DataTable from '/@/components/DataTable.vue';
 
@@ -179,12 +180,18 @@ export default defineComponent({
   setup() {
     const { closeWindow, ipcOn, ipcSend } = useElectron();
 
-    function getCurrencyImage(name: string) {
-      return new URL(`/assets/currency/${name}.png`, import.meta.url).href;
+    function getCurrencyImage(name: unknown) {
+      // Get around https://github.com/vuejs/rfcs/pull/192
+      const n = name as string;
+
+      return new URL(`/assets/currency/${n}.png`, import.meta.url).href;
     }
 
-    function getElapsedTime(t1: number, t2: number): string {
-      let dif = t1 - t2;
+    function getElapsedTime(t1: number, t2: unknown): string {
+      // Get around https://github.com/vuejs/rfcs/pull/192
+      const t = t2 as number;
+
+      let dif = t1 - t;
 
       // convert to seconds
       dif = Math.floor(dif / 1000);
@@ -208,7 +215,7 @@ export default defineComponent({
     const history = ref([] as TradeMsg[]);
     const now = Date.now();
 
-    function historyCommand(e: Event, command: string, trade: TradeMsg) {
+    function historyCommand(e: Event, command: string, trade: unknown) {
       ipcSend(command, toRaw(trade));
       e.preventDefault();
     }

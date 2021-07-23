@@ -6,6 +6,7 @@ export default {
   props: {
     modelValue: [String, Number],
   },
+  // @ts-expect-error: vue props can be inferred safely
   setup(props) {
     provide('tabsPanelState', {
       active: computed(() => props.modelValue),

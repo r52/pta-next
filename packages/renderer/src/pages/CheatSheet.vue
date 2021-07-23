@@ -35,6 +35,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useElectron } from '/@/use/electron';
+// @ts-expect-error: heroicons have no declaration
 import { XIcon } from '@heroicons/vue/outline';
 
 export default defineComponent({

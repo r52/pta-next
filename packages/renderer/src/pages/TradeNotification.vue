@@ -248,6 +248,7 @@ import {
   UserAddIcon,
   UserRemoveIcon,
   SwitchHorizontalIcon,
+  // @ts-expect-error: heroicons have no declaration
 } from '@heroicons/vue/solid';
 import Tabs from '/@/components/Tabs.vue';
 import Tab from '/@/components/Tab.vue';

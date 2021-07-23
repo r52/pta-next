@@ -12,6 +12,7 @@ export default {
       default: '',
     },
   },
+  // @ts-expect-error: vue props can be inferred safely
   setup(props) {
     const instance = getCurrentInstance() as ComponentInternalInstance;
     const { tabs, selectTab, active } = inject('tabsState', {

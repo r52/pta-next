@@ -137,7 +137,9 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PropType } from 'vue';
+// @ts-expect-error: heroicons have no declaration
 import { ExclamationIcon } from '@heroicons/vue/solid';
 
 interface ColumnType {
@@ -154,18 +156,15 @@ export default {
   },
   props: {
     modelValue: {
-      type: Array,
+      // Get around https://github.com/vuejs/rfcs/pull/192
+      type: Array as PropType<any[]>,
       required: true,
-      default() {
-        return [];
-      },
+      default: (): any[] => [],
     },
     columns: {
       type: Array as PropType<ColumnType[]>,
       required: true,
-      default() {
-        return [];
-      },
+      default: (): ColumnType[] => [],
     },
     rowKey: {
       type: String,
@@ -175,7 +174,7 @@ export default {
   },
 
   emits: ['update:modelValue', 'add', 'remove', 'edit'],
-
+  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     function emitEvent(e: Event, event: Emits, data?: any) {
       emit(event, data);
