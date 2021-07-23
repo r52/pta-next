@@ -95,8 +95,8 @@ export class PTA {
       this.trademanager.forwardPlayerEvent('left-area', name);
     });
 
-    // TODO
-    // uIOhook.on('keydown', event => {
+    // TODO: No prebuilt for latest electron
+    // uIOhook.on('keydown', (event) => {
     //   if (this.settings.quickpaste) {
     //     switch (this.settings.quickpastemod) {
     //       case QuickPasteKey.CTRL:
@@ -109,7 +109,7 @@ export class PTA {
     //   }
     // });
 
-    // uIOhook.on('keyup', event => {
+    // uIOhook.on('keyup', (event) => {
     //   if (this.settings.quickpaste) {
     //     switch (this.settings.quickpastemod) {
     //       case QuickPasteKey.CTRL:
@@ -150,7 +150,7 @@ export class PTA {
     });
 
     winpoe.start(env.MODE === 'development');
-    // uIOhook.start(); TODO
+    // uIOhook.start();
 
     // setup trade manager
     this.trademanager.setup();
@@ -160,7 +160,7 @@ export class PTA {
     this.unregisterShortcuts();
 
     winpoe.stop();
-    //uIOhook.stop(); TODO
+    // uIOhook.stop();
   }
 
   private registerShortcuts() {

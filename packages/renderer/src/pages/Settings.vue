@@ -31,9 +31,11 @@
 
     <div class="p-2 pb-10 overflow-auto overscroll-auto">
       <tabs v-model="tab">
+        <!--
         <tab name="hotkey">
           Hotkey
         </tab>
+        -->
         <tab name="client">
           Client
         </tab>
@@ -45,7 +47,7 @@
         </tab>
       </tabs>
       <tab-panels v-model="tab">
-        <!-- Hotkey tab -->
+        <!-- Hotkey tab 
         <tab-panel name="hotkey">
           <div class="p-1">
             <div class="grid grid-cols-2 items-center justify-between">
@@ -92,6 +94,7 @@
             </div>
           </div>
         </tab-panel>
+        -->
 
         <!-- Client tab -->
         <tab-panel name="client">
@@ -530,6 +533,17 @@
         Save Settings
       </button>
     </div>
+
+    <notification
+      v-model="showNotification"
+      class="fixed top-0 inset-x-1/3"
+    >
+      <template #content>
+        <div class="text-sm text-black">
+          Settings Successfully saved!
+        </div>
+      </template>
+    </notification>
   </div>
 </template>
 
@@ -542,6 +556,7 @@ import TabPanels from '/@/components/TabPanels.vue';
 import TabPanel from '/@/components/TabPanel.vue';
 import DataTable from '/@/components/DataTable.vue';
 import Modal from '/@/components/Modal.vue';
+import Notification from '/@/components/Notification.vue';
 import { DialogTitle } from '@headlessui/vue';
 
 import { useElectron } from '/@/use/electron';
@@ -558,6 +573,7 @@ export default defineComponent({
     TabPanel,
     DataTable,
     Modal,
+    Notification,
     DialogTitle,
     XIcon,
   },
@@ -565,6 +581,8 @@ export default defineComponent({
   setup() {
     // utility functions
     const { closeWindow, openBrowser, getConfig, setConfig } = useElectron();
+
+    const showNotification = ref(false);
 
     // Settings
 
@@ -600,7 +618,11 @@ export default defineComponent({
     function saveSettings() {
       setConfig(toRaw(settings));
 
-      // TODO Notify
+      showNotification.value = true;
+
+      setTimeout(() => {
+        showNotification.value = false;
+      }, 3000);
     }
 
     //   // quad tab compute
@@ -703,7 +725,7 @@ export default defineComponent({
       }
     }
 
-    const tab = ref('hotkey');
+    const tab = ref('client');
 
     return {
       settings,
@@ -712,6 +734,7 @@ export default defineComponent({
       quadtabs,
 
       tab,
+      showNotification,
 
       tradeuicolumns,
       tradeCmdData,

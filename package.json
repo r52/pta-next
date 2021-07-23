@@ -31,7 +31,7 @@
     "postinstall": "npm run eb"
   },
   "browserslist": [
-    "Chrome 91"
+    "electron 13.1.7"
   ],
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",
