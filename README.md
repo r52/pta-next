@@ -4,15 +4,13 @@
 ![Windows Build](https://github.com/r52/pta-next/workflows/Windows%20Build/badge.svg)
 [![Build status](https://ci.appveyor.com/api/projects/status/9wd2911nsfftijk9?svg=true)](https://ci.appveyor.com/project/r52/pta-next)
 
-PTA-Next is yet another simple, no frills price checking tool based on [PoE-TradeMacro](https://github.com/PoE-TradeMacro/POE-TradeMacro) that operates on the [Official Path of Exile Trade](https://www.pathofexile.com/trade) site. PTA-Next is the revamped version of [PTA](https://github.com/r52/PTA).
-
-It also includes a [MercuryTrade](https://github.com/Exslims/MercuryTrade) style [trade notification UI](https://github.com/r52/pta-next/wiki#trade-ui).
-
-**PTA-Next is currently still in early development stages. Expect crashes, bugs, and whole lot of things that may not work quite right.**
-
-**NOTE: As with any pricing tools, never trust or rely on its results entirely. If something seems off, confirm with a manual search. It could very well be an issue with the app itself.**
+PTA-Next is a [MercuryTrade](https://github.com/Exslims/MercuryTrade) style [trade notification UI/manager](https://github.com/r52/pta-next/wiki#trade-ui).
 
 PTA is licensed under GPL-3.0
+
+### **Update July 2021**
+
+As of the current version, PTA-Next no longer provides trade macro/price checking, custom macros and hotkeys, or mousewheel stash scrolling functionality. Go use the amazing [Awakened PoE Trade](https://github.com/SnosMe/awakened-poe-trade) for these features. Going forward, PTA-Next will focus on being a functional trade manager/notifier UI with extra vanity features.
 
 ## Installation
 
@@ -20,36 +18,10 @@ PTA is licensed under GPL-3.0
 
 Installer version: Install PTA-Next using the installer and run it from start menu
 
-Portable version: Extract the archive and run **PTA-Next.exe**
-
 **If your PC is not running Windows 10 with the latest feature updates or you are getting a VC runtime error, you MUST download and install the [Microsoft Visual C++ Redistributable](https://aka.ms/vs/16/release/VC_redist.x64.exe)!**
-
-## Known Issues
-
-- **Fixed by GGG. The setting will be kept if for whatever reason PTA-Next doesn't work with Vulkan Windowed Fullscreen on your PC.** ~~Overlay features (i.e. Trade Bar, Trade Notifications, Stash Highlighting) doesn't work when using Windowed Fullscreen with Vulkan~~
-  - ~~Most desktop-based third-party tools are currently broken when using Vulkan Windowed Fullscreen in PoE because the current implementation of the Vulkan Windowed Fullscreen in PoE does not render within the desktop context.~~
-  - ~~To workaround this, you can choose to emulate Windowed Fullscreen while using Vulkan by enabling the option in the settings (ensure that PoE is set to Windowed mode before enabling this option). Note that those with weaker computers may see performance issues while using this option because it is not "true" Windowed Fullscreen.~~
 
 ## Features
 
-**All features can be enabled or disabled, and all shortcuts and macros can be reconfigured in the settings!**
-
-- [PoE-TradeMacro](https://github.com/PoE-TradeMacro/POE-TradeMacro) style simple and advanced item searches
-  - Default key: **Ctrl+D** and **Ctrl+Alt+D**
-  - `Enabled` by default
-  - Disable these if you'd like to use another price checking tool along with PTA-Next.
-- Wiki hotkey
-  - Default key: **Ctrl+Alt+G**
-  - `Enabled` by default
-- poeprices.info prediction
-  - `Enabled` by default
-- Quick paste trade whispers (while holding modifier key)
-  - `Disabled` by default
-- Ctrl + Mousewheel stash scrolling
-  - `Enabled` by default
-- Custom macros
-  - Supports in-game chat commands as well as opening URLs in your browser.
-  - See [wiki](https://github.com/r52/pta-next/wiki) for examples.
 - [MercuryTrade](https://github.com/Exslims/MercuryTrade) style trade notification UI with stash highlighting
   - `Disabled` by default
   - See [wiki](https://github.com/r52/pta-next/wiki#trade-ui) for examples.
@@ -58,17 +30,11 @@ Portable version: Extract the archive and run **PTA-Next.exe**
   - Currently includes Incursion and Betrayal
   - Access from Trade Bar
   - Custom images supported (change in settings)
-- Vulkan Windowed Fullscreen Emulation
+- Quick paste trade whispers (while holding modifier key) (currently broken due to lack of library support)
   - `Disabled` by default
-  - Emulates Windowed Fullscreen mode when using Vulkan, if for whatever reason PTA-Next doesn't work with Vulkan Windowed Fullscreen on your PC.
-  - Set your PoE to Windowed mode before enabling this setting!
 
 QoL Shortcuts:
 
-- Search Window
-  - Right Click/`Alt+C` - Dismisses window
-  - `Alt+S` - Search button
-  - `Alt+E` - Open on pathofexile.com
 - Cheat Sheets
   - Right Click - Dismisses window
 
@@ -78,31 +44,32 @@ QoL Shortcuts:
 
 Only 64-bit Windows is supported at this time.
 
-- [Node.js 12](https://nodejs.org/en/)
+- [Node.js 14+](https://nodejs.org/en/)
 - [node-gyp dependencies](https://github.com/nodejs/node-gyp#installation) (your own copy of Visual Studio and Python OR windows-build-tools)
 
-### Instructions
+### Compile Instructions
 
 ```bash
-yarn
-yarn build
+npm ci
+npm run compile
 ```
 
 ### Dev/Test build
 
 ```bash
-yarn # if you haven't installed this project yet
-yarn rebuild
-yarn dev
+npm ci # if you haven't installed this project yet
+npm run eb
+npm run watch
 ```
 
 ## Tech Stack
 
 Built on:
 
-- [Vue](https://vuejs.org/) + [Quasar](https://quasar.dev/)
+- [Vue 3](https://vuejs.org/)
 - [Typescript](https://www.typescriptlang.org/)
 - [Electron](https://www.electronjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
 
 ## Contributing
 
@@ -117,6 +84,4 @@ Recommended VS Code Extensions:
 ## Credits
 
 - [Grinding Gear Games](http://www.grindinggear.com/) for [Path of Exile](https://www.pathofexile.com/)
-- [brather1ng](https://github.com/brather1ng) for [RePoE](https://github.com/brather1ng/RePoE).
-- [PoE-TradeMacro](https://github.com/PoE-TradeMacro/POE-TradeMacro)
-- [poeprices.info](https://poeprices.info/)
+- [MercuryTrade](https://github.com/Exslims/MercuryTrade)
