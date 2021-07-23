@@ -21,7 +21,7 @@ defaults:
 
 jobs:
   draft:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     outputs:
       release-note: ${{ steps.release-note.outputs.release-note }}
 
