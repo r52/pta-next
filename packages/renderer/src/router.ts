@@ -28,16 +28,16 @@ const routes = [
     name: 'TradeHistory',
     component: () => import('/@/pages/TradeHistory.vue'),
   },
-  // {
-  //   path: '/stashsetup',
-  //   name: 'StashSetup',
-  //   component: () => import('/@/pages/StashSetup.vue'),
-  // },
-  // {
-  //   path: '/stashhighlight',
-  //   name: 'StashHighlight',
-  //   component: () => import('/@/pages/StashHighlight.vue'),
-  // },
+  {
+    path: '/stashsetup',
+    name: 'StashSetup',
+    component: () => import('/@/pages/StashSetup.vue'),
+  },
+  {
+    path: '/stashhighlight',
+    name: 'StashHighlight',
+    component: () => import('/@/pages/StashHighlight.vue'),
+  },
   {
     path: '/cheatsheet',
     name: 'CheatSheet',

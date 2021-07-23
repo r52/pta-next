@@ -32,9 +32,9 @@
           :name="`${trade.name}${trade.time}`"
           class="smallTabs"
           :class="{
-            'text-purple-500': trade.newwhisper,
-            'text-green-500': trade.enteredarea,
-            'text-yellow-500': !trade.newwhisper && !trade.enteredarea,
+            'text-purple-400': trade.newwhisper,
+            'text-green-400': trade.enteredarea,
+            'text-yellow-400': !trade.newwhisper && !trade.enteredarea,
           }"
         >
           {{ trades.length > 1 ? truncateName(trade.item) : trade.item }}
@@ -53,7 +53,7 @@
           class="py-0"
         >
           <div class="bg-gray-500 px-2 flex space-x-2">
-            <div class="text-yellow-500">
+            <div class="text-yellow-200">
               {{ trade.name }}
             </div>
             <div
