@@ -1,4 +1,4 @@
-interface TradeMsg {
+export interface TradeMsg {
   name: string;
   type: string;
   item: string;
@@ -12,38 +12,38 @@ interface TradeMsg {
   time: number;
 }
 
-interface TradeCommand {
+export interface TradeCommand {
   label: string;
   command: string;
   close: boolean;
 }
 
-interface TabInfo {
+export interface TabInfo {
   name: string;
   x: number;
   y: number;
   quad: boolean;
 }
 
-interface TradeMessages {
+export interface TradeMessages {
   [index: string]: TradeMessageProcess[];
 }
 
-interface TradeMessageProcess {
+export interface TradeMessageProcess {
   test: string;
   types: TradeMessageProcessor[];
 }
 
-interface TradeMessageProcessor {
+export interface TradeMessageProcessor {
   reg: RegExp;
   process(
     name: string,
     type: string,
-    match: RegExpExecArray | null
+    match: RegExpExecArray | null,
   ): TradeMsg | null;
 }
 
-interface TradeNotification extends TradeMsg {
+export interface TradeNotification extends TradeMsg {
   commands: TradeCommand[];
   curtime: string;
   newwhisper: boolean;

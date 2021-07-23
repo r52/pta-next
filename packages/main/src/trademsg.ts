@@ -1,4 +1,6 @@
 /* eslint-disable quotes */
+import type { TradeMsg, TradeMessages } from '../../../types/trade';
+
 const currencies = new Map([
   ['Orb of Alteration', 'alt'],
   ['Orb of Fusing', 'fusing'],

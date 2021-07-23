@@ -23,11 +23,11 @@ const routes = [
     name: 'TradeNotification',
     component: () => import('/@/pages/TradeNotification.vue'),
   },
-  // {
-  //   path: '/tradehistory',
-  //   name: 'TradeHistory',
-  //   component: () => import('/@/pages/TradeHistory.vue'),
-  // },
+  {
+    path: '/tradehistory',
+    name: 'TradeHistory',
+    component: () => import('/@/pages/TradeHistory.vue'),
+  },
   // {
   //   path: '/stashsetup',
   //   name: 'StashSetup',

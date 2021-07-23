@@ -224,15 +224,10 @@ export default defineComponent({
       ipcSend('trade-command', {}, command);
     }
 
-    function ignoreMouse(enabled: boolean) {
-      ipcSend('trade-bar-ignore-mouse', enabled);
-    }
-
     return {
       sendMsg,
       sendCommand,
       closeWindow,
-      ignoreMouse,
     };
   },
 });

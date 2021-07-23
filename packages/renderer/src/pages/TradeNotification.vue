@@ -254,32 +254,7 @@ import Tab from '/@/components/Tab.vue';
 import TabPanels from '/@/components/TabPanels.vue';
 import TabPanel from '/@/components/TabPanel.vue';
 
-interface TradeCommand {
-  label: string;
-  command: string;
-  close: boolean;
-}
-
-interface TradeMsg {
-  name: string;
-  type: string;
-  item: string;
-  price: number;
-  currency: string;
-  league: string;
-  tab?: string;
-  x?: number;
-  y?: number;
-  msg?: string;
-  time: number;
-}
-
-interface TradeNotification extends TradeMsg {
-  commands: TradeCommand[];
-  curtime: string;
-  newwhisper: boolean;
-  enteredarea: boolean;
-}
+import type { TradeCommand, TradeNotification } from '../../types';
 
 export default defineComponent({
   name: 'TradeNotification',
@@ -343,7 +318,6 @@ export default defineComponent({
 
     // Handle trade events
     function handleTrade(trade: TradeNotification) {
-      console.log('gets here');
       trades.value.push(trade);
 
       if (!tab.value) {
@@ -372,20 +346,19 @@ export default defineComponent({
       });
     }
 
-    ipcOn('trade', (trade) => {
-      console.log(trade);
+    ipcOn('trade', (trade: TradeNotification) => {
       handleTrade(trade);
     });
 
-    ipcOn('new-whisper', (name) => {
+    ipcOn('new-whisper', (name: string) => {
       handleTradeEvent('new-whisper', name);
     });
 
-    ipcOn('entered-area', (name) => {
+    ipcOn('entered-area', (name: string) => {
       handleTradeEvent('entered-area', name);
     });
 
-    ipcOn('left-area', (name) => {
+    ipcOn('left-area', (name: string) => {
       handleTradeEvent('left-area', name);
     });
 

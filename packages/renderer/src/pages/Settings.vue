@@ -547,12 +547,7 @@ import { DialogTitle } from '@headlessui/vue';
 import { useElectron } from '/@/use/electron';
 
 import Config from '../../../main/src/config';
-
-interface TradeCommand {
-  label: string;
-  command: string;
-  close: boolean;
-}
+import type { TradeCommand } from '../../types';
 
 export default defineComponent({
   name: 'Settings',
@@ -704,7 +699,6 @@ export default defineComponent({
 
       if (elem.files && elem.files.length) {
         const file = elem.files.item(0) as File;
-        console.log(file);
         settings.client.logpath = file?.path ?? '';
       }
     }

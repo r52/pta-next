@@ -4,6 +4,12 @@ import { join } from 'path';
 import cfg from 'electron-cfg';
 import winpoe from 'winpoe';
 
+import type {
+  TradeMsg,
+  TradeCommand,
+  TradeNotification,
+  TabInfo,
+} from '../../../types/trade';
 import Config from './config';
 
 const env = import.meta.env;
@@ -558,14 +564,16 @@ export default class TradeManager {
         this.tradeHistoryWindow?.show();
       });
 
-      void this.tradeHistoryWindow.loadURL(this.entryURL + '#/tradehistory');
-
-      this.tradeHistoryWindow.webContents.on('did-finish-load', () => {
-        this.tradeHistoryWindow?.webContents.send(
-          'trade-history',
-          this.tradeHistory,
-        );
-      });
+      void this.tradeHistoryWindow
+        .loadURL(this.entryURL + '#/tradehistory')
+        .then(() => {
+          setTimeout(() => {
+            this.tradeHistoryWindow?.webContents.send(
+              'trade-history',
+              this.tradeHistory,
+            );
+          }, 100);
+        });
     } else {
       this.tradeHistoryWindow.show();
       this.tradeHistoryWindow.moveTop();

@@ -8,6 +8,7 @@ import log from 'electron-log';
 import ClientMonitor from './clientmonitor';
 import TradeManager from './trademanager';
 import Config, { QuickPasteKey } from './config';
+import type { TradeMsg } from '../../../types/trade';
 
 const env = import.meta.env;
 

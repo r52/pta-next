@@ -29,29 +29,31 @@
                     {{ clm.label }}
                   </th>
                 </slot>
-                <th
-                  scope="col"
-                  class="relative px-6 py-3"
-                >
-                  <span class="sr-only">Edit</span>
-                </th>
-                <th
-                  scope="col"
-                  class="
-                    relative
-                    px-6
-                    py-4
-                    whitespace-nowrap
-                    text-right text-sm
-                    font-medium
-                  "
-                >
-                  <a
-                    href="#"
-                    class="text-indigo-600 hover:text-indigo-900"
-                    @click="emitEvent($event, 'add')"
-                  >Add New</a>
-                </th>
+                <slot name="utility-col">
+                  <th
+                    scope="col"
+                    class="relative px-6 py-3"
+                  >
+                    <span class="sr-only">Edit</span>
+                  </th>
+                  <th
+                    scope="col"
+                    class="
+                      relative
+                      px-6
+                      py-4
+                      whitespace-nowrap
+                      text-right text-sm
+                      font-medium
+                    "
+                  >
+                    <a
+                      href="#"
+                      class="text-indigo-600 hover:text-indigo-900"
+                      @click="emitEvent($event, 'add')"
+                    >Add New</a>
+                  </th>
+                </slot>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -74,37 +76,42 @@
                       </div>
                     </td>
                   </slot>
-                  <td
-                    class="
-                      px-6
-                      py-4
-                      whitespace-nowrap
-                      text-right text-sm
-                      font-medium
-                    "
+                  <slot
+                    name="utility"
+                    :row="row"
                   >
-                    <a
-                      href="#"
-                      class="text-indigo-600 hover:text-indigo-900"
-                      @click="emitEvent($event, 'edit', row)"
-                    >Edit</a>
-                  </td>
+                    <td
+                      class="
+                        px-6
+                        py-4
+                        whitespace-nowrap
+                        text-right text-sm
+                        font-medium
+                      "
+                    >
+                      <a
+                        href="#"
+                        class="text-indigo-600 hover:text-indigo-900"
+                        @click="emitEvent($event, 'edit', row)"
+                      >Edit</a>
+                    </td>
 
-                  <td
-                    class="
-                      px-6
-                      py-4
-                      whitespace-nowrap
-                      text-right text-sm
-                      font-medium
-                    "
-                  >
-                    <a
-                      href="#"
-                      class="text-indigo-600 hover:text-indigo-900"
-                      @click="emitEvent($event, 'remove', row)"
-                    >Remove</a>
-                  </td>
+                    <td
+                      class="
+                        px-6
+                        py-4
+                        whitespace-nowrap
+                        text-right text-sm
+                        font-medium
+                      "
+                    >
+                      <a
+                        href="#"
+                        class="text-indigo-600 hover:text-indigo-900"
+                        @click="emitEvent($event, 'remove', row)"
+                      >Remove</a>
+                    </td>
+                  </slot>
                 </tr>
               </template>
               <template v-else>
