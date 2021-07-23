@@ -18,6 +18,6 @@ install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - npm ci
 build_script:
-  - npm run compile-release
-artifacts:
-  - path: dist/*.exe
+  - npm run compile
+# artifacts:
+#   - path: dist/*.exe
