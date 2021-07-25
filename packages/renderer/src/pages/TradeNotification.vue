@@ -238,7 +238,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, toRaw } from 'vue';
 import { useElectron } from '/@/use/electron';
 import {
   XIcon,
@@ -390,14 +390,14 @@ export default defineComponent({
     }
 
     function sendTradeCommand(trade: TradeNotification, command: string) {
-      ipcSend('trade-command', trade, command);
+      ipcSend('trade-command', toRaw(trade), command);
     }
 
     function sendCustomCommand(
       trade: TradeNotification,
       command: TradeCommand,
     ) {
-      ipcSend('trade-custom-command', trade, command);
+      ipcSend('trade-custom-command', toRaw(trade), toRaw(command));
 
       if (command.close) {
         closeTabOrWindow();
@@ -480,7 +480,7 @@ body {
 
   position: absolute;
   left: -120px;
-  top: -20px;
+  top: -30px;
 
   z-index: 1;
 }
