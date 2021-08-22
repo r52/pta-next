@@ -1,26 +1,18 @@
 /* eslint-env node */
 
-import {chrome} from '../../electron-vendors.config.json';
-import {join} from 'path';
+import { chrome } from '../../electron-vendors.config.json';
+import { join } from 'path';
 import { builtinModules } from 'module';
-import {defineConfig} from 'vite';
 import vue from '@vitejs/plugin-vue';
-import {loadAndSetEnv} from '../../scripts/loadAndSetEnv.mjs';
-
 
 const PACKAGE_ROOT = __dirname;
 
 /**
- * Vite looks for `.env.[mode]` files only in `PACKAGE_ROOT` directory.
- * Therefore, you must manually load and set the environment variables from the root directory above
- */
-loadAndSetEnv(process.env.MODE, process.cwd());
-
-
-/**
+ * @type {import('vite').UserConfig}
  * @see https://vitejs.dev/config/
  */
-export default defineConfig({
+const config = {
+  mode: process.env.MODE,
   root: PACKAGE_ROOT,
   resolve: {
     alias: {
@@ -30,8 +22,8 @@ export default defineConfig({
   plugins: [vue()],
   base: '',
   server: {
-    fsServe: {
-      root: join(PACKAGE_ROOT, '../../'),
+    fs: {
+      strict: true,
     },
   },
   build: {
@@ -47,11 +39,11 @@ export default defineConfig({
       safari10: false,
     },
     rollupOptions: {
-      external: [
-        ...builtinModules,
-      ],
+      external: [...builtinModules],
     },
     emptyOutDir: true,
+    brotliSize: false,
   },
-});
+};
 
+export default config;
