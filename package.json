@@ -42,23 +42,23 @@
   },
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.2.0",
-    "@typescript-eslint/eslint-plugin": "^4.28.3",
-    "@vitejs/plugin-vue": "^1.2.5",
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@vitejs/plugin-vue": "^1.4.0",
     "autoprefixer": "^10.3.1",
     "cross-env": "^7.0.3",
-    "electron": "^13.1.7",
+    "electron": "^13.2.1",
     "electron-builder": "^22.11.7",
     "electron-devtools-installer": "^3.2.0",
-    "eslint": "^7.30.0",
-    "eslint-plugin-vue": "^7.13.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^7.16.0",
     "lint-staged": "^11.0.1",
     "postcss": "^8.3.5",
-    "simple-git-hooks": "^2.5.1",
+    "simple-git-hooks": "^2.6.1",
     "spectron": "^15.0.0",
     "tailwindcss": "^2.2.4",
     "typescript": "^4.3.5",
-    "vite": "^2.4.2",
-    "vue-tsc": "^0.2.1"
+    "vite": "^2.5.0",
+    "vue-tsc": "^0.2.3"
   },
   "dependencies": {
     "@headlessui/vue": "^1.3.0",
@@ -66,9 +66,9 @@
     "@tailwindcss/forms": "^0.3.3",
     "electron-cfg": "^1.2.6",
     "electron-log": "^4.3.5",
-    "electron-updater": "^4.4.1",
-    "vue": "^3.1.5",
-    "vue-router": "^4.0.10",
+    "electron-updater": "^4.4.5",
+    "vue": "^3.2.4",
+    "vue-router": "^4.0.11",
     "winpoe": "file:winpoe"
   }
 }
