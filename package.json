@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.4.1",
-    "@heroicons/vue": "^1.0.2",
+    "@heroicons/vue": "^1.0.4",
     "@tailwindcss/forms": "^0.3.3",
     "electron-cfg": "^1.2.7",
     "electron-log": "^4.3.5",

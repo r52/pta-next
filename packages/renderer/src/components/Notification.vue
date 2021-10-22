@@ -54,7 +54,6 @@
 
 <script lang="ts">
 import { TransitionRoot } from '@headlessui/vue';
-// @ts-expect-error: heroicons have no declaration
 import { XIcon, CheckCircleIcon } from '@heroicons/vue/solid';
 
 export default {

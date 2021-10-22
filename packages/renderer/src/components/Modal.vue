@@ -180,7 +180,6 @@ import {
   TransitionChild,
   TransitionRoot,
 } from '@headlessui/vue';
-// @ts-expect-error: heroicons have no declaration
 import { ExclamationIcon } from '@heroicons/vue/outline';
 
 export default {

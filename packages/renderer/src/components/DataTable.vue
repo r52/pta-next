@@ -139,7 +139,6 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PropType } from 'vue';
-// @ts-expect-error: heroicons have no declaration
 import { ExclamationIcon } from '@heroicons/vue/solid';
 
 interface ColumnType {
