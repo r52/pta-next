@@ -65,9 +65,8 @@ const createSplash = async () => {
     title: 'PTA-Next',
     show: false, // Use 'ready-to-show' event to show window
     webPreferences: {
+      nativeWindowOpen: true,
       preload: join(__dirname, '../../preload/dist/index.cjs'),
-      contextIsolation: import.meta.env.MODE !== 'test', // Spectron tests can't work with contextIsolation: true
-      enableRemoteModule: import.meta.env.MODE === 'test', // Spectron tests can't work with enableRemoteModule: false
     },
   });
 
@@ -103,9 +102,8 @@ const createAbout = async () => {
     title: 'About PTA-Next',
     show: false,
     webPreferences: {
+      nativeWindowOpen: true,
       preload: join(__dirname, '../../preload/dist/index.cjs'),
-      contextIsolation: import.meta.env.MODE !== 'test',
-      enableRemoteModule: import.meta.env.MODE === 'test',
     },
   });
 
