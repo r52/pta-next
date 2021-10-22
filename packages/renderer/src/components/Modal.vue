@@ -173,6 +173,7 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import {
   Dialog,
   DialogOverlay,
@@ -182,7 +183,7 @@ import {
 } from '@headlessui/vue';
 import { ExclamationIcon } from '@heroicons/vue/outline';
 
-export default {
+export default defineComponent({
   components: {
     Dialog,
     DialogOverlay,
@@ -199,12 +200,11 @@ export default {
     },
   },
   emits: ['update:open'],
-  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     function closeDialog() {
       emit('update:open', false);
     }
     return { closeDialog };
   },
-};
+});
 </script>

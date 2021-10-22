@@ -139,6 +139,7 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PropType } from 'vue';
+import { defineComponent } from 'vue';
 import { ExclamationIcon } from '@heroicons/vue/solid';
 
 interface ColumnType {
@@ -149,7 +150,7 @@ interface ColumnType {
 
 type Emits = 'update:modelValue' | 'add' | 'remove' | 'edit';
 
-export default {
+export default defineComponent({
   components: {
     ExclamationIcon,
   },
@@ -173,7 +174,6 @@ export default {
   },
 
   emits: ['update:modelValue', 'add', 'remove', 'edit'],
-  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     function emitEvent(e: Event, event: Emits, data?: any) {
       emit(event, data);
@@ -182,5 +182,5 @@ export default {
 
     return { emitEvent };
   },
-};
+});
 </script>

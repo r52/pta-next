@@ -244,6 +244,7 @@ body {
 }
 
 .titlebar {
+  user-select: none;
   -webkit-user-select: none;
   -webkit-app-region: drag;
 }

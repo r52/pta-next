@@ -1,17 +1,22 @@
 <script lang="ts">
-import { inject, getCurrentInstance, watchEffect, computed, ref } from 'vue';
+import {
+  inject,
+  getCurrentInstance,
+  watchEffect,
+  computed,
+  ref,
+  defineComponent,
+} from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 
-export default {
+export default defineComponent({
   name: 'TabPanel',
   props: {
     name: {
       type: String,
-      required: true,
-      default: '',
+      default: null,
     },
   },
-  // @ts-expect-error: vue props can be inferred safely
   setup(props) {
     const instance = getCurrentInstance() as ComponentInternalInstance;
     const { panels, active } = inject('tabsPanelState', {
@@ -22,7 +27,11 @@ export default {
       panels.value.findIndex((target) => target.uid === instance.uid),
     );
     const isActive = computed(
-      () => index.value > -1 && props.name === active.value,
+      () =>
+        index.value > -1 &&
+        (props.name !== null
+          ? props.name === active.value
+          : index.value === active.value),
     );
 
     watchEffect(() => {
@@ -35,7 +44,7 @@ export default {
       isActive,
     };
   },
-};
+});
 </script>
 
 <template>
