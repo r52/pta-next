@@ -1,19 +1,21 @@
 <script lang="ts">
-import { ref, provide, computed } from 'vue';
+import { ref, provide, computed, defineComponent } from 'vue';
 
-export default {
+export default defineComponent({
   name: 'TabPanels',
   props: {
-    modelValue: [String, Number],
+    modelValue: {
+      type: [String, Number],
+      default: 0,
+    },
   },
-  // @ts-expect-error: vue props can be inferred safely
   setup(props) {
     provide('tabsPanelState', {
       active: computed(() => props.modelValue),
       panels: ref([]),
     });
   },
-};
+});
 </script>
 
 <template>

@@ -53,11 +53,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import { TransitionRoot } from '@headlessui/vue';
-// @ts-expect-error: heroicons have no declaration
 import { XIcon, CheckCircleIcon } from '@heroicons/vue/solid';
 
-export default {
+export default defineComponent({
   components: { TransitionRoot, XIcon, CheckCircleIcon },
   props: {
     modelValue: {
@@ -67,7 +67,6 @@ export default {
     },
   },
   emits: ['update:modelValue'],
-  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     function closeNotification() {
       emit('update:modelValue', false);
@@ -77,5 +76,5 @@ export default {
       closeNotification,
     };
   },
-};
+});
 </script>

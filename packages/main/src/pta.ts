@@ -195,9 +195,8 @@ export class PTA {
         title: 'PTA-Next Settings',
         show: false,
         webPreferences: {
+          nativeWindowOpen: true,
           preload: join(__dirname, '../../preload/dist/index.cjs'),
-          contextIsolation: env.MODE !== 'test',
-          enableRemoteModule: env.MODE === 'test',
         },
       });
 
@@ -256,9 +255,8 @@ export class PTA {
         title: 'Cheat Sheet',
         show: false,
         webPreferences: {
+          nativeWindowOpen: true,
           preload: join(__dirname, '../../preload/dist/index.cjs'),
-          contextIsolation: env.MODE !== 'test',
-          enableRemoteModule: env.MODE === 'test',
         },
       });
 

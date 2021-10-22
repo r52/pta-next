@@ -1,18 +1,23 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { computed, inject, watchEffect, getCurrentInstance, ref } from 'vue';
+import {
+  computed,
+  inject,
+  watchEffect,
+  getCurrentInstance,
+  ref,
+  defineComponent,
+} from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 
-export default {
+export default defineComponent({
   name: 'Tab',
   props: {
     name: {
       type: String,
-      required: true,
-      default: '',
+      default: null,
     },
   },
-  // @ts-expect-error: vue props can be inferred safely
   setup(props) {
     const instance = getCurrentInstance() as ComponentInternalInstance;
     const { tabs, selectTab, active } = inject('tabsState', {
@@ -28,7 +33,11 @@ export default {
       ),
     );
     const isActive = computed(
-      () => index.value > -1 && props.name === active.value,
+      () =>
+        index.value > -1 &&
+        (props.name !== null
+          ? props.name === active.value
+          : index.value === active.value),
     );
 
     const activateTab = () => {
@@ -46,7 +55,7 @@ export default {
       isActive,
     };
   },
-};
+});
 </script>
 
 <template>

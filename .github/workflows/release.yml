@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release-note: ${{ steps.release-note.outputs.release-note }}
+      version: ${{ steps.version.outputs.build-version }}
 
     steps:
       - uses: actions/checkout@v2
@@ -49,7 +50,7 @@ jobs:
 
       - name: Get version from current date
         id: version
-        run: echo "::set-output name=current-version::$(node -e "try{console.log(require('./electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
+        run: echo "::set-output name=build-version::$(node -e "try{console.log(require('./electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
 
       - name: Waiting on All checks
         uses: lewagon/wait-on-check-action@v0.2
@@ -59,7 +60,7 @@ jobs:
           running-workflow-name: 'draft'
 
       - name: Delete outdated drafts
-        uses: hugo19941994/delete-draft-releases@v0.1.0
+        uses: hugo19941994/delete-draft-releases@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,8 +71,8 @@ jobs:
         with:
           prerelease: true
           draft: true
-          tag_name: v${{ steps.version.outputs.current-version }}
-          name: v${{ steps.version.outputs.current-version }}
+          tag_name: v${{ steps.version.outputs.build-version }}
+          name: v${{ steps.version.outputs.build-version }}
           body: ${{ steps.release-note.outputs.release-note }}
 
   upload_artifacts:
@@ -110,6 +111,7 @@ jobs:
       - name: Compile & release Electron app
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_APP_VERSION: ${{ needs.draft.outputs.version }}
         run: npm run release
 
         # uses: samuelmeuli/action-electron-builder@v1

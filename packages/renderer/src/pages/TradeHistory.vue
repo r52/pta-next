@@ -129,7 +129,6 @@
 <script lang="ts">
 import { defineComponent, ref, toRaw } from 'vue';
 import { useElectron } from '/@/use/electron';
-// @ts-expect-error: heroicons have no declaration
 import { XIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/vue/outline';
 import DataTable from '/@/components/DataTable.vue';
 
@@ -248,6 +247,7 @@ body {
 }
 
 .titlebar {
+  user-select: none;
   -webkit-user-select: none;
   -webkit-app-region: drag;
 }

@@ -1,20 +1,20 @@
 <script lang="ts">
-import { provide, computed, ref } from 'vue';
+import { provide, computed, ref, defineComponent } from 'vue';
 
-export default {
+export default defineComponent({
   name: 'Tabs',
   props: {
     modelValue: {
       type: [String, Number],
+      default: 0,
     },
   },
   emits: ['update:modelValue'],
-  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     const active = computed(() => props.modelValue);
     const tabs = ref([]);
 
-    function selectTab(tab: any) {
+    function selectTab(tab: string | number) {
       emit('update:modelValue', tab);
     }
 
@@ -24,7 +24,7 @@ export default {
       selectTab,
     });
   },
-};
+});
 </script>
 
 <template>

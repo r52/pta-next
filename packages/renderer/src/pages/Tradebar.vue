@@ -196,7 +196,6 @@ import {
   CogIcon,
   PaperAirplaneIcon,
   GlobeIcon,
-  // @ts-expect-error: heroicons have no declaration
 } from '@heroicons/vue/solid';
 
 export default defineComponent({
@@ -245,6 +244,7 @@ body {
 }
 
 .titlebar {
+  user-select: none;
   -webkit-user-select: none;
   -webkit-app-region: drag;
 }

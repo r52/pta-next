@@ -280,9 +280,8 @@ export default class TradeManager {
         skipTaskbar: true,
         show: false,
         webPreferences: {
+          nativeWindowOpen: true,
           preload: join(__dirname, '../../preload/dist/index.cjs'),
-          contextIsolation: env.MODE !== 'test',
-          enableRemoteModule: env.MODE === 'test',
         },
       });
 
@@ -327,9 +326,8 @@ export default class TradeManager {
           skipTaskbar: true,
           show: false,
           webPreferences: {
+            nativeWindowOpen: true,
             preload: join(__dirname, '../../preload/dist/index.cjs'),
-            contextIsolation: env.MODE !== 'test',
-            enableRemoteModule: env.MODE === 'test',
           },
           ...opts,
         });
@@ -444,9 +442,8 @@ export default class TradeManager {
           skipTaskbar: true,
           show: false,
           webPreferences: {
+            nativeWindowOpen: true,
             preload: join(__dirname, '../../preload/dist/index.cjs'),
-            contextIsolation: env.MODE !== 'test',
-            enableRemoteModule: env.MODE === 'test',
           },
         });
 
@@ -497,9 +494,8 @@ export default class TradeManager {
           skipTaskbar: true,
           show: false,
           webPreferences: {
+            nativeWindowOpen: true,
             preload: join(__dirname, '../../preload/dist/index.cjs'),
-            contextIsolation: env.MODE !== 'test',
-            enableRemoteModule: env.MODE === 'test',
           },
         });
 
@@ -550,9 +546,8 @@ export default class TradeManager {
         title: 'Trade History',
         show: false,
         webPreferences: {
+          nativeWindowOpen: true,
           preload: join(__dirname, '../../preload/dist/index.cjs'),
-          contextIsolation: env.MODE !== 'test',
-          enableRemoteModule: env.MODE === 'test',
         },
       });
 

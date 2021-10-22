@@ -173,6 +173,7 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import {
   Dialog,
   DialogOverlay,
@@ -180,10 +181,9 @@ import {
   TransitionChild,
   TransitionRoot,
 } from '@headlessui/vue';
-// @ts-expect-error: heroicons have no declaration
 import { ExclamationIcon } from '@heroicons/vue/outline';
 
-export default {
+export default defineComponent({
   components: {
     Dialog,
     DialogOverlay,
@@ -200,12 +200,11 @@ export default {
     },
   },
   emits: ['update:open'],
-  // @ts-expect-error: vue props can be inferred safely
   setup(props, { emit }) {
     function closeDialog() {
       emit('update:open', false);
     }
     return { closeDialog };
   },
-};
+});
 </script>

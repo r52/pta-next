@@ -549,7 +549,6 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref, computed, toRaw } from 'vue';
-// @ts-expect-error: heroicons have no declaration
 import { XIcon } from '@heroicons/vue/outline';
 import Tabs from '/@/components/Tabs.vue';
 import Tab from '/@/components/Tab.vue';
@@ -762,6 +761,7 @@ body {
 }
 
 .titlebar {
+  user-select: none;
   -webkit-user-select: none;
   -webkit-app-region: drag;
 }
