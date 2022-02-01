@@ -2,7 +2,7 @@
 import { provide, computed, ref, defineComponent } from 'vue';
 
 export default defineComponent({
-  name: 'Tabs',
+  name: 'TabList',
   props: {
     modelValue: {
       type: [String, Number],

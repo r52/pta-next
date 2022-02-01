@@ -31,72 +31,51 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { useElectron } from '/@/use/electron';
-import Card from '/@/components/Card.vue';
+<script lang="ts" setup>
+import { ref } from 'vue';
+import Card from '../components/CardItem.vue';
 import CardSection from '/@/components/CardSection.vue';
 
 import type { TabInfo } from '../../types';
 
-export default defineComponent({
-  name: 'StashHighlight',
+const { ipcOn } = window.electron;
 
-  components: {
-    Card,
-    CardSection,
-  },
+const quad = ref(false);
+const name = ref('');
+const x = ref(0);
+const y = ref(0);
 
-  setup() {
-    const { ipcOn } = useElectron();
-
-    const quad = ref(false);
-    const name = ref('');
-    const x = ref(0);
-    const y = ref(0);
-
-    function stopHighlight() {
-      const els = document.getElementsByClassName('pulse');
-      if (els) {
-        Array.from(els).forEach((el) => {
-          el.classList.remove('pulse');
-        });
-      }
-    }
-
-    function handleHighlight(tabinfo: TabInfo) {
-      quad.value = tabinfo.quad;
-      name.value = tabinfo.name;
-      x.value = tabinfo.x;
-      y.value = tabinfo.y;
-
-      stopHighlight();
-
-      const cell = tabinfo.x + (tabinfo.y - 1) * (tabinfo.quad ? 24 : 12);
-
-      const e = document.getElementById('cell-' + cell.toString());
-      if (e) {
-        e.classList.add('pulse');
-      }
-    }
-
-    ipcOn('highlight', (tabinfo: TabInfo) => {
-      handleHighlight(tabinfo);
+function stopHighlight() {
+  const els = document.getElementsByClassName('pulse');
+  if (els) {
+    Array.from(els).forEach((el) => {
+      el.classList.remove('pulse');
     });
+  }
+}
 
-    ipcOn('stop-highlight', () => {
-      stopHighlight();
-    });
+function handleHighlight(tabinfo: TabInfo) {
+  quad.value = tabinfo.quad;
+  name.value = tabinfo.name;
+  x.value = tabinfo.x;
+  y.value = tabinfo.y;
 
-    return {
-      quad,
-      name,
-      x,
-      y,
-      stopHighlight,
-      handleHighlight,
-    };
-  },
+  stopHighlight();
+
+  const cell = tabinfo.x + (tabinfo.y - 1) * (tabinfo.quad ? 24 : 12);
+
+  const e = document.getElementById('cell-' + cell.toString());
+  if (e) {
+    e.classList.add('pulse');
+  }
+}
+
+ipcOn('highlight', (tabinfo: TabInfo) => {
+  handleHighlight(tabinfo);
+});
+
+ipcOn('stop-highlight', () => {
+  stopHighlight();
 });
 </script>
 

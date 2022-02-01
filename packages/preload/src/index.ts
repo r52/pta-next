@@ -1,13 +1,16 @@
+/**
+ * @module preload
+ */
+
 /* eslint-disable @typescript-eslint/ban-types */
 import { contextBridge, shell, ipcRenderer } from 'electron';
-import log from 'electron-log';
 
 const apiKey = 'electron';
+
 /**
  * @see https://github.com/electron/electron/issues/21437#issuecomment-573522360
  */
-const api: ElectronApi = {
-  versions: process.versions,
+const api = {
   appVersion: () => ipcRenderer.invoke('get-version'),
   openBrowser: (url: string) => {
     shell.openExternal(url);
@@ -18,6 +21,7 @@ const api: ElectronApi = {
   getConfig: () => ipcRenderer.invoke('get-config'),
   setConfig: (obj: Record<string, unknown>) =>
     ipcRenderer.invoke('set-config', obj),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ipcSend: (channel: string, ...args: any[]) => {
     ipcRenderer.send(channel, ...args);
   },
@@ -26,9 +30,7 @@ const api: ElectronApi = {
       func(...args);
     });
   },
-};
-
-window.log = log.functions;
+} as const;
 
 /**
  * The "Main World" is the JavaScript context that your main renderer code runs in.
@@ -36,5 +38,6 @@ window.log = log.functions;
  *
  * @see https://www.electronjs.org/docs/api/context-bridge
  */
+
+contextBridge.exposeInMainWorld('versions', process.versions);
 contextBridge.exposeInMainWorld(apiKey, api);
-contextBridge.exposeInMainWorld('log', log.functions);

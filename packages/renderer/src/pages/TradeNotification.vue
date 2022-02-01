@@ -9,15 +9,7 @@
       <div class="titlebar-btn">
         <button
           type="button"
-          class="
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-white
-            hover:bg-gray-400
-          "
+          class="p-1 inline-flex items-center border border-transparent rounded-sm text-white hover:bg-gray-400"
           @click="closeTabOrWindow"
         >
           <XIcon class="h-4 w-4" />
@@ -25,8 +17,8 @@
       </div>
     </div>
     <div class="p-2">
-      <tabs v-model="tab">
-        <tab
+      <tab-list v-model="tab">
+        <tab-item
           v-for="trade in trades"
           :key="`${trade.name}${trade.time}`"
           :name="`${trade.name}${trade.time}`"
@@ -38,8 +30,8 @@
           }"
         >
           {{ trades.length > 1 ? truncateName(trade.item) : trade.item }}
-        </tab>
-      </tabs>
+        </tab-item>
+      </tab-list>
     </div>
     <div>
       <tab-panels
@@ -74,22 +66,7 @@
             >
               <button
                 type="button"
-                class="
-                  inline-flex
-                  items-center
-                  px-4
-                  py-2
-                  border border-transparent
-                  text-base
-                  leading-6
-                  font-medium
-                  rounded-md
-                  text-white
-                  bg-blue-600
-                  hover:bg-blue-500
-                  focus:border-blue-700
-                  active:bg-blue-700
-                "
+                class="inline-flex items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-500 focus:border-blue-700 active:bg-blue-700"
                 @click="sendCustomCommand(trade, cmd)"
               >
                 {{ cmd.label }}
@@ -98,18 +75,7 @@
           </div>
 
           <div
-            class="
-              fixed
-              bottom-0
-              left-0
-              px-2
-              bg-gray-500
-              flex
-              h-6
-              w-full
-              items-center
-              space-x-2
-            "
+            class="fixed bottom-0 left-0 px-2 bg-gray-500 flex h-6 w-full items-center space-x-2"
           >
             <div v-if="trade.type == 'incoming'">
               <ArrowRightIcon class="h-4 w-4 text-green-400" />
@@ -133,16 +99,7 @@
             <div v-if="trade.type == 'incoming'">
               <button
                 type="button"
-                class="
-                  tooltip
-                  p-1
-                  inline-flex
-                  items-center
-                  border border-transparent
-                  rounded-sm
-                  text-green-300
-                  hover:bg-gray-400
-                "
+                class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-green-300 hover:bg-gray-400"
                 @click="sendTradeCommand(trade, 'invite')"
               >
                 <UserAddIcon class="h-4 w-4" />
@@ -152,16 +109,7 @@
             <div v-else>
               <button
                 type="button"
-                class="
-                  tooltip
-                  p-1
-                  inline-flex
-                  items-center
-                  border border-transparent
-                  rounded-sm
-                  text-green-300
-                  hover:bg-gray-400
-                "
+                class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-green-300 hover:bg-gray-400"
                 @click="sendTradeCommand(trade, 'hideout')"
               >
                 <HomeIcon class="h-4 w-4" />
@@ -172,15 +120,7 @@
             <div>
               <button
                 type="button"
-                class="
-                  tooltip
-                  p-1
-                  inline-flex
-                  items-center
-                  border border-transparent
-                  rounded-sm
-                  hover:bg-gray-400
-                "
+                class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm hover:bg-gray-400"
                 :class="{
                   'text-green-300': trade.enteredarea,
                   'text-yellow-300': !trade.enteredarea,
@@ -195,16 +135,7 @@
             <div v-if="trade.type == 'incoming'">
               <button
                 type="button"
-                class="
-                  tooltip
-                  p-1
-                  inline-flex
-                  items-center
-                  border border-transparent
-                  rounded-sm
-                  text-red-500
-                  hover:bg-gray-400
-                "
+                class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-red-500 hover:bg-gray-400"
                 @click="sendTradeCommand(trade, 'kick')"
               >
                 <UserRemoveIcon class="h-4 w-4" />
@@ -214,16 +145,7 @@
             <div v-else>
               <button
                 type="button"
-                class="
-                  tooltip
-                  p-1
-                  inline-flex
-                  items-center
-                  border border-transparent
-                  rounded-sm
-                  text-red-500
-                  hover:bg-gray-400
-                "
+                class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-red-500 hover:bg-gray-400"
                 @click="sendTradeCommand(trade, 'leave')"
               >
                 <UserRemoveIcon class="h-4 w-4" />
@@ -237,9 +159,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, toRaw } from 'vue';
-import { useElectron } from '/@/use/electron';
+<script lang="ts" setup>
+import { ref, toRaw } from 'vue';
 import {
   XIcon,
   HomeIcon,
@@ -249,181 +170,146 @@ import {
   UserRemoveIcon,
   SwitchHorizontalIcon,
 } from '@heroicons/vue/solid';
-import Tabs from '/@/components/Tabs.vue';
-import Tab from '/@/components/Tab.vue';
+import TabList from '../components/TabList.vue';
+import TabItem from '../components/TabItem.vue';
 import TabPanels from '/@/components/TabPanels.vue';
 import TabPanel from '/@/components/TabPanel.vue';
 
 import type { TradeCommand, TradeNotification } from '../../types';
 
-export default defineComponent({
-  name: 'TradeNotification',
+const { closeWindow, ipcSend, ipcOn } = window.electron;
 
-  components: {
-    Tabs,
-    Tab,
-    TabPanels,
-    TabPanel,
-    XIcon,
-    HomeIcon,
-    ArrowLeftIcon,
-    ArrowRightIcon,
-    UserAddIcon,
-    UserRemoveIcon,
-    SwitchHorizontalIcon,
-  },
+const tab = ref('');
+const trades = ref([] as TradeNotification[]);
 
-  setup() {
-    const { closeWindow, ipcSend, ipcOn } = useElectron();
+function truncateName(str: string) {
+  const maxlen = 12;
+  if (str.length > maxlen) {
+    return str.substring(0, maxlen) + '...';
+  }
+  return str;
+}
 
-    const tab = ref('');
-    const trades = ref([] as TradeNotification[]);
+// Update time
+function updateElapseTime() {
+  const now = Date.now();
+  trades.value.forEach((trade) => {
+    let dif = now - trade.time;
 
-    function truncateName(str: string) {
-      const maxlen = 12;
-      if (str.length > maxlen) {
-        return str.substring(0, maxlen) + '...';
+    // convert to seconds
+    dif = Math.floor(dif / 1000);
+
+    if (dif < 60) {
+      trade.curtime = dif.toString() + 's';
+      return;
+    }
+
+    // minutes
+    if (dif < 3600) {
+      trade.curtime = Math.floor(dif / 60).toString() + 'm';
+      return;
+    }
+
+    if (dif < 86400) {
+      trade.curtime = Math.floor(dif / 3600).toString() + 'h';
+      return;
+    }
+
+    trade.curtime = Math.floor(dif / 86400).toString() + 'd';
+  });
+}
+
+// Handle trade events
+function handleTrade(trade: TradeNotification) {
+  trades.value.push(trade);
+
+  if (!tab.value) {
+    tab.value = trade.name + trade.time.toString();
+  }
+}
+
+function handleTradeEvent(event: string, name: string) {
+  trades.value.some((trade) => {
+    if (trade.name == name) {
+      switch (event) {
+        case 'new-whisper':
+          trade.newwhisper = true;
+          break;
+        case 'entered-area':
+          trade.enteredarea = true;
+          break;
+        case 'left-area':
+          trade.enteredarea = false;
+          break;
       }
-      return str;
+
+      return true;
     }
+    return false;
+  });
+}
 
-    // Update time
-    function updateElapseTime() {
-      const now = Date.now();
-      trades.value.forEach((trade) => {
-        let dif = now - trade.time;
-
-        // convert to seconds
-        dif = Math.floor(dif / 1000);
-
-        if (dif < 60) {
-          trade.curtime = dif.toString() + 's';
-          return;
-        }
-
-        // minutes
-        if (dif < 3600) {
-          trade.curtime = Math.floor(dif / 60).toString() + 'm';
-          return;
-        }
-
-        if (dif < 86400) {
-          trade.curtime = Math.floor(dif / 3600).toString() + 'h';
-          return;
-        }
-
-        trade.curtime = Math.floor(dif / 86400).toString() + 'd';
-      });
-    }
-
-    // Handle trade events
-    function handleTrade(trade: TradeNotification) {
-      trades.value.push(trade);
-
-      if (!tab.value) {
-        tab.value = trade.name + trade.time.toString();
-      }
-    }
-
-    function handleTradeEvent(event: string, name: string) {
-      trades.value.some((trade) => {
-        if (trade.name == name) {
-          switch (event) {
-            case 'new-whisper':
-              trade.newwhisper = true;
-              break;
-            case 'entered-area':
-              trade.enteredarea = true;
-              break;
-            case 'left-area':
-              trade.enteredarea = false;
-              break;
-          }
-
-          return true;
-        }
-        return false;
-      });
-    }
-
-    ipcOn('trade', (trade: TradeNotification) => {
-      handleTrade(trade);
-    });
-
-    ipcOn('new-whisper', (name: string) => {
-      handleTradeEvent('new-whisper', name);
-    });
-
-    ipcOn('entered-area', (name: string) => {
-      handleTradeEvent('entered-area', name);
-    });
-
-    ipcOn('left-area', (name: string) => {
-      handleTradeEvent('left-area', name);
-    });
-
-    function closeTabOrWindow() {
-      if (trades.value.length <= 1) {
-        closeWindow();
-      } else if (tab.value) {
-        let idx = trades.value.findIndex((trade) => {
-          return tab.value == trade.name + trade.time.toString();
-        });
-
-        trades.value.splice(idx, 1);
-
-        if (idx < 0) idx = 0;
-        if (idx > trades.value.length - 1) idx = trades.value.length - 1;
-
-        const last = trades.value[idx];
-        tab.value = last.name + last.time.toString();
-      }
-    }
-
-    function highlightStash(trade: TradeNotification) {
-      ipcSend('highlight-stash', trade.tab, trade.x, trade.y);
-    }
-
-    function stopHighlightStash() {
-      ipcSend('stop-highlight-stash');
-    }
-
-    function sendTradeCommand(trade: TradeNotification, command: string) {
-      ipcSend('trade-command', toRaw(trade), command);
-    }
-
-    function sendCustomCommand(
-      trade: TradeNotification,
-      command: TradeCommand,
-    ) {
-      ipcSend('trade-custom-command', toRaw(trade), toRaw(command));
-
-      if (command.close) {
-        closeTabOrWindow();
-      }
-    }
-
-    function getCurrencyImage(name: string) {
-      return new URL(`/assets/currency/${name}.png`, import.meta.url).href;
-    }
-
-    setInterval(() => {
-      updateElapseTime();
-    }, 1000);
-
-    return {
-      tab,
-      trades,
-      truncateName,
-      closeTabOrWindow,
-      highlightStash,
-      stopHighlightStash,
-      sendTradeCommand,
-      sendCustomCommand,
-      getCurrencyImage,
-    };
-  },
+ipcOn('trade', (trade: TradeNotification) => {
+  handleTrade(trade);
 });
+
+ipcOn('new-whisper', (name: string) => {
+  handleTradeEvent('new-whisper', name);
+});
+
+ipcOn('entered-area', (name: string) => {
+  handleTradeEvent('entered-area', name);
+});
+
+ipcOn('left-area', (name: string) => {
+  handleTradeEvent('left-area', name);
+});
+
+function closeTabOrWindow() {
+  if (trades.value.length <= 1) {
+    closeWindow();
+  } else if (tab.value) {
+    let idx = trades.value.findIndex((trade) => {
+      return tab.value == trade.name + trade.time.toString();
+    });
+
+    trades.value.splice(idx, 1);
+
+    if (idx < 0) idx = 0;
+    if (idx > trades.value.length - 1) idx = trades.value.length - 1;
+
+    const last = trades.value[idx];
+    tab.value = last.name + last.time.toString();
+  }
+}
+
+function highlightStash(trade: TradeNotification) {
+  ipcSend('highlight-stash', trade.tab, trade.x, trade.y);
+}
+
+function stopHighlightStash() {
+  ipcSend('stop-highlight-stash');
+}
+
+function sendTradeCommand(trade: TradeNotification, command: string) {
+  ipcSend('trade-command', toRaw(trade), command);
+}
+
+function sendCustomCommand(trade: TradeNotification, command: TradeCommand) {
+  ipcSend('trade-custom-command', toRaw(trade), toRaw(command));
+
+  if (command.close) {
+    closeTabOrWindow();
+  }
+}
+
+function getCurrencyImage(name: string) {
+  return new URL(`/assets/currency/${name}.png`, import.meta.url).href;
+}
+
+setInterval(() => {
+  updateElapseTime();
+}, 1000);
 </script>
 
 <style>

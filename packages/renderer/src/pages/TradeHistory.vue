@@ -8,16 +8,7 @@
         <span class="inline-flex">
           <button
             type="button"
-            class="
-              p-2
-              inline-flex
-              items-center
-              border border-transparent
-              rounded-full
-              hover:bg-gray-400
-              focus:border-gray-700
-              active:bg-gray-700
-            "
+            class="p-2 inline-flex items-center border border-transparent rounded-full hover:bg-gray-400 focus:border-gray-700 active:bg-gray-700"
             @click="closeWindow"
           >
             <XIcon class="h-6 w-6" />
@@ -41,14 +32,7 @@
           </th>
           <th
             scope="col"
-            class="
-              relative
-              px-6
-              py-4
-              whitespace-nowrap
-              text-right text-sm
-              font-medium
-            "
+            class="relative px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
           >
             <span class="sr-only">Remove</span>
           </th>
@@ -126,9 +110,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, toRaw } from 'vue';
-import { useElectron } from '/@/use/electron';
+<script lang="ts" setup>
+import { ref, toRaw } from 'vue';
 import { XIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/vue/outline';
 import DataTable from '/@/components/DataTable.vue';
 
@@ -167,72 +150,49 @@ const columns = [
   },
 ];
 
-export default defineComponent({
-  name: 'TradeHistory',
-  components: {
-    XIcon,
-    ArrowLeftIcon,
-    ArrowRightIcon,
-    DataTable,
-  },
+const { closeWindow, ipcOn, ipcSend } = window.electron;
 
-  setup() {
-    const { closeWindow, ipcOn, ipcSend } = useElectron();
+function getCurrencyImage(name: unknown) {
+  // Get around https://github.com/vuejs/rfcs/pull/192
+  const n = name as string;
 
-    function getCurrencyImage(name: unknown) {
-      // Get around https://github.com/vuejs/rfcs/pull/192
-      const n = name as string;
+  return new URL(`/assets/currency/${n}.png`, import.meta.url).href;
+}
 
-      return new URL(`/assets/currency/${n}.png`, import.meta.url).href;
-    }
+function getElapsedTime(t1: number, t2: unknown): string {
+  const t = t2 as number;
 
-    function getElapsedTime(t1: number, t2: unknown): string {
-      // Get around https://github.com/vuejs/rfcs/pull/192
-      const t = t2 as number;
+  let dif = t1 - t;
 
-      let dif = t1 - t;
+  // convert to seconds
+  dif = Math.floor(dif / 1000);
 
-      // convert to seconds
-      dif = Math.floor(dif / 1000);
+  if (dif < 60) {
+    return dif.toString() + ' seconds';
+  }
 
-      if (dif < 60) {
-        return dif.toString() + ' seconds';
-      }
+  // minutes
+  if (dif < 3600) {
+    return Math.floor(dif / 60).toString() + ' minutes';
+  }
 
-      // minutes
-      if (dif < 3600) {
-        return Math.floor(dif / 60).toString() + ' minutes';
-      }
+  if (dif < 86400) {
+    return Math.floor(dif / 3600).toString() + ' hours';
+  }
 
-      if (dif < 86400) {
-        return Math.floor(dif / 3600).toString() + ' hours';
-      }
+  return Math.floor(dif / 86400).toString() + ' days';
+}
 
-      return Math.floor(dif / 86400).toString() + ' days';
-    }
+const history = ref([] as TradeMsg[]);
+const now = Date.now();
 
-    const history = ref([] as TradeMsg[]);
-    const now = Date.now();
+function historyCommand(e: Event, command: string, trade: unknown) {
+  ipcSend(command, toRaw(trade));
+  e.preventDefault();
+}
 
-    function historyCommand(e: Event, command: string, trade: unknown) {
-      ipcSend(command, toRaw(trade));
-      e.preventDefault();
-    }
-
-    ipcOn('trade-history', (nhist: TradeMsg[]) => {
-      history.value = nhist;
-    });
-
-    return {
-      columns,
-      history,
-      now,
-      getCurrencyImage,
-      historyCommand,
-      closeWindow,
-      getElapsedTime,
-    };
-  },
+ipcOn('trade-history', (nhist: TradeMsg[]) => {
+  history.value = nhist;
 });
 </script>
 

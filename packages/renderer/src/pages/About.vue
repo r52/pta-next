@@ -8,16 +8,7 @@
         <span class="inline-flex">
           <button
             type="button"
-            class="
-              p-2
-              inline-flex
-              items-center
-              border border-transparent
-              rounded-full
-              hover:bg-gray-400
-              focus:border-gray-700
-              active:bg-gray-700
-            "
+            class="p-2 inline-flex items-center border border-transparent rounded-full hover:bg-gray-400 focus:border-gray-700 active:bg-gray-700"
             @click="closeWindow"
           >
             <XIcon class="h-6 w-6" />
@@ -33,22 +24,7 @@
       <card-section>
         <button
           type="button"
-          class="
-            inline-flex
-            items-center
-            px-4
-            py-2
-            border border-transparent
-            text-base
-            leading-6
-            font-medium
-            rounded-md
-            text-white
-            bg-pink-600
-            hover:bg-pink-500
-            focus:border-pink-700
-            active:bg-pink-700
-          "
+          class="inline-flex items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-pink-600 hover:bg-pink-500 focus:border-pink-700 active:bg-pink-700"
           @click="openBrowser('https://github.com/r52/pta-next')"
         >
           GitHub Source
@@ -61,45 +37,25 @@
         <span class="text-2xl">Libraries Used</span>
       </card-section>
       <card-section>
-        <ul aria-labelledby="versions">
-          <li
-            v-for="(version, lib) in versions"
-            :key="lib"
-          >
-            <strong>{{ lib }}</strong>: v{{ version }}
-          </li>
-        </ul>
+        <electron-versions />
       </card-section>
     </card>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script lang="ts" setup>
+import { ref } from 'vue';
 import { XIcon } from '@heroicons/vue/outline';
-import Card from '/@/components/Card.vue';
+import Card from '../components/CardItem.vue';
 import CardSection from '/@/components/CardSection.vue';
-import { useElectron } from '/@/use/electron';
+import ElectronVersions from '/@/components/ElectronVersions.vue';
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    XIcon,
-    Card,
-    CardSection,
-  },
-  setup() {
-    const appVer = ref('');
+const appVer = ref('');
 
-    const { versions, appVersion, closeWindow, openBrowser } = useElectron();
+const { appVersion, closeWindow, openBrowser } = window.electron;
 
-    appVersion().then((result) => {
-      appVer.value = result;
-    });
-
-    // It makes no sense to make "versions" reactive
-    return { versions, appVer, closeWindow, openBrowser };
-  },
+appVersion().then((result) => {
+  appVer.value = result;
 });
 </script>
 

@@ -11,7 +11,7 @@ import {
 import type { ComponentInternalInstance } from 'vue';
 
 export default defineComponent({
-  name: 'Tab',
+  name: 'TabItem',
   props: {
     name: {
       type: String,
@@ -65,15 +65,7 @@ export default defineComponent({
         ? 'border-b-4 border-green-500 box-content'
         : 'border-b-2 border-white'
     "
-    class="
-      flex
-      items-center
-      px-6
-      py-3
-      rounded-tl-md rounded-tr-md
-      overflow-hidden
-      cursor-pointer
-    "
+    class="flex items-center px-6 py-3 rounded-tl-md rounded-tr-md overflow-hidden cursor-pointer"
     @click="activateTab"
   >
     <slot />

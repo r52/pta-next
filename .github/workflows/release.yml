@@ -50,7 +50,7 @@ jobs:
 
       - name: Get version from current date
         id: version
-        run: echo "::set-output name=build-version::$(node -e "try{console.log(require('./electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
+        run: echo "::set-output name=build-version::$(node -e "try{console.log(require('./.electron-builder.config.js').extraMetadata.version)}catch(e){console.error(e);process.exit(1)}")"
 
       - name: Waiting on All checks
         uses: lewagon/wait-on-check-action@v0.2
@@ -117,7 +117,7 @@ jobs:
         # uses: samuelmeuli/action-electron-builder@v1
         # with:
         #   build_script_name: build
-        #   args: --config electron-builder.config.js
+        #   args: --config .electron-builder.config.js
 
         # GitHub token, automatically provided to the action
         # (No need to define this secret in the repo settings)

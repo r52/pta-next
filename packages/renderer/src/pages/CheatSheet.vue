@@ -8,16 +8,7 @@
         <span class="inline-flex">
           <button
             type="button"
-            class="
-              p-2
-              inline-flex
-              items-center
-              border border-transparent
-              rounded-full
-              hover:bg-gray-400
-              focus:border-gray-700
-              active:bg-gray-700
-            "
+            class="p-2 inline-flex items-center border border-transparent rounded-full hover:bg-gray-400 focus:border-gray-700 active:bg-gray-700"
             @click="closeWindow"
           >
             <XIcon class="h-6 w-6" />
@@ -32,43 +23,27 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { useElectron } from '/@/use/electron';
+<script lang="ts" setup>
+import { ref } from 'vue';
 import { XIcon } from '@heroicons/vue/outline';
 
-export default defineComponent({
-  name: 'CheatSheet',
-  components: {
-    XIcon,
-  },
+const { closeWindow, ipcOn } = window.electron;
 
-  setup() {
-    const { closeWindow, ipcOn } = useElectron();
+const title = ref('Cheat Sheet');
+const cheatSheetPath = ref('');
 
-    const title = ref('Cheat Sheet');
-    const cheatSheetPath = ref('');
+function getCheatsheetImage(name: string) {
+  return new URL(`/assets/cheatsheets/${name}.png`, import.meta.url).href;
+}
 
-    function getCheatsheetImage(name: string) {
-      return new URL(`/assets/cheatsheets/${name}.png`, import.meta.url).href;
-    }
+ipcOn('cheatsheet-type', (type: string, path: string) => {
+  title.value = type + ' Cheat Sheet';
 
-    ipcOn('cheatsheet-type', (type: string, path: string) => {
-      title.value = type + ' Cheat Sheet';
-
-      if (path.startsWith('http')) {
-        cheatSheetPath.value = path;
-      } else {
-        cheatSheetPath.value = getCheatsheetImage(path);
-      }
-    });
-
-    return {
-      title,
-      cheatSheetPath,
-      closeWindow,
-    };
-  },
+  if (path.startsWith('http')) {
+    cheatSheetPath.value = path;
+  } else {
+    cheatSheetPath.value = getCheatsheetImage(path);
+  }
 });
 </script>
 

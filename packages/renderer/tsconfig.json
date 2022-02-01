@@ -1,6 +1,15 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "sourceMap": false,
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "strict": true,
+    "isolatedModules": true,
+
+    "types" : ["node"],
+
     "baseUrl": ".",
     "paths": {
       "/@/*": [
@@ -16,6 +25,10 @@
     "src/**/*.tsx",
     "types/**/*.d.ts",
     "../../types/**/*.d.ts",
-    "../preload/types/electron-api.d.ts"
+    "../preload/exposedInMainWorld.d.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
   ]
 }
