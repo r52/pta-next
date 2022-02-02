@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-import Card from '../components/CardItem.vue';
+import Card from '/@/components/CardItem.vue';
 import CardSection from '/@/components/CardSection.vue';
 </script>
 

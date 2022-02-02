@@ -46,7 +46,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { XIcon } from '@heroicons/vue/outline';
-import Card from '../components/CardItem.vue';
+import Card from '/@/components/CardItem.vue';
 import CardSection from '/@/components/CardSection.vue';
 import ElectronVersions from '/@/components/ElectronVersions.vue';
 

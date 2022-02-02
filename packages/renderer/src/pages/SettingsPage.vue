@@ -383,8 +383,8 @@
 <script lang="ts" setup>
 import { reactive, ref, computed, toRaw } from 'vue';
 import { XIcon } from '@heroicons/vue/outline';
-import TabList from '../components/TabList.vue';
-import TabItem from '../components/TabItem.vue';
+import TabList from '/@/components/TabList.vue';
+import TabItem from '/@/components/TabItem.vue';
 import TabPanels from '/@/components/TabPanels.vue';
 import TabPanel from '/@/components/TabPanel.vue';
 import DataTable from '/@/components/DataTable.vue';

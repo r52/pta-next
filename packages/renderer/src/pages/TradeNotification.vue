@@ -170,8 +170,8 @@ import {
   UserRemoveIcon,
   SwitchHorizontalIcon,
 } from '@heroicons/vue/solid';
-import TabList from '../components/TabList.vue';
-import TabItem from '../components/TabItem.vue';
+import TabList from '/@/components/TabList.vue';
+import TabItem from '/@/components/TabItem.vue';
 import TabPanels from '/@/components/TabPanels.vue';
 import TabPanel from '/@/components/TabPanel.vue';
 
