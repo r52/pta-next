@@ -388,8 +388,8 @@ import TabItem from '/@/components/TabItem.vue';
 import TabPanels from '/@/components/TabPanels.vue';
 import TabPanel from '/@/components/TabPanel.vue';
 import DataTable from '/@/components/DataTable.vue';
-import Modal from '/@/components/Modal.vue';
-import Notification from '/@/components/Notification.vue';
+import Modal from '/@/components/ModalDialog.vue';
+import Notification from '/@/components/NotificationPanel.vue';
 import { DialogTitle } from '@headlessui/vue';
 
 import Config from '../../../main/src/config';
@@ -520,6 +520,7 @@ function addTradeCommand() {
   openDlg.value = false;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function removeTradeCommand(row: any, from: TradeCommand[]) {
   const idx = from.findIndex((target) => target.label === row.label);
 
