@@ -80,7 +80,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-2019]
     #    To compile the application for different platforms, use:
     #    os: [ macos-latest, ubuntu-latest, windows-latest ]
 
