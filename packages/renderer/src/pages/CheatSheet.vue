@@ -33,7 +33,10 @@ const title = ref('Cheat Sheet');
 const cheatSheetPath = ref('');
 
 function getCheatsheetImage(name: string) {
-  return new URL(`/assets/cheatsheets/${name}.png`, import.meta.url).href;
+  return new URL(
+    `/assets/cheatsheets/${name}.${name == 'betrayal' ? 'webp' : 'png'}`,
+    import.meta.url,
+  ).href;
 }
 
 ipcOn('cheatsheet-type', (type: string, path: string) => {
