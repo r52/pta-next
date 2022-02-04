@@ -104,9 +104,6 @@ jobs:
           RELEASE_NOTE: ${{ needs.draft.outputs.release-note }}
         run: echo "$RELEASE_NOTE" >> ./buildResources/release-notes.md
 
-      - name: Build packages
-        run: npm run precompile
-
       # Compile app and upload artifacts
       - name: Compile & release Electron app
         env:

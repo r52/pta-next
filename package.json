@@ -25,7 +25,7 @@
     "test:preload": "vitest run -r packages/preload --passWithNoTests",
     "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
     "compile-release": "cross-env MODE=production npm run build && electron-builder build --config .electron-builder.config.js --publish never",
-    "release": "electron-builder build --config .electron-builder.config.js --publish always",
+    "release": "cross-env MODE=production npm run build && electron-builder build --config .electron-builder.config.js --publish always",
     "watch": "node scripts/watch.js",
     "lint": "eslint . --ext js,ts,vue",
     "typecheck:main": "tsc --noEmit -p packages/main/tsconfig.json",
