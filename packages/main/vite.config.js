@@ -1,4 +1,4 @@
-import { node } from '../../electron-vendors.config.json';
+import { node } from '../../.electron-vendors.cache.json';
 import { join } from 'path';
 import { builtinModules } from 'module';
 
@@ -22,20 +22,17 @@ const config = {
     target: `node${node}`,
     outDir: 'dist',
     assetsDir: '.',
-    minify: process.env.MODE === 'development' ? false : 'terser',
-    terserOptions: {
-      ecma: 2020,
-      compress: {
-        passes: 2,
-      },
-      safari10: false,
-    },
+    minify: process.env.MODE !== 'development',
     lib: {
       entry: 'src/index.ts',
       formats: ['cjs'],
     },
     rollupOptions: {
-      external: ['electron', 'electron-devtools-installer', ...builtinModules],
+      external: [
+        'electron',
+        'electron-devtools-installer',
+        ...builtinModules.flatMap((p) => [p, `node:${p}`]),
+      ],
       output: {
         entryFileNames: '[name].cjs',
       },

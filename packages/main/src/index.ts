@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray } from 'electron';
+import './security-restrictions';
 import { join } from 'path';
 import { URL } from 'url';
 import { PTA } from './pta';
@@ -37,8 +38,7 @@ let about: BrowserWindow | null = null;
  * `file://../renderer/index.html` for production and test
  */
 const pageUrl =
-  import.meta.env.MODE === 'development' &&
-  import.meta.env.VITE_DEV_SERVER_URL !== undefined
+  import.meta.env.DEV && import.meta.env.VITE_DEV_SERVER_URL !== undefined
     ? import.meta.env.VITE_DEV_SERVER_URL
     : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
 

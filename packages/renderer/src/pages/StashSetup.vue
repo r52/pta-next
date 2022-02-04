@@ -25,17 +25,9 @@
   </div>
 </template>
 
-<script>
-import Card from '/@/components/Card.vue';
+<script lang="ts" setup>
+import Card from '/@/components/CardItem.vue';
 import CardSection from '/@/components/CardSection.vue';
-
-export default {
-  name: 'StashSetup',
-  components: {
-    Card,
-    CardSection,
-  },
-};
 </script>
 
 <style>

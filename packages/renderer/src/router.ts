@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import Splash from '/@/pages/Splash.vue';
+import Splash from './pages/SplashPage.vue';
 
 const routes = [
   { path: '/splash', name: 'Splash', component: Splash },
@@ -11,7 +11,7 @@ const routes = [
   {
     path: '/settings',
     name: 'Settings',
-    component: () => import('/@/pages/Settings.vue'),
+    component: () => import('./pages/SettingsPage.vue'),
   },
   {
     path: '/tradebar',

@@ -4,9 +4,4 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-export default defineComponent({
-  name: 'CardSection',
-});
-</script>
+<script lang="ts" setup></script>

@@ -4,14 +4,7 @@
       <div>
         <button
           type="button"
-          class="
-            titlebar
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-md
-          "
+          class="titlebar p-1 inline-flex items-center border border-transparent rounded-md"
         >
           <DotsVerticalIcon class="h-4 w-4" />
         </button>
@@ -20,16 +13,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-green-500
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-green-500 hover:bg-gray-400"
           @click="sendCommand('self-hideout')"
         >
           <HomeIcon class="h-4 w-4" />
@@ -40,16 +24,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-yellow-300
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-yellow-300 hover:bg-gray-400"
           @click="sendMsg('test-trade-notification')"
         >
           <ExclamationIcon class="h-4 w-4" />
@@ -61,16 +36,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-indigo-300
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-indigo-300 hover:bg-gray-400"
           @click="sendMsg('stash-debug')"
         >
           <ViewGridIcon class="h-4 w-4" />
@@ -81,16 +47,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-green-200
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-green-200 hover:bg-gray-400"
           @click="sendMsg('open-trade-history')"
         >
           <ClockIcon class="h-4 w-4" />
@@ -101,16 +58,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-red-500
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-red-500 hover:bg-gray-400"
           @click="sendMsg('open-cheatsheet-incursion')"
         >
           <PaperAirplaneIcon class="h-4 w-4" />
@@ -121,16 +69,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-red-200
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-red-200 hover:bg-gray-400"
           @click="sendMsg('open-cheatsheet-betrayal')"
         >
           <GlobeIcon class="h-4 w-4" />
@@ -141,16 +80,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-yellow-500
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-yellow-500 hover:bg-gray-400"
           @click="sendMsg('open-settings')"
         >
           <CogIcon class="h-4 w-4" />
@@ -163,16 +93,7 @@
       <div>
         <button
           type="button"
-          class="
-            tooltip
-            p-1
-            inline-flex
-            items-center
-            border border-transparent
-            rounded-sm
-            text-white
-            hover:bg-gray-400
-          "
+          class="tooltip p-1 inline-flex items-center border border-transparent rounded-sm text-white hover:bg-gray-400"
           @click="closeWindow"
         >
           <XIcon class="h-4 w-4" />
@@ -183,9 +104,7 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { useElectron } from '/@/use/electron';
+<script lang="ts" setup>
 import {
   XIcon,
   DotsVerticalIcon,
@@ -198,39 +117,15 @@ import {
   GlobeIcon,
 } from '@heroicons/vue/solid';
 
-export default defineComponent({
-  name: 'Tradebar',
+const { closeWindow, ipcSend } = window.electron;
 
-  components: {
-    XIcon,
-    DotsVerticalIcon,
-    HomeIcon,
-    ExclamationIcon,
-    ViewGridIcon,
-    ClockIcon,
-    CogIcon,
-    PaperAirplaneIcon,
-    GlobeIcon,
-  },
+function sendMsg(msg: string) {
+  ipcSend(msg);
+}
 
-  setup() {
-    const { closeWindow, ipcSend } = useElectron();
-
-    function sendMsg(msg: string) {
-      ipcSend(msg);
-    }
-
-    function sendCommand(command: string) {
-      ipcSend('trade-command', {}, command);
-    }
-
-    return {
-      sendMsg,
-      sendCommand,
-      closeWindow,
-    };
-  },
-});
+function sendCommand(command: string) {
+  ipcSend('trade-command', {}, command);
+}
 </script>
 
 <style>
